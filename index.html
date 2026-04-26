@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi SMPN 2 Kawali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; overflow-x: hidden; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; transition: 0.3s; }
+        .input-cinematic:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); outline: none; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
+        .bg-offline { background: #fb7185; box-shadow: 0 0 10px #fb7185; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 15px 30px; border-radius: 15px; display: none; }
+        video { width: 100%; max-width: 320px; border-radius: 24px; border: 3px solid #1e293b; background: #000; transform: scaleX(-1); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="glass border-sky-500 text-white font-bold text-center"></div>
+
+    <div id="loginPage" class="flex items-center justify-center min-h-screen p-6">
+        <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border border-white/10">
+            <img src="logo.png" class="w-24 mx-auto mb-6">
+            <h1 class="text-2xl font-bold tracking-tight">SMPN 2 KAWALI</h1>
+            <p class="text-slate-400 text-xs mb-8 uppercase tracking-widest">Sistem Absensi v2.0</p>
+            <div class="space-y-4">
+                <input type="text" id="user" class="input-cinematic w-full p-4 rounded-2xl" placeholder="Username">
+                <input type="password" id="pass" class="input-cinematic w-full p-4 rounded-2xl" placeholder="Password">
+                <input type="password" id="pin" maxlength="6" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN LOGIN">
+                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 py-4 rounded-2xl font-bold text-white transition-all shadow-lg shadow-sky-900/20">MASUK KE SISTEM</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="hidden">
+        <nav class="p-4 glass flex justify-between items-center sticky top-0 z-50 px-6 border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" class="w-8">
+                <span class="font-bold text-sm tracking-tight">SMPN 2 KAWALI</span>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="flex items-center gap-1.5 text-[10px] font-bold"><span id="gpsDot" class="status-dot bg-offline"></span> GPS</div>
+                <div class="flex items-center gap-1.5 text-[10px] font-bold"><span id="camDot" class="status-dot bg-offline"></span> CAM</div>
+                <button onclick="location.reload()" class="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 rounded-full text-[10px] font-black">LOGOUT</button>
+            </div>
+        </nav>
+
+        <main class="p-6 max-w-xl mx-auto">
+            <div id="vPetugas" class="hidden space-y-6">
+                <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl">
+                    <div class="relative mb-6">
+                        <input type="text" id="cariSiswa" list="listSiswa" oninput="cekSiswa(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-xl font-bold" placeholder="Nama / Tiga Huruf...">
+                        <datalist id="listSiswa"></datalist>
+                    </div>
+                    <div id="boxKelas" class="bg-sky-500/10 border border-sky-500/30 text-sky-400 py-2 px-4 rounded-full inline-block font-bold text-sm mb-6">KELAS: -</div>
+                    
+                    <div class="relative group">
+                        <video id="video" autoplay playsinline></video>
+                        <button onclick="switchCam()" class="absolute bottom-4 right-1/2 translate-x-1/2 bg-white/10 hover:bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/20 text-white transition-all">
+                            <i class="fas fa-camera-rotate"></i>
+                        </button>
+                    </div>
+                    
+                    <button id="btnAbsen" onclick="absen()" class="w-full bg-gradient-to-r from-sky-600 to-blue-600 py-5 rounded-3xl font-black text-xl mt-8 shadow-2xl shadow-blue-900/40 uppercase tracking-widest">ABSEN SEKARANG</button>
+                </div>
+            </div>
+
+            <div id="vAdmin" class="hidden space-y-6">
+                <div class="glass p-6 rounded-3xl shadow-lg border border-white/5">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-clock text-sky-400"></i> JAM OPERASIONAL</h3>
+                        <button onclick="addHari()" class="text-[10px] bg-sky-500/20 text-sky-400 px-4 py-2 rounded-xl font-bold">+ HARI</button>
+                    </div>
+                    <div id="cJam" class="space-y-3"></div>
+                </div>
+
+                <div class="glass p-6 rounded-3xl shadow-lg border border-white/5">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-users text-purple-400"></i> MANAGEMENT USER</h3>
+                        <button onclick="addUser()" class="text-[10px] bg-purple-500/20 text-purple-400 px-4 py-2 rounded-xl font-bold">+ USER</button>
+                    </div>
+                    <div id="cUser" class="space-y-3"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "URL_APPS_SCRIPT_ANDA"; 
+        let SISWA = [];
+        let currentFacingMode = "user";
+
+        function msg(t, s="i") {
+            const b = document.getElementById('toast');
+            b.innerText = t; b.style.display = 'block';
+            b.style.background = s=="i" ? "rgba(30,41,59,0.9)" : "rgba(16,185,129,0.9)";
+            setTimeout(() => b.style.display = 'none', 3000);
+        }
+
+        async function login() {
+            const uInput = document.getElementById('user').value;
+            const pInput = document.getElementById('pin').value;
+            if(!uInput || !pInput) return msg("Lengkapi data!");
+
+            msg("Mengecek Akses...");
+            const res = await fetch(`${API_URL}?mode=get_users`);
+            const users = await res.json();
+            const valid = users.find(x => x.username == uInput && x.pin == pInput);
+            
+            if(valid) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                checkHardware();
+                if(valid.role == "ADMIN") { document.getElementById('vAdmin').classList.remove('hidden'); loadAdmin(); }
+                else { document.getElementById('vPetugas').classList.remove('hidden'); startCam(); loadSiswa(); }
+            } else msg("Username/PIN Salah!");
+        }
+
+        function checkHardware() {
+            navigator.geolocation.getCurrentPosition(() => document.getElementById('gpsDot').className='status-dot bg-online');
+            navigator.mediaDevices.getUserMedia({video:true}).then(() => document.getElementById('camDot').className='status-dot bg-online');
+        }
+
+        async function startCam() {
+            const s = await navigator.mediaDevices.getUserMedia({video: {facingMode: currentFacingMode}});
+            document.getElementById('video').srcObject = s;
+        }
+
+        function switchCam() {
+            currentFacingMode = currentFacingMode == "user" ? "environment" : "user";
+            startCam();
+        }
+
+        async function loadSiswa() {
+            const res = await fetch(`${API_URL}?mode=get_siswa`);
+            SISWA = await res.json();
+            const dl = document.getElementById('listSiswa');
+            SISWA.forEach(s => { let o = document.createElement('option'); o.value = s.nama; dl.appendChild(o); });
+        }
+
+        function cekSiswa(v) {
+            const s = SISWA.find(x => x.nama == v);
+            document.getElementById('boxKelas').innerText = s ? `KELAS: ${s.kelas}` : "KELAS: -";
+        }
+
+        async function absen() {
+            const n = document.getElementById('cariSiswa').value;
+            const s = SISWA.find(x => x.nama == n);
+            if(!s) return msg("Pilih nama siswa!");
+
+            const btn = document.getElementById('btnAbsen');
+            btn.disabled = true; btn.innerText = "SEDANG MEMPROSES...";
+
+            const v = document.getElementById('video');
+            const c = document.createElement('canvas');
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v, 0, 0);
+
+            navigator.geolocation.getCurrentPosition(async (p) => {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action:"absen", 
+                        nama:s.nama, 
+                        kelas:s.kelas, 
+                        hp:s.hp,
+                        lat:p.coords.latitude, 
+                        lng:p.coords.longitude, 
+                        foto:c.toDataURL('image/jpeg', 0.5)
+                    })
+                });
+                const hasil = await res.text();
+                msg(hasil, hasil=="TEPAT"||hasil=="PULANG"||hasil=="TELAT" ? "s" : "i");
+                document.getElementById('cariSiswa').value = "";
+                btn.disabled = false; btn.innerText = "ABSEN SEKARANG";
+            }, (err) => {
+                msg("GPS GAGAL: Aktifkan Lokasi!");
+                btn.disabled = false; btn.innerText = "ABSEN SEKARANG";
+            });
+        }
+
+        // --- ADMIN FUNCTIONS ---
+        async function loadAdmin() {
+            const [uRes, jRes] = await Promise.all([fetch(`${API_URL}?mode=get_users`), fetch(`${API_URL}?mode=get_settings`)]);
+            const users = await uRes.json();
+            const cU = document.getElementById('cUser'); cU.innerHTML = "";
+            users.forEach(u => {
+                cU.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <span><b>${u.username}</b> <span class="text-slate-500 text-[10px]">(${u.role})</span></span>
+                    <button onclick="delUser('${u.username}')" class="text-red-400 text-xs font-bold">HAPUS</button>
+                </div>`;
+            });
+            const jams = await jRes.json();
+            const cJ = document.getElementById('cJam'); cJ.innerHTML = "";
+            jams.forEach(j => {
+                cJ.innerHTML += `<div class="flex justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <span><b>${j[0]}</b> <span class="text-sky-500 text-[10px] ml-2">${j[1]}-${j[6]}</span></span>
+                    <button onclick="delHari('${j[0]}')" class="text-red-400 text-xs font-bold">HAPUS</button>
+                </div>`;
+            });
+        }
+
+        async function addUser() {
+            const u = prompt("Username:"), p = prompt("Pass:"), r = prompt("Role (ADMIN/PETUGAS):"), n = prompt("PIN:");
+            if(!u || !p || !n) return;
+            await fetch(API_URL, { method:'POST', body:JSON.stringify({action:"manage_user", sub:"add", u, p, r, pin:n})});
+            loadAdmin();
+        }
+
+        async function delUser(u) {
+            if(confirm("Hapus user "+u+"?")) {
+                await fetch(API_URL, { method:'POST', body:JSON.stringify({action:"manage_user", sub:"delete", u})});
+                loadAdmin();
+            }
+        }
+
+        async function addHari() {
+            const h = prompt("Nama Hari (Senin, Selasa, dsb):");
+            if(!h) return;
+            await fetch(API_URL, { method:'POST', body:JSON.stringify({action:"manage_setting", sub:"add", hari:h})});
+            loadAdmin();
+        }
+
+        async function delHari(h) {
+            if(confirm("Hapus setting hari "+h+"?")) {
+                await fetch(API_URL, { method:'POST', body:JSON.stringify({action:"manage_setting", sub:"delete", hari:h})});
+                loadAdmin();
+            }
+        }
+    </script>
+</body>
+</html>
