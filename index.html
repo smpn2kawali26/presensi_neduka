@@ -15,18 +15,27 @@
         .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; transition: all 0.3s; }
         .input-cinematic:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         .tab-btn.active { background: #38bdf8; color: #0f172a; }
-        .hidden { display: none !important; }
-        table th, table td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: center; font-size: 10px; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
         .bg-offline { background: #fb7185; }
-        /* Style untuk rotasi kamera */
         #v.mirror { transform: scaleX(-1); }
+        table th, table td { border: 1px solid rgba(255,255,255,0.05); padding: 10px; text-align: center; font-size: 11px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="p-2 md:p-4 min-h-screen">
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[100] text-sm font-bold border-sky-500 border text-center min-w-[280px] shadow-2xl"></div>
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[300] text-sm font-bold border-sky-500 border text-center min-w-[280px] shadow-2xl"></div>
+
+    <div id="modalEdit" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[2rem] w-full max-w-2xl border border-sky-500/30">
+            <h3 id="editTitle" class="text-xl font-bold mb-6 text-sky-400 uppercase tracking-tighter">Edit Jadwal</h3>
+            <div id="editForm" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+            <div class="flex gap-4">
+                <button onclick="closeModal()" class="flex-1 bg-slate-700 py-4 rounded-xl font-bold text-xs">BATAL</button>
+                <button onclick="saveWaktu()" class="flex-1 bg-sky-600 py-4 rounded-xl font-bold text-xs">SIMPAN PERUBAHAN</button>
+            </div>
+        </div>
+    </div>
 
     <div id="loginPage" class="min-h-screen flex items-center justify-center">
         <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border border-white/10">
@@ -34,11 +43,11 @@
                 <img src="logo.png" class="w-20 h-auto" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
             </div>
             <h1 class="font-bold text-xl uppercase tracking-tight">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.2</p>
+            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.3</p>
             <div class="space-y-4">
                 <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center" placeholder="USERNAME">
                 <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95 uppercase text-xs tracking-wider">Masuk ke Sistem</button>
+                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95 text-xs">MASUK KE SISTEM</button>
             </div>
         </div>
     </div>
@@ -46,50 +55,46 @@
     <div id="app" class="hidden max-w-6xl mx-auto">
         <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6">
             <div class="flex items-center gap-3">
-                <img src="logo.png" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
-                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase">USER</span>
+                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase tracking-widest">USER</span>
             </div>
             <div class="flex gap-4 text-[10px] font-bold items-center">
                 <div class="flex items-center gap-1.5"><span id="gpsD" class="status-dot bg-offline"></span> GPS</div>
                 <div class="flex items-center gap-1.5"><span id="camD" class="status-dot bg-offline"></span> CAM</div>
-                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full transition-all">LOGOUT</button>
+                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-[9px]">LOGOUT</button>
             </div>
         </nav>
 
         <div id="vAdmin" class="hidden space-y-6 pb-10">
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="switchTab('tWaktu', this)" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Setting Waktu</button>
-                <button onclick="switchTab('tLokasi', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Lokasi & User</button>
-                <button onclick="switchTab('tLaporan', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Laporan Rekap</button>
+                <button onclick="switchTab('tWaktu', this)" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">SETTING WAKTU</button>
+                <button onclick="switchTab('tLokasi', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">LOKASI & USER</button>
+                <button onclick="switchTab('tLaporan', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">LAPORAN REKAP</button>
             </div>
 
             <div id="tWaktu" class="tab-content space-y-4">
                 <div class="glass p-6 rounded-3xl overflow-x-auto">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-sm font-bold uppercase"><i class="fas fa-clock mr-2 text-sky-400"></i>Jadwal Harian</h3>
-                        <button onclick="manageH('add')" class="bg-sky-500 text-[10px] px-4 py-2 rounded-xl font-bold">+ HARI</button>
-                    </div>
+                    <h3 class="text-sm font-bold uppercase mb-6 text-sky-400"><i class="fas fa-clock mr-2"></i>Jadwal Harian</h3>
                     <table class="w-full">
-                        <thead><tr class="text-slate-400 bg-white/5">
-                            <th>Hari</th><th>Masuk</th><th>Limit</th><th>Telat</th><th>Limit</th><th>Pulang</th><th>Limit</th><th>Aksi</th>
-                        </tr></thead>
+                        <thead class="bg-white/5">
+                            <tr>
+                                <th>Hari</th><th>Masuk</th><th>Limit</th><th>Telat</th><th>Limit</th><th>Pulang</th><th>Limit</th><th>P.Awal</th><th>P.Limit</th><th>Aksi</th>
+                            </tr>
+                        </thead>
                         <tbody id="contH"></tbody>
                     </table>
                 </div>
             </div>
 
             <div id="tLokasi" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-xs font-bold mb-6 uppercase"><i class="fas fa-map-marker-alt text-red-400 mr-2"></i>Geofencing</h3>
-                    <div class="space-y-4">
-                        <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Latitude">
-                        <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Longitude">
-                        <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Radius (Meter)">
-                        <button onclick="saveC()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold text-xs">SIMPAN KONFIGURASI</button>
-                    </div>
+                <div class="glass p-6 rounded-3xl space-y-4">
+                    <h3 class="text-xs font-bold uppercase text-red-400"><i class="fas fa-map-marker-alt mr-2"></i>Geofencing</h3>
+                    <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Latitude">
+                    <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Longitude">
+                    <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Radius (m)">
+                    <button onclick="saveC()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold text-xs">SIMPAN KONFIGURASI</button>
                 </div>
                 <div class="glass p-6 rounded-3xl">
-                    <div class="flex justify-between items-center mb-6"><h3 class="text-xs font-bold uppercase">Kelola Petugas</h3></div>
+                    <h3 class="text-xs font-bold uppercase mb-4">Kelola Petugas</h3>
                     <div id="contU" class="space-y-2"></div>
                 </div>
             </div>
@@ -98,10 +103,10 @@
                 <div class="glass p-6 rounded-3xl">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-sm font-bold uppercase">Rekap Bulanan</h3>
-                        <button onclick="downloadPDF()" class="bg-red-600 text-xs px-5 py-2.5 rounded-xl font-bold">UNDUH PDF</button>
+                        <button onclick="downloadPDF()" class="bg-red-600 text-[10px] px-5 py-2.5 rounded-xl font-bold italic">DOWNLOAD PDF</button>
                     </div>
                     <table class="w-full" id="pdfTable">
-                        <thead><tr class="bg-white/5"><th>Nama</th><th>H</th><th>S</th><th>I</th><th>A</th><th>T</th></tr></thead>
+                        <thead class="bg-white/5"><tr><th>Nama</th><th>H</th><th>S</th><th>I</th><th>A</th><th>T</th></tr></thead>
                         <tbody id="contL"></tbody>
                     </table>
                 </div>
@@ -109,29 +114,26 @@
         </div>
 
         <div id="vPetugas" class="hidden">
-            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto relative">
+            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto">
                 <input id="cariS" list="lS" onchange="pilihSiswa(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-lg font-bold mb-4" placeholder="Cari Nama Siswa...">
                 <datalist id="lS"></datalist>
-                <div id="bK" class="text-sky-400 font-bold mb-6 text-xl">KELAS: -</div>
-                
-                <div class="relative inline-block w-full overflow-hidden rounded-3xl border-2 border-sky-500/50 mb-6 bg-black">
-                    <video id="v" autoplay playsinline class="w-full h-auto"></video>
+                <div id="bK" class="text-sky-400 font-bold mb-6 text-xl tracking-tighter italic">KELAS: -</div>
+                <div class="relative inline-block w-full overflow-hidden rounded-3xl border-2 border-sky-500/50 mb-6 bg-black aspect-video">
+                    <video id="v" autoplay playsinline class="w-full h-full object-cover"></video>
                     <button onclick="switchCamera()" class="absolute top-4 right-4 bg-black/50 hover:bg-sky-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all border border-white/20 backdrop-blur-md">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                     <canvas id="canvas" class="hidden"></canvas>
                 </div>
-                
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl tracking-widest disabled:opacity-50 active:scale-95 transition-all">ABSEN SEKARANG</button>
+                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl tracking-widest active:scale-95 transition-all">ABSEN SEKARANG</button>
             </div>
         </div>
     </div>
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycbwwytzUd3cnzgM37lsV_QBs9khM4cgsF6-jRaqTjKtC_58Hxb8t8ZTDJNW_LDFKjAgvpg/exec";
-        let SISWA = [], SELECTED_SISWA = null, LAT = 0, LNG = 0;
-        let currentFacingMode = "environment"; 
-        let stream = null;
+        let SISWA = [], SELECTED_SISWA = null, LAT = 0, LNG = 0, stream = null, currentFacingMode = "environment";
+        const labelKolom = ["M.AWAL", "M.AKHIR", "T.AWAL", "T.AKHIR", "P.AWAL", "P.AKHIR", "PT.AWAL", "PT.AKHIR"];
 
         function msg(t){ 
             const b=document.getElementById('toast'); 
@@ -143,13 +145,11 @@
             const u = document.getElementById('u').value.trim().toLowerCase();
             const p = document.getElementById('pin').value.trim();
             if(!u || !p) return msg("Isi Username & PIN!");
-            
             msg("Otentikasi...");
             try {
                 const res = await fetch(`${API}?mode=get_users`);
                 const users = await res.json();
                 const user = users.find(x => x.username == u && x.pin == p);
-                
                 if(user) {
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('app').classList.remove('hidden');
@@ -162,8 +162,8 @@
                         startC(); loadS();
                     }
                     initGPS();
-                } else msg("Username/PIN Salah!");
-            } catch(e) { msg("Koneksi Server Gagal!"); }
+                } else msg("Login Gagal!");
+            } catch(e) { msg("Koneksi Error!"); }
         }
 
         function initGPS() {
@@ -173,27 +173,20 @@
             }, () => msg("Aktifkan GPS!"), {enableHighAccuracy:true});
         }
 
-        // --- CAMERA LOGIC ---
         async function startC(){
-            if (stream) { stream.getTracks().forEach(track => track.stop()); }
+            if (stream) stream.getTracks().forEach(t => t.stop());
             try {
-                const constraints = { video: { facingMode: currentFacingMode } };
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 const video = document.getElementById('v');
                 video.srcObject = stream;
-                
-                // Mirror effect untuk kamera depan (selfie)
-                if(currentFacingMode === "user") video.classList.add('mirror');
-                else video.classList.remove('mirror');
-                
+                currentFacingMode === "user" ? video.classList.add('mirror') : video.classList.remove('mirror');
                 document.getElementById('camD').className = 'status-dot bg-online';
-            } catch(e) { msg("Izin Kamera Diperlukan!"); }
+            } catch(e) { msg("Kamera Error!"); }
         }
 
         function switchCamera() {
             currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
             startC();
-            msg("Beralih Kamera...");
         }
 
         async function loadS(){
@@ -204,51 +197,25 @@
 
         function pilihSiswa(val){
             const s = SISWA.find(x => x.nama === val);
-            if(s) {
-                SELECTED_SISWA = s;
-                document.getElementById('bK').innerText = "KELAS: " + s.kelas;
-            } else {
-                SELECTED_SISWA = null;
-                document.getElementById('bK').innerText = "KELAS: -";
-            }
+            if(s) { SELECTED_SISWA = s; document.getElementById('bK').innerText = "KELAS: " + s.kelas; }
         }
 
         async function absen(){
-            if(!SELECTED_SISWA) return msg("Pilih Siswa!");
-            if(LAT === 0) return msg("GPS belum siap!");
-
-            const btn = document.getElementById('btnA');
-            btn.disabled = true; msg("Mengirim data...");
-
-            const video = document.getElementById('v');
-            const canvas = document.getElementById('canvas');
+            if(!SELECTED_SISWA || LAT === 0) return msg("Lengkapi Data & GPS!");
+            const btn = document.getElementById('btnA'); btn.disabled = true; msg("Memproses...");
+            const video = document.getElementById('v'), canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-
-            // Handle mirror capture jika kamera depan
-            if(currentFacingMode === "user") {
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
-            }
+            if(currentFacingMode === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(video, 0, 0);
-            
             const foto = canvas.toDataURL('image/jpeg', 0.5);
-
             try {
                 const res = await fetch(API, {method: 'POST', body: JSON.stringify({
-                    action: "absen",
-                    nama: SELECTED_SISWA.nama,
-                    kelas: SELECTED_SISWA.kelas,
-                    hp: SELECTED_SISWA.hp,
-                    lat: LAT, lng: LNG,
-                    foto: foto
+                    action: "absen", nama: SELECTED_SISWA.nama, kelas: SELECTED_SISWA.kelas, hp: SELECTED_SISWA.hp, lat: LAT, lng: LNG, foto: foto
                 })});
-                const result = await res.text();
-                msg(result);
-                document.getElementById('cariS').value = "";
-                document.getElementById('bK').innerText = "KELAS: -";
-                SELECTED_SISWA = null;
-            } catch(e) { msg("Gagal kirim data!"); }
+                msg(await res.text());
+                document.getElementById('cariS').value = ""; SELECTED_SISWA = null;
+            } catch(e) { msg("Error Kirim!"); }
             btn.disabled = false;
         }
 
@@ -258,37 +225,52 @@
                 fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`), fetch(`${API}?mode=get_users`)
             ]);
             const config = await cR.json(), hams = await hR.json(), users = await uR.json();
-            
             document.getElementById('cLat').value = config.lat;
             document.getElementById('cLng').value = config.lng;
             document.getElementById('cRad').value = config.radius;
 
-            const clean = (j) => (typeof j === 'string' && j.includes('T')) ? j.split('T')[1].substring(0, 5) : j;
             document.getElementById('contH').innerHTML = hams.map(h => `
                 <tr>
-                    <td class="font-bold">${h[0]}</td>
-                    <td>${clean(h[1])}</td><td>${clean(h[2])}</td>
-                    <td>${clean(h[3])}</td><td>${clean(h[4])}</td>
-                    <td>${clean(h[5])}</td><td>${clean(h[6])}</td>
-                    <td><button onclick="delH('${h[0]}')" class="text-red-400"><i class="fas fa-trash"></i></button></td>
+                    <td class="font-bold text-sky-400">${h[0]}</td>
+                    ${h.slice(1).map(v => `<td>${v}</td>`).join('')}
+                    <td><button onclick='openEditWaktu(${JSON.stringify(h)})' class="text-amber-500"><i class="fas fa-edit"></i></button></td>
                 </tr>`).join('');
 
             document.getElementById('contU').innerHTML = users.map(u => `
                 <div class="flex justify-between glass p-3 rounded-xl items-center">
-                    <span class="text-xs font-bold">${u.username} (${u.role})</span>
-                    <button class="text-red-400 text-[10px]"><i class="fas fa-user-minus"></i></button>
+                    <span class="text-[10px] font-bold">${u.username} (${u.role})</span>
+                    <i class="fas fa-user text-sky-500 opacity-30"></i>
                 </div>`).join('');
+        }
+
+        let editHari = "";
+        function openEditWaktu(data) {
+            editHari = data[0];
+            document.getElementById('editTitle').innerText = "EDIT JADWAL - " + editHari;
+            document.getElementById('editForm').innerHTML = data.slice(1).map((val, i) => `
+                <div class="flex flex-col gap-1">
+                    <label class="text-[9px] text-slate-400 font-bold uppercase">${labelKolom[i]}</label>
+                    <input type="time" value="${val}" class="input-cinematic p-3 rounded-lg text-xs edit-input">
+                </div>`).join('');
+            document.getElementById('modalEdit').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modalEdit').classList.add('hidden'); }
+
+        async function saveWaktu() {
+            const inputs = document.querySelectorAll('.edit-input');
+            const rowData = Array.from(inputs).map(i => i.value);
+            msg("Menyimpan...");
+            const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "update_setting", hari: editHari, row: rowData }) });
+            if(await res.text() === "SUCCESS") { msg("Jadwal Diperbarui!"); closeModal(); loadA(); }
         }
 
         async function saveC(){
             msg("Menyimpan...");
             await fetch(API, {method:'POST', body: JSON.stringify({
-                action: "update_config",
-                lat: document.getElementById('cLat').value,
-                lng: document.getElementById('cLng').value,
-                radius: document.getElementById('cRad').value
+                action: "update_config", lat: document.getElementById('cLat').value, lng: document.getElementById('cLng').value, radius: document.getElementById('cRad').value
             })});
-            msg("Berhasil disimpan!");
+            msg("Berhasil!");
         }
 
         async function loadLaporan(){
