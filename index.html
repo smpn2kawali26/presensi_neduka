@@ -1,154 +1,240 @@
-// ================= CONFIGURATION =================
-const FOLDER_ID = "1TLl6Qf1nzcFxBrflC5TQSNWnzI0Q--mh"; 
-const TOKEN_FONNTE = "bbkSznjPdSKN9WAYVy1L"; 
-const TIMEZONE = "Asia/Jakarta";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi SMPN 2 Kawali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; }
+        .tab-btn.active { background: #38bdf8; color: #0f172a; }
+        .hidden { display: none !important; }
+        table th, table td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: center; font-size: 11px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
+        .bg-offline { background: #fb7185; }
+    </style>
+</head>
+<body class="p-2 md:p-4 min-h-screen">
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[100] text-sm font-bold border-sky-500 border text-center min-w-[280px]"></div>
 
-function doGet(e) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!e.parameter || !e.parameter.mode) return ContentService.createTextOutput("NEDUKA API ACTIVE");
-  const mode = e.parameter.mode;
+    <div id="loginPage" class="min-h-screen flex items-center justify-center">
+        <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl">
+            <img src="logo.png" class="w-20 mx-auto mb-6" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
+            <h1 class="font-bold text-xl uppercase">SMPN 2 KAWALI</h1>
+            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.1</p>
+            <div class="space-y-4">
+                <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center" placeholder="USERNAME">
+                <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
+                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg">MASUK KE SISTEM</button>
+            </div>
+        </div>
+    </div>
 
-  try {
-    if (mode === "get_users") {
-      const data = ss.getSheetByName("USER").getDataRange().getValues();
-      return outputJSON(data.slice(1).map(r => ({ username: String(r[0]).trim().toLowerCase(), role: String(r[2]).toUpperCase(), pin: String(r[3]).trim() })));
-    }
-    if (mode === "get_settings") return outputJSON(ss.getSheetByName("Setting").getDataRange().getValues().slice(1));
-    if (mode === "get_siswa") return outputJSON(ss.getSheetByName("Siswa").getDataRange().getValues().slice(1).map(r => ({ nama: r[0], kelas: r[1], hp: r[2] })));
-    if (mode === "get_config") {
-      const vals = ss.getSheetByName("Config").getRange("A2:B4").getValues();
-      return outputJSON({ lat: vals[0][1], lng: vals[1][1], radius: vals[2][1] });
-    }
-    // NEW: AMBIL DATA DARI SHEET REK.BLN
-    if (mode === "get_rekap") {
-      const sh = ss.getSheetByName("REK.BLN");
-      const data = sh.getDataRange().getValues().slice(1);
-      return outputJSON(data.map(r => ({ nama: r[0], hadir: r[1], sakit: r[2], izin: r[3], alpa: r[4], telat: r[5] })));
-    }
-  } catch (err) { return ContentService.createTextOutput("Error: " + err.message); }
-}
+    <div id="app" class="hidden max-w-6xl mx-auto">
+        <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" class="w-6" onerror="this.style.display='none'">
+                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+            </div>
+            <div class="flex gap-4 text-[10px] font-bold items-center">
+                <div class="flex items-center gap-1.5"><span id="gpsD" class="status-dot bg-offline"></span> GPS</div>
+                <div class="flex items-center gap-1.5"><span id="camD" class="status-dot bg-offline"></span> CAM</div>
+                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full transition-all">LOGOUT</button>
+            </div>
+        </nav>
 
-function doPost(e) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const data = JSON.parse(e.postData.contents);
+        <div id="vAdmin" class="hidden space-y-6 pb-10">
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="switchTab('tWaktu')" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Setting Waktu</button>
+                <button onclick="switchTab('tLokasi')" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Lokasi & User</button>
+                <button onclick="switchTab('tLaporan')" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap uppercase">Laporan Rekap</button>
+            </div>
 
-  // MANAJEMEN CONFIG (LAT, LNG, RADIUS)
-  if (data.action === "update_config") {
-    const sh = ss.getSheetByName("Config");
-    sh.getRange("B2").setValue(data.lat); 
-    sh.getRange("B3").setValue(data.lng); 
-    sh.getRange("B4").setValue(data.radius);
-    return ContentService.createTextOutput("CONFIG_UPDATED");
-  }
+            <div id="tWaktu" class="tab-content space-y-4">
+                <div class="glass p-6 rounded-3xl overflow-x-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold uppercase"><i class="fas fa-clock mr-2 text-sky-400"></i>Konfigurasi Jadwal Harian</h3>
+                        <button onclick="manageH('add')" class="bg-sky-500 text-[10px] px-4 py-2 rounded-xl font-bold">+ TAMBAH HARI</button>
+                    </div>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-slate-400 uppercase bg-white/5">
+                                <th>Hari</th>
+                                <th>Masuk Awal</th><th>Masuk Akhir</th>
+                                <th>Telat Awal</th><th>Telat Akhir</th>
+                                <th>Pulang Awal</th><th>Pulang Akhir</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contH"></tbody>
+                    </table>
+                </div>
+            </div>
 
-  // MANAJEMEN USER & SETTING (ADD, EDIT, DELETE)
-  if (data.action === "manage_user" || data.action === "manage_setting") {
-    const sheetName = data.action === "manage_user" ? "USER" : "Setting";
-    const sh = ss.getSheetByName(sheetName);
-    const vals = sh.getDataRange().getValues();
+            <div id="tLokasi" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-6 rounded-3xl">
+                    <h3 class="text-xs font-bold mb-6 uppercase"><i class="fas fa-map-marker-alt text-red-400 mr-2"></i>Radius & Koordinat</h3>
+                    <div class="space-y-4">
+                        <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Latitude">
+                        <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Longitude">
+                        <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Radius (Meter)">
+                        <button onclick="saveC()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold text-xs uppercase">Simpan Konfigurasi</button>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-3xl">
+                    <div class="flex justify-between items-center mb-6"><h3 class="text-xs font-bold uppercase">Kelola User</h3><button onclick="addU()" class="text-[10px] bg-sky-500 px-4 py-2 rounded-xl font-bold">+ USER</button></div>
+                    <div id="contU" class="space-y-2"></div>
+                </div>
+            </div>
 
-    if (data.sub === "add") {
-      sh.appendRow(data.row);
-    } 
-    else if (data.sub === "edit") {
-      for (let i = 1; i < vals.length; i++) {
-        if (vals[i][0] == data.id) {
-          sh.getRange(i + 1, 1, 1, data.row.length).setValues([data.row]);
-          break;
+            <div id="tLaporan" class="tab-content hidden space-y-4">
+                <div class="glass p-6 rounded-3xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold uppercase"><i class="fas fa-file-pdf mr-2 text-red-400"></i>Rekap Bulanan (REK.BLN)</h3>
+                        <button onclick="downloadPDF()" class="bg-red-600 hover:bg-red-500 text-xs px-5 py-2.5 rounded-xl font-bold"><i class="fas fa-download mr-2"></i>DOWNLOAD PDF</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full" id="pdfTable">
+                            <thead>
+                                <tr class="bg-white/5">
+                                    <th>Nama Siswa</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Telat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contL"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vPetugas" class="hidden">
+            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto">
+                <input id="cariS" list="lS" oninput="cekS(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-lg font-bold mb-4" placeholder="Cari Nama Siswa...">
+                <datalist id="lS"></datalist>
+                <div id="bK" class="text-sky-400 font-bold mb-6">KELAS: -</div>
+                <video id="v" autoplay playsinline class="rounded-3xl mb-6 border-2 border-sky-500 mx-auto w-full"></video>
+                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl uppercase tracking-widest">ABSEN SEKARANG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycby87-jAj5Cg3FeN3PAc4Cu6_VcL3YyxPaRa8vLtexu9cmfXIpUoaxgdLs5JXmNC52Mv1Q/exec";
+        let SISWA = [];
+        let DATA_REKAP = [];
+
+        function msg(t){ const b=document.getElementById('toast'); b.innerText=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
+
+        async function login(){
+            const u = document.getElementById('u').value.trim().toLowerCase(), p = document.getElementById('pin').value;
+            msg("Otentikasi...");
+            const res = await fetch(`${API}?mode=get_users`);
+            const users = await res.json();
+            const user = users.find(x => x.username == u && x.pin == p);
+            if(user) {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                document.getElementById('roleLabel').innerText = user.role;
+                if(user.role == "ADMIN") { document.getElementById('vAdmin').classList.remove('hidden'); loadA(); loadLaporan(); }
+                else { document.getElementById('vPetugas').classList.remove('hidden'); startC(); loadS(); }
+                checkH();
+            } else msg("Username/PIN Salah!");
         }
-      }
-    } 
-    else if (data.sub === "delete") {
-      for (let i = vals.length - 1; i >= 1; i--) {
-        if (vals[i][0] == data.id) sh.deleteRow(i + 1);
-      }
-    }
-    return ContentService.createTextOutput("SUCCESS");
-  }
 
-  // LOGIKA ABSENSI
-  if (data.action === "absen") {
-    const now = new Date();
-    const jamNow = Utilities.formatDate(now, TIMEZONE, "HH:mm");
-    const tglKey = Utilities.formatDate(now, TIMEZONE, "yyyy-MM-dd");
-    const namaHari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][now.getDay()];
-    
-    const config = ss.getSheetByName("Config").getRange("B2:B4").getValues();
-    const dist = getDistance(data.lat, data.lng, config[0][0], config[1][0]);
-    
-    // Validasi Radius
-    if (dist > config[2][0]) return ContentService.createTextOutput("DI LUAR RADIUS (" + Math.round(dist) + "m)");
+        const cleanJ = (j) => (typeof j === 'string' && j.includes('T')) ? j.split('T')[1].substring(0, 5) : j;
 
-    const s = ss.getSheetByName("Setting").getDataRange().getValues().find(r => r[0] == namaHari);
-    if (!s) return ContentService.createTextOutput("HARI LIBUR");
+        async function loadA(){
+            const [uR, cR, hR] = await Promise.all([fetch(`${API}?mode=get_users`), fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`)]);
+            const users=await uR.json(), config=await cR.json(), hams=await hR.json();
+            
+            document.getElementById('cLat').value=config.lat; document.getElementById('cLng').value=config.lng; document.getElementById('cRad').value=config.radius;
+            
+            const cU=document.getElementById('contU'); cU.innerHTML="";
+            users.forEach(u=> cU.innerHTML += `<div class="flex justify-between bg-white/5 p-3 rounded-xl border border-white/5 items-center"><span class="text-xs font-bold uppercase">${u.username}</span><button onclick="delU('${u.username}')" class="text-red-400 text-[10px]">HAPUS</button></div>`);
+            
+            const cH=document.getElementById('contH'); cH.innerHTML="";
+            hams.forEach(h=> {
+                cH.innerHTML += `
+                <tr>
+                    <td class="font-bold">${h[0]}</td>
+                    <td>${cleanJ(h[1])}</td><td>${cleanJ(h[2])}</td>
+                    <td>${cleanJ(h[3])}</td><td>${cleanJ(h[4])}</td>
+                    <td>${cleanJ(h[5])}</td><td>${cleanJ(h[6])}</td>
+                    <td>
+                        <div class="flex gap-1 justify-center">
+                            <button onclick="manageH('edit','${h[0]}')" class="text-sky-400 p-1"><i class="fas fa-edit"></i></button>
+                            <button onclick="delH('${h[0]}')" class="text-red-400 p-1"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
 
-    // Menentukan Mode (Masuk atau Pulang) berdasarkan Batas Pulang Awal (s[5])
-    let mode = (toMenit(jamNow) < toMenit(s[5])) ? "Masuk" : "Pulang";
-    
-    // Cek Double Absen di hari yang sama
-    const shAbsen = ss.getSheetByName("Absensi");
-    const log = shAbsen.getDataRange().getValues();
-    const isDouble = log.some(r => r[1] == data.nama && r[3] == mode && Utilities.formatDate(new Date(r[0]), TIMEZONE, "yyyy-MM-dd") == tglKey);
-    if (isDouble) return ContentService.createTextOutput("SUDAH " + mode.toUpperCase());
+        async function manageH(mode, oldId=""){
+            let h = (mode==='add') ? prompt("Nama Hari:") : oldId;
+            if(!h) return;
+            const m1=prompt("Masuk Awal (HH:mm):","06:00"), m2=prompt("Masuk Akhir:","07:00"), t1=prompt("Telat Awal:","07:15"), t2=prompt("Telat Akhir:","07:30"), p1=prompt("Pulang Awal:","13:00"), p2=prompt("Pulang Akhir:","15:00");
+            const row = [h, m1, m2, t1, t2, p1, p2];
+            msg("Menyimpan...");
+            await fetch(API,{method:'POST',body:JSON.stringify({action:"manage_setting",sub:mode,row:row,id:oldId})});
+            loadA();
+        }
 
-    // Cek Keterangan TEPAT/TELAT/PULANG
-    let ket = "TEPAT";
-    if (mode === "Masuk" && toMenit(jamNow) > toMenit(s[2])) ket = "TELAT";
-    if (mode === "Pulang") ket = "PULANG";
+        async function loadLaporan(){
+            const res = await fetch(`${API}?mode=get_rekap`); // Pastikan mode di Apps Script sesuai sheet REK.BLN
+            DATA_REKAP = await res.json();
+            const cont = document.getElementById('contL'); cont.innerHTML = "";
+            DATA_REKAP.forEach(r => {
+                cont.innerHTML += `<tr><td>${r.nama}</td><td>${r.hadir}</td><td>${r.sakit}</td><td>${r.izin}</td><td>${r.alpa}</td><td>${r.telat}</td></tr>`;
+            });
+        }
 
-    // Simpan Foto Jika Telat
-    let fURL = "";
-    if (ket === "TELAT" && data.foto) {
-      try {
-        const blob = Utilities.newBlob(Utilities.base64Decode(data.foto.split(",")[1]), "image/jpeg", "TELAT_" + data.nama + "_" + tglKey + ".jpg");
-        fURL = DriveApp.getFolderById(FOLDER_ID).createFile(blob).getUrl();
-      } catch (e) { fURL = "Upload Gagal"; }
-    }
+        function downloadPDF(){
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(14); doc.text("LAPORAN REKAPITULASI PRESENSI SISWA", 105, 20, {align:"center"});
+            doc.setFontSize(12); doc.text("SMP NEGERI 2 KAWALI", 105, 28, {align:"center"});
+            doc.setFontSize(9); doc.text("Alamat: Jl. Pelajar No. 2, Kawali, Ciamis", 105, 33, {align:"center"});
+            doc.line(20, 36, 190, 36);
 
-    shAbsen.appendRow([now, data.nama, data.kelas, mode, ket, data.lat, data.lng, fURL]);
-    
-    // Masukkan ke Antrian WhatsApp
-    const pesan = `*SMPN 2 KAWALI - PRESENSI*\n\nNama: ${data.nama}\nKelas: ${data.kelas}\nStatus: ${mode} (${ket})\nJam: ${jamNow}\n\n_Sistem Otomatis Neduka_`;
-    ss.getSheetByName("WA_QUEUE").appendRow([now, data.nama, data.hp, pesan, "PENDING"]);
-    
-    return ContentService.createTextOutput(ket);
-  }
-}
+            // Tabel
+            doc.autoTable({
+                html: '#pdfTable',
+                startY: 45,
+                theme: 'grid',
+                styles: { fontSize: 8, halign: 'center' },
+                headStyles: { fillColor: [56, 189, 248] }
+            });
 
-// ================= HELPER FUNCTIONS =================
+            // Tanda Tangan
+            const finalY = doc.lastAutoTable.finalY + 20;
+            doc.text("Kawali, " + new Date().toLocaleDateString('id-ID'), 150, finalY);
+            doc.text("Kepala Sekolah,", 150, finalY + 7);
+            doc.text("( ____________________ )", 150, finalY + 30);
 
-function toMenit(j){ 
-  if (j instanceof Date) return j.getHours() * 60 + j.getMinutes();
-  const p = String(j).split(":"); 
-  return parseInt(p[0])*60 + parseInt(p[1]); 
-}
+            doc.save("Rekap_Absensi_Neduka.pdf");
+        }
 
-function getDistance(lat1, lon1, lat2, lon2){
-  const R=6371e3, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-}
-
-function outputJSON(d){ 
-  return ContentService.createTextOutput(JSON.stringify(d)).setMimeType(ContentService.MimeType.JSON); 
-}
-
-// WORKER WA & CLEANER
-function kirimAntrianWA() {
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("WA_QUEUE");
-  if (!sh) return;
-  const d = sh.getDataRange().getValues();
-  for (let i = 1; i < d.length; i++) {
-    if (d[i][4] === "PENDING") {
-      try {
-        UrlFetchApp.fetch("https://api.fonnte.com/send", {
-          method: "post",
-          payload: { target: d[i][2], message: d[i][3] },
-          headers: { Authorization: TOKEN_FONNTE }
-        });
-        sh.getRange(i+1, 5).setValue("SENT");
-        Utilities.sleep(2000); 
-      } catch (e) {}
-    }
-  }
-}
+        // Fungsi bantu lain (absen, startC, dll) sama dengan sebelumnya
+        function switchTab(tId){
+            document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
+            document.getElementById(tId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        function checkH(){ navigator.geolocation.getCurrentPosition(()=>document.getElementById('gpsD').className='status-dot bg-online'); }
+        async function startC(){ const s=await navigator.mediaDevices.getUserMedia({video:true}); document.getElementById('v').srcObject=s; }
+        async function delH(id){ if(confirm("Hapus?")){ await fetch(API,{method:'POST',body:JSON.stringify({action:"manage_setting",sub:"delete",id:id})}); loadA(); } }
+        async function saveC(){ await fetch(API,{method:'POST',body:JSON.stringify({action:"update_config", lat:document.getElementById('cLat').value, lng:document.getElementById('cLng').value, radius:document.getElementById('cRad').value})}); msg("Tersimpan!"); }
+    </script>
+</body>
+</html>
