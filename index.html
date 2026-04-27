@@ -2,300 +2,117 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presensi Neduka v3.8 Final</title>
+    <title>Presensi Neduka v3.9 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; transition: 0.3s; }
-        .input-cinematic:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
-        video { object-fit: cover; border-radius: 1.5rem; width: 100%; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .mirror { transform: scaleX(-1); }
+        .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; }
         .hidden { display: none !important; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
-        .bg-offline { background: #fb7185; box-shadow: 0 0 10px #fb7185; }
+        video { border-radius: 1.5rem; width: 100%; transform: scaleX(-1); background: #000; }
     </style>
 </head>
-<body class="p-2 md:p-4 min-h-screen">
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[100] text-sm font-bold border-sky-500 border text-center min-w-[280px] shadow-2xl"></div>
+<body class="p-2 min-h-screen flex flex-col items-center justify-center">
+    <div id="toast" class="fixed top-6 glass p-4 rounded-2xl hidden z-50 border-sky-500 border text-sm font-bold text-center shadow-2xl"></div>
 
-    <div id="loginPage" class="min-h-screen flex items-center justify-center">
-        <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border-white/10">
-            <img src="logo.png" class="w-20 mx-auto mb-6" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
-            <h1 class="font-bold text-xl uppercase tracking-tight text-white">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Presensi Digital v3.8</p>
-            <div class="space-y-4">
-                <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center font-bold" placeholder="USERNAME">
-                <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95">MASUK</button>
-            </div>
+    <div id="loginPage" class="w-full max-w-sm glass p-10 rounded-[2.5rem] text-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/2602/2602414.png" class="w-20 mx-auto mb-6">
+        <h1 class="font-bold text-xl uppercase tracking-tight text-white">SMPN 2 KAWALI</h1>
+        <p class="text-slate-400 text-[10px] mb-8 tracking-widest">PRESENSI DIGITAL v3.9</p>
+        <div class="space-y-4">
+            <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center font-bold" placeholder="USERNAME">
+            <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
+            <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 p-4 rounded-2xl font-bold text-white transition-all active:scale-95">MASUK</button>
         </div>
     </div>
 
-    <div id="app" class="hidden max-w-6xl mx-auto">
-        <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6 border border-white/5">
-            <div class="flex items-center gap-3">
-                <img src="logo.png" class="w-6" onerror="this.style.display='none'">
-                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+    <div id="app" class="hidden w-full max-w-lg space-y-4">
+        <div class="glass p-4 rounded-3xl flex justify-between items-center px-6">
+            <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+            <div class="flex items-center gap-2 text-[10px] font-bold">
+                <div id="gpsD" class="w-2 h-2 rounded-full bg-red-500"></div> GPS: <span id="distLabel">...</span>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5 text-[10px] font-bold text-white mr-2">
-                    <span id="gpsD" class="status-dot bg-offline"></span> GPS: <span id="distLabel" class="text-sky-400">MENCARI...</span>
-                </div>
-                <button onclick="location.reload()" class="bg-red-500/10 text-red-500 text-[10px] px-4 py-2 rounded-full font-bold border border-red-500/10 uppercase hover:bg-red-500 hover:text-white transition-all">Logout</button>
-            </div>
-        </nav>
-
-        <div id="vPetugas" class="hidden max-w-md mx-auto space-y-4">
-            <div class="glass p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
-                <div id="successView" class="hidden absolute inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center p-6 text-center">
-                    <div class="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30"><i class="fas fa-check text-5xl text-white"></i></div>
-                    <h2 class="text-2xl font-bold mb-2">BERHASIL!</h2>
-                    <p id="resMsg" class="text-emerald-400 font-bold mb-8 uppercase text-sm"></p>
-                    <button onclick="closeSuccess()" class="bg-sky-600 hover:bg-sky-500 px-10 py-4 rounded-2xl font-bold text-sm uppercase transition-all">Lanjut Absen</button>
-                </div>
-
-                <input id="cariS" list="lS" oninput="cekS(this.value)" class="input-cinematic w-full p-4 rounded-2xl font-bold text-center text-lg mb-2 text-white" placeholder="Ketik Nama Siswa...">
-                <datalist id="lS"></datalist>
-                <div id="bK" class="bg-sky-500/10 text-sky-400 font-bold py-2 rounded-xl mb-4 text-center text-[10px] tracking-widest border border-sky-500/10 uppercase">KELAS: -</div>
-                
-                <div class="relative aspect-square mb-6">
-                    <video id="v" autoplay playsinline class="mirror h-full"></video>
-                    <button onclick="switchCam()" class="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md w-12 h-12 rounded-full border border-white/20 flex items-center justify-center"><i class="fas fa-sync-alt text-white"></i></button>
-                </div>
-
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl uppercase shadow-xl transition-all active:scale-95 disabled:opacity-30 disabled:grayscale" disabled>ABSEN SEKARANG</button>
-                <p id="gpsWarning" class="text-[10px] text-red-400 font-bold text-center mt-4 hidden uppercase tracking-widest">⚠️ LOKASI ANDA DILUAR RADIUS SEKOLAH</p>
-            </div>
+            <button onclick="location.reload()" class="text-[10px] text-red-500 font-bold uppercase">Logout</button>
         </div>
 
-        <div id="vAdmin" class="hidden space-y-6">
-            <div class="flex gap-2 mb-4">
-                <button id="btnTabJ" onclick="switchTab('tJadwal')" class="px-6 py-3 rounded-2xl bg-sky-500 text-slate-900 font-bold text-[10px] uppercase transition-all">Setting Jadwal</button>
-                <button id="btnTabU" onclick="switchTab('tUser')" class="px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase text-white transition-all">Lokasi & User</button>
-            </div>
-            
-            <div id="tJadwal" class="tab-content glass p-6 rounded-[2.5rem]">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-sm uppercase text-sky-400">Atur Jam Presensi</h3>
-                    <button onclick="saveAllSettings()" class="bg-emerald-600 hover:bg-emerald-500 text-[10px] px-6 py-2 rounded-xl font-bold uppercase text-white transition-all">Simpan Jadwal</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-[10px] text-center border-collapse">
-                        <thead class="text-sky-400 uppercase font-bold border-b border-white/10">
-                            <tr><th class="p-2">Hari</th><th>Masuk</th><th>M.Akhir</th><th>Telat</th><th>T.Akhir</th><th>Pulang</th><th>P.Akhir</th></tr>
-                        </thead>
-                        <tbody id="contH"></tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="vPetugas" class="hidden glass p-6 rounded-[2.5rem] space-y-4">
+            <input id="cariS" list="lS" oninput="cekS(this.value)" class="input-cinematic w-full p-4 rounded-2xl font-bold text-center text-lg" placeholder="Nama Siswa...">
+            <datalist id="lS"></datalist>
+            <div id="bK" class="bg-sky-500/10 text-sky-400 font-bold py-2 rounded-xl text-center text-[10px] uppercase">KELAS: -</div>
+            <video id="v" autoplay playsinline></video>
+            <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl uppercase disabled:opacity-30" disabled>ABSEN SEKARANG</button>
+        </div>
 
-            <div id="tUser" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-8 rounded-[2.5rem]">
-                    <h3 class="font-bold text-xs mb-6 uppercase text-sky-400">Titik GPS Sekolah</h3>
-                    <div class="space-y-4">
-                        <div class="space-y-1"><label class="text-[9px] text-slate-400 ml-2 uppercase">Latitude</label><input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs"></div>
-                        <div class="space-y-1"><label class="text-[9px] text-slate-400 ml-2 uppercase">Longitude</label><input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs"></div>
-                        <div class="space-y-1"><label class="text-[9px] text-slate-400 ml-2 uppercase">Radius (Meter)</label><input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs"></div>
-                        <button onclick="saveC()" class="w-full bg-sky-600 py-4 rounded-xl font-bold text-xs text-white uppercase shadow-lg shadow-sky-600/20">Update Lokasi</button>
-                    </div>
-                </div>
-                <div class="glass p-8 rounded-[2.5rem]">
-                    <h3 class="font-bold text-xs mb-4 uppercase text-sky-400">Daftar Akun</h3>
-                    <div id="contU" class="space-y-2 text-[10px] font-bold"></div>
-                </div>
-            </div>
+        <div id="vAdmin" class="hidden glass p-6 rounded-[2.5rem] text-center">
+            <p class="text-sky-400 font-bold text-sm mb-4">PANEL ADMIN AKTIF</p>
+            <p class="text-xs text-slate-400">Silakan gunakan komputer untuk pengaturan yang lebih lengkap.</p>
         </div>
     </div>
 
     <script>
-        // MASUKKAN URL SCRIPT APP BARU ANDA DI SINI
-        const API = "https://script.google.com/macros/s/AKfycbzpAMRBe7MPI0AGKO_qDSY2GSx3-Q8YXB8hgrNNp-dUDIKUIeieSRBQju9Xkvip_vTZhw/exec";
+        // PENTING: GANTI URL DI BAWAH INI DENGAN URL SCRIPT APP BAPAK YANG BARU!
+        const API = "URL_APPS_SCRIPT_BAPAK_DI_SINI";
         
-        let SISWA = [], videoStream = null, currentFacingMode = "user", configGPS = null, lastPos = null;
+        let SISWA = [], lastPos = null, config = null;
 
-        function msg(t){ 
-            const b = document.getElementById('toast'); 
-            b.innerText = t; b.classList.remove('hidden'); 
-            setTimeout(() => b.classList.add('hidden'), 3000); 
-        }
+        function msg(t){ const b = document.getElementById('toast'); b.innerText = t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
 
         async function login(){
-            const u = document.getElementById('u').value.trim().toLowerCase(), p = document.getElementById('pin').value;
+            const u = document.getElementById('u').value, p = document.getElementById('pin').value;
             const btn = document.getElementById('btnLogin');
-            if(!u || !p) return msg("Isi Username & PIN!");
-            
-            btn.disabled = true; btn.innerText = "AUTHENTICATING...";
+            btn.disabled = true; btn.innerText = "LOADING...";
             try {
                 const res = await fetch(`${API}?mode=get_users`);
                 const users = await res.json();
-                const user = users.find(x => x.username.toLowerCase() == u && x.pin == p);
-                
+                const user = users.find(x => x.username.toLowerCase() == u.toLowerCase() && x.pin == p);
                 if(user) {
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('app').classList.remove('hidden');
                     document.getElementById('roleLabel').innerText = user.role;
-                    
-                    if(user.role.toUpperCase() === "ADMIN") {
-                        document.getElementById('vAdmin').classList.remove('hidden'); 
-                        loadAdmin();
-                    } else {
-                        document.getElementById('vPetugas').classList.remove('hidden');
-                        startCam(); loadSiswa(); startGPSMonitor();
-                    }
-                } else { 
-                    msg("Username/PIN Salah!"); btn.disabled = false; btn.innerText = "MASUK"; 
-                }
-            } catch(e) { 
-                msg("Koneksi Apps Script Gagal!"); btn.disabled = false; btn.innerText = "MASUK"; 
-            }
+                    if(user.role === "ADMIN") document.getElementById('vAdmin').classList.remove('hidden');
+                    else { document.getElementById('vPetugas').classList.remove('hidden'); startCam(); loadSiswa(); startGPS(); }
+                } else { msg("Salah PIN/Username!"); btn.disabled = false; btn.innerText = "MASUK"; }
+            } catch(e) { msg("Koneksi Gagal! Cek Deployment Script."); btn.disabled = false; btn.innerText = "MASUK"; }
         }
 
-        async function startCam(){
-            if(videoStream) videoStream.getTracks().forEach(t => t.stop());
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-                document.getElementById('v').srcObject = videoStream;
-            } catch(e) { msg("Izin Kamera Ditolak!"); }
+        async function startCam(){ try { document.getElementById('v').srcObject = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}); } catch(e){ msg("Izin Kamera Ditolak!"); } }
+        async function loadSiswa(){ const res = await fetch(`${API}?mode=get_siswa`); SISWA = await res.json(); const dl = document.getElementById('lS'); SISWA.forEach(s=>{ let o = document.createElement('option'); o.value = s.nama; dl.appendChild(o); }); }
+        
+        function startGPS(){
+            fetch(`${API}?mode=get_config`).then(r=>r.json()).then(c=>{ config = c;
+                navigator.geolocation.watchPosition(p=>{
+                    lastPos = p.coords;
+                    const d = Math.round(getDist(p.coords.latitude, p.coords.longitude, config.lat, config.lng));
+                    document.getElementById('distLabel').innerText = d + "m";
+                    document.getElementById('gpsD').className = 'w-2 h-2 rounded-full bg-green-500';
+                    const btn = document.getElementById('btnA');
+                    if(d > config.radius) { btn.disabled = true; btn.innerText = "DILUAR RADIUS"; }
+                    else { btn.innerText = "ABSEN SEKARANG"; cekS(document.getElementById('cariS').value); }
+                }, e=>msg("Aktifkan GPS!"), {enableHighAccuracy:true});
+            });
         }
 
-        function switchCam() { currentFacingMode = (currentFacingMode === "user") ? "environment" : "user"; startCam(); }
-
-        async function loadSiswa(){
-            const res = await fetch(`${API}?mode=get_siswa`);
-            SISWA = await res.json();
-            const dl = document.getElementById('lS'); dl.innerHTML = "";
-            SISWA.forEach(s => { let o = document.createElement('option'); o.value = s.nama; dl.appendChild(o); });
-        }
-
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        function getDist(la1, lo1, la2, lo2) {
+            const R = 6371000, dLa = (la2-la1)*Math.PI/180, dLo = (lo2-lo1)*Math.PI/180;
+            const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
 
-        async function startGPSMonitor() {
-            const res = await fetch(`${API}?mode=get_config`);
-            configGPS = await res.json();
-            
-            navigator.geolocation.watchPosition((p) => {
-                lastPos = p.coords;
-                const dist = Math.round(getDistance(p.coords.latitude, p.coords.longitude, configGPS.lat, configGPS.lng));
-                document.getElementById('gpsD').className = 'status-dot bg-online';
-                document.getElementById('distLabel').innerText = dist + "m";
-                
-                const btnA = document.getElementById('btnA'), warn = document.getElementById('gpsWarning');
-                if (dist > configGPS.radius) {
-                    btnA.disabled = true; btnA.innerText = "DILUAR RADIUS"; 
-                    btnA.classList.replace('bg-sky-600', 'bg-red-600');
-                    warn.classList.remove('hidden');
-                } else {
-                    btnA.classList.replace('bg-red-600', 'bg-sky-600');
-                    btnA.innerText = "ABSEN SEKARANG"; warn.classList.add('hidden');
-                    cekS(document.getElementById('cariS').value);
-                }
-            }, (err) => { 
-                document.getElementById('gpsD').className = 'status-dot bg-offline';
-                msg("⚠️ AKTIFKAN GPS ANDA!");
-            }, {enableHighAccuracy:true, timeout: 10000});
-        }
-
-        function cekS(v){
-            const s = SISWA.find(x => x.nama === v);
-            const btn = document.getElementById('btnA'), boxK = document.getElementById('bK');
-            if(s && btn.innerText !== "DILUAR RADIUS") { 
-                boxK.innerText = `KELAS: ${s.kelas}`; btn.disabled = false; 
-            } else { 
-                boxK.innerText = s ? `KELAS: ${s.kelas}` : "KELAS: -"; btn.disabled = true; 
-            }
-        }
+        function cekS(v){ const s = SISWA.find(x=>x.nama===v); document.getElementById('bK').innerText = s ? `KELAS: ${s.kelas}` : "KELAS: -"; document.getElementById('btnA').disabled = !s; }
 
         async function absen(){
-            const s = SISWA.find(x => x.nama === document.getElementById('cariS').value);
-            const btn = document.getElementById('btnA');
-            btn.disabled = true; btn.innerText = "MENGIRIM...";
-
-            const v = document.getElementById('v'), c = document.createElement('canvas');
-            c.width = 400; c.height = 400; 
-            c.getContext('2d').drawImage(v, 0, 0, 400, 400);
-            
+            const s = SISWA.find(x=>x.nama===document.getElementById('cariS').value);
+            const btn = document.getElementById('btnA'); btn.disabled = true; btn.innerText = "MENGIRIM...";
+            const canvas = document.createElement('canvas'); canvas.width=400; canvas.height=400;
+            canvas.getContext('2d').drawImage(document.getElementById('v'), 0, 0, 400, 400);
             try {
-                const res = await fetch(API, { method: 'POST', body: JSON.stringify({
-                    action: "absen", nama: s.nama, kelas: s.kelas, hp: s.hp,
-                    lat: lastPos.latitude, lng: lastPos.longitude, foto: c.toDataURL('image/jpeg', 0.5)
-                })});
-                const resText = await res.text();
-                document.getElementById('resMsg').innerText = `PRESENSI ${resText} BERHASIL`;
-                document.getElementById('successView').classList.remove('hidden');
-            } catch(e) { msg("Gagal Mengirim ke Sheet!"); }
+                const res = await fetch(API, {method:'POST', body:JSON.stringify({action:"absen", nama:s.nama, kelas:s.kelas, lat:lastPos.latitude, lng:lastPos.longitude, foto:canvas.toDataURL('image/jpeg', 0.5)})});
+                msg("BERHASIL: " + await res.text());
+                document.getElementById('cariS').value = ""; cekS("");
+            } catch(e){ msg("Gagal Kirim!"); }
             btn.disabled = false; btn.innerText = "ABSEN SEKARANG";
-        }
-
-        function closeSuccess(){ 
-            document.getElementById('successView').classList.add('hidden'); 
-            document.getElementById('cariS').value = ""; 
-            document.getElementById('bK').innerText = "KELAS: -"; 
-            document.getElementById('btnA').disabled = true;
-        }
-
-        const cleanJ = (j) => (!j || j=="0") ? "00:00" : (j.toString().includes("T") ? j.split("T")[1].substring(0,5) : j.toString().substring(0,5));
-        
-        async function loadAdmin(){
-            const [uR, cR, hR] = await Promise.all([fetch(`${API}?mode=get_users`), fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`)]);
-            const users = await uR.json(), config = await cR.json(), jams = await hR.json();
-            
-            document.getElementById('cLat').value=config.lat; 
-            document.getElementById('cLng').value=config.lng; 
-            document.getElementById('cRad').value=config.radius;
-            
-            const cH = document.getElementById('contH'); cH.innerHTML = "";
-            jams.forEach(h => {
-                cH.innerHTML += `<tr class="border-b border-white/5 font-bold"><td class="p-3 text-sky-400">${h[0]}</td>${[1,2,3,4,5,6].map(i => `<td><input class="w-12 bg-transparent text-center text-white" value="${cleanJ(h[i])}"></td>`).join('')}</tr>`;
-            });
-
-            const cU = document.getElementById('contU'); cU.innerHTML = "";
-            users.forEach(u => {
-                cU.innerHTML += `<div class="flex justify-between p-3 glass rounded-xl border border-white/5"><span>${u.username} (${u.role})</span><span class="text-sky-400">${u.pin}</span></div>`;
-            });
-        }
-
-        async function saveAllSettings(){
-            msg("Menyimpan...");
-            const trs = document.querySelectorAll("#contH tr");
-            for(let tr of trs){
-                const day = tr.cells[0].innerText, row = [day, ...Array.from(tr.querySelectorAll("input")).map(i=>i.value)];
-                await fetch(API, {method:'POST', body:JSON.stringify({action:"manage_setting", sub:"edit", id:day, row:row})});
-            }
-            msg("Jadwal Diupdate!"); loadAdmin();
-        }
-
-        function switchTab(tId){
-            document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
-            document.getElementById(tId).classList.remove('hidden');
-            const bJ = document.getElementById('btnTabJ'), bU = document.getElementById('btnTabU');
-            if(tId === 'tJadwal') {
-                bJ.className = "px-6 py-3 rounded-2xl bg-sky-500 text-slate-900 font-bold text-[10px] uppercase transition-all";
-                bU.className = "px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase text-white transition-all";
-            } else {
-                bU.className = "px-6 py-3 rounded-2xl bg-sky-500 text-slate-900 font-bold text-[10px] uppercase transition-all";
-                bJ.className = "px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase text-white transition-all";
-            }
-        }
-
-        async function saveC(){
-            await fetch(API,{method:'POST',body:JSON.stringify({
-                action:"update_config", 
-                lat:document.getElementById('cLat').value, 
-                lng:document.getElementById('cLng').value, 
-                radius:document.getElementById('cRad').value
-            })});
-            msg("Lokasi Berhasil Disimpan!");
-            startGPSMonitor();
         }
     </script>
 </body>
