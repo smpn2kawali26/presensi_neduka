@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presensi Neduka v3.5 Final</title>
+    <title>Presensi Neduka v3.6 Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -10,7 +10,6 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; transition: 0.3s; }
-        .input-cinematic:focus { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
         video { object-fit: cover; border-radius: 1.5rem; width: 100%; background: #000; }
         .mirror { transform: scaleX(-1); }
         .tab-btn.active { background: #38bdf8; color: #0f172a; }
@@ -26,12 +25,12 @@
     <div id="loginPage" class="min-h-screen flex items-center justify-center">
         <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl">
             <img src="logo.png" class="w-20 mx-auto mb-6" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
-            <h1 class="font-bold text-xl uppercase tracking-tight">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Presensi Digital v3.5</p>
+            <h1 class="font-bold text-xl uppercase tracking-tight text-white">SMPN 2 KAWALI</h1>
+            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Presensi Digital v3.6</p>
             <div class="space-y-4">
                 <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center font-bold" placeholder="USERNAME">
                 <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95">MASUK</button>
+                <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 p-4 rounded-2xl font-bold text-white shadow-lg active:scale-95">MASUK</button>
             </div>
         </div>
     </div>
@@ -40,10 +39,10 @@
         <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6 border border-white/5">
             <div class="flex items-center gap-3">
                 <img src="logo.png" class="w-6" onerror="this.style.display='none'">
-                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase text-white"></span>
             </div>
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5 text-[10px] font-bold mr-2"><span id="gpsD" class="status-dot bg-offline"></span> GPS</div>
+                <div class="flex items-center gap-1.5 text-[10px] font-bold text-white mr-2"><span id="gpsD" class="status-dot bg-offline"></span> GPS</div>
                 <button onclick="location.reload()" class="bg-red-500/10 text-red-500 text-[10px] px-4 py-2 rounded-full font-bold border border-red-500/10 uppercase">Logout</button>
             </div>
         </nav>
@@ -51,42 +50,48 @@
         <div id="vPetugas" class="hidden max-w-md mx-auto space-y-4">
             <div class="glass p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
                 <div id="successView" class="hidden absolute inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center p-6 text-center">
-                    <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20"><i class="fas fa-check text-4xl text-white"></i></div>
+                    <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-4"><i class="fas fa-check text-4xl text-white"></i></div>
                     <h2 class="text-2xl font-bold mb-2">BERHASIL!</h2>
                     <p id="resMsg" class="text-emerald-400 font-bold mb-8 uppercase text-sm"></p>
-                    <button onclick="closeSuccess()" class="bg-sky-600 px-10 py-4 rounded-2xl font-bold text-sm uppercase active:scale-95">Absen Siswa Lain</button>
+                    <button onclick="closeSuccess()" class="bg-sky-600 px-10 py-4 rounded-2xl font-bold text-sm uppercase">Absen Siswa Lain</button>
                 </div>
-
-                <input id="cariS" list="lS" oninput="cekS(this.value)" class="input-cinematic w-full p-4 rounded-2xl font-bold text-center text-lg mb-2" placeholder="Cari Nama Siswa...">
+                <input id="cariS" list="lS" oninput="cekS(this.value)" class="input-cinematic w-full p-4 rounded-2xl font-bold text-center text-lg mb-2 text-white" placeholder="Cari Nama Siswa...">
                 <datalist id="lS"></datalist>
                 <div id="bK" class="bg-sky-500/10 text-sky-400 font-bold py-2 rounded-xl mb-4 text-center text-[10px] tracking-widest border border-sky-500/10 uppercase">KELAS: -</div>
-                
                 <div class="relative aspect-square mb-6">
                     <video id="v" autoplay playsinline class="mirror h-full"></video>
                     <button onclick="switchCam()" class="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md w-12 h-12 rounded-full border border-white/20 flex items-center justify-center"><i class="fas fa-sync-alt text-white"></i></button>
                 </div>
-
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl uppercase tracking-tighter shadow-xl transition-all active:scale-95 disabled:opacity-30" disabled>ABSEN SEKARANG</button>
+                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl uppercase shadow-xl disabled:opacity-30" disabled>ABSEN SEKARANG</button>
             </div>
         </div>
 
         <div id="vAdmin" class="hidden space-y-6">
             <div class="flex gap-2 mb-4">
-                <button onclick="switchTab('tJadwal')" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase">Jadwal</button>
-                <button onclick="switchTab('tUser')" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase">Lokasi/User</button>
+                <button onclick="switchTab('tJadwal')" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase text-white">Jadwal</button>
+                <button onclick="switchTab('tUser')" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-[10px] uppercase text-white">Lokasi/User</button>
             </div>
             <div id="tJadwal" class="tab-content glass p-6 rounded-[2.5rem]">
-                <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-sm uppercase text-sky-400">Jadwal Sekolah</h3><button onclick="saveAllSettings()" class="bg-emerald-600 text-[10px] px-6 py-2 rounded-xl font-bold uppercase">Simpan</button></div>
-                <div class="overflow-x-auto"><table class="w-full text-[10px] text-center"><tbody id="contH"></tbody></table></div>
+                <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-sm uppercase text-sky-400">Jadwal Sekolah</h3><button onclick="saveAllSettings()" class="bg-emerald-600 text-[10px] px-6 py-2 rounded-xl font-bold uppercase text-white">Simpan</button></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[10px] text-center border-collapse">
+                        <thead>
+                            <tr class="text-sky-400 uppercase font-bold border-b border-white/10">
+                                <th class="p-2">Hari</th><th>M.Awal</th><th>M.Akhir</th><th>T.Awal</th><th>T.Akhir</th><th>P.Awal</th><th>P.Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contH"></tbody>
+                    </table>
+                </div>
             </div>
             <div id="tUser" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="glass p-8 rounded-[2.5rem]">
                     <h3 class="font-bold text-xs mb-6 uppercase text-sky-400">Lokasi Sekolah</h3>
                     <div class="space-y-4">
-                        <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Latitude">
-                        <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Longitude">
-                        <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Radius (Meter)">
-                        <button onclick="saveC()" class="w-full bg-sky-600 py-4 rounded-xl font-bold text-xs">UPDATE LOKASI</button>
+                        <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs text-white" placeholder="Latitude">
+                        <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs text-white" placeholder="Longitude">
+                        <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs text-white" placeholder="Radius (Meter)">
+                        <button onclick="saveC()" class="w-full bg-sky-600 py-4 rounded-xl font-bold text-xs text-white">UPDATE LOKASI</button>
                     </div>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem]"><div id="contU" class="space-y-2"></div></div>
@@ -96,7 +101,7 @@
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycby87-jAj5Cg3FeN3PAc4Cu6_VcL3YyxPaRa8vLtexu9cmfXIpUoaxgdLs5JXmNC52Mv1Q/exec";
-        let SISWA = [], videoStream = null, currentFacingMode = "user", configGPS = null;
+        let SISWA = [], videoStream = null, currentFacingMode = "user", configGPS = null, lastPos = null;
 
         function msg(t){ const b=document.getElementById('toast'); b.innerText=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
 
@@ -126,9 +131,8 @@
             if(videoStream) videoStream.getTracks().forEach(t => t.stop());
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-                const v = document.getElementById('v');
-                v.srcObject = videoStream;
-                currentFacingMode === "user" ? v.classList.add('mirror') : v.classList.remove('mirror');
+                document.getElementById('v').srcObject = videoStream;
+                currentFacingMode === "user" ? document.getElementById('v').classList.add('mirror') : document.getElementById('v').classList.remove('mirror');
             } catch(e) { msg("Kamera Error!"); }
         }
 
@@ -143,8 +147,7 @@
 
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
@@ -153,18 +156,18 @@
             const res = await fetch(`${API}?mode=get_config`);
             configGPS = await res.json();
             navigator.geolocation.watchPosition((p) => {
+                lastPos = p.coords;
                 document.getElementById('gpsD').className = 'status-dot bg-online';
                 const dist = getDistance(p.coords.latitude, p.coords.longitude, configGPS.lat, configGPS.lng);
                 const btnA = document.getElementById('btnA');
                 if (dist > configGPS.radius) {
-                    btnA.disabled = true; btnA.innerText = "DILUAR RADIUS"; btnA.classList.replace('bg-sky-600', 'bg-red-600');
-                    msg(`Peringatan: Jarak Anda ${Math.round(dist)}m dari sekolah!`);
+                    btnA.disabled = true; btnA.innerText = "DILUAR RADIUS"; btnA.className = "w-full bg-red-600 py-5 rounded-[2rem] font-black text-xl text-white";
                 } else {
-                    btnA.classList.replace('bg-red-600', 'bg-sky-600');
+                    btnA.className = "w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl text-white";
                     btnA.innerText = "ABSEN SEKARANG";
                     cekS(document.getElementById('cariS').value);
                 }
-            }, () => { document.getElementById('gpsD').className = 'status-dot bg-offline'; msg("Aktifkan GPS!"); }, {enableHighAccuracy:true});
+            }, () => { msg("Aktifkan GPS!"); }, {enableHighAccuracy:true});
         }
 
         function cekS(v){
@@ -177,36 +180,40 @@
         async function absen(){
             const s = SISWA.find(x => x.nama === document.getElementById('cariS').value);
             const btn = document.getElementById('btnA');
-            btn.disabled = true; btn.innerText = "PROSES...";
+            btn.disabled = true; btn.innerText = "MENGIRIM...";
+
             const v = document.getElementById('v'), c = document.createElement('canvas');
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            navigator.geolocation.getCurrentPosition(async (p) => {
-                try {
-                    const res = await fetch(API, { method: 'POST', body: JSON.stringify({
-                        action: "absen", nama: s.nama, kelas: s.kelas, hp: s.hp,
-                        lat: p.coords.latitude, lng: p.coords.longitude, foto: c.toDataURL('image/jpeg', 0.5)
-                    })});
-                    const resText = await res.text();
-                    document.getElementById('resMsg').innerText = `PRESENSI ${resText} BERHASIL`;
-                    document.getElementById('successView').classList.remove('hidden');
-                } catch(e) { msg("Gagal!"); }
-                btn.disabled = false; btn.innerText = "ABSEN SEKARANG";
-            });
+            c.width = 400; c.height = 400; // Ukuran diperkecil agar kirim Cepat
+            c.getContext('2d').drawImage(v, 0, 0, 400, 400);
+            
+            const payload = {
+                action: "absen", nama: s.nama, kelas: s.kelas, hp: s.hp,
+                lat: lastPos ? lastPos.latitude : 0, lng: lastPos ? lastPos.longitude : 0,
+                foto: c.toDataURL('image/jpeg', 0.4) // Kualitas dikurangi agar ringan
+            };
+
+            try {
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload)});
+                const resText = await res.text();
+                document.getElementById('resMsg').innerText = `PRESENSI ${resText} BERHASIL`;
+                document.getElementById('successView').classList.remove('hidden');
+            } catch(e) { msg("Gagal! Coba lagi."); }
+            btn.disabled = false; btn.innerText = "ABSEN SEKARANG";
         }
 
         function closeSuccess(){ document.getElementById('successView').classList.add('hidden'); document.getElementById('cariS').value = ""; document.getElementById('bK').innerText = "KELAS: -"; }
 
-        // --- ADMIN SECTION ---
-        const cleanJ = (j) => (!j || j=="0") ? "00:00" : (j.includes("T") ? j.split("T")[1].substring(0,5) : j.substring(0,5));
+        // --- ADMIN FIX ---
+        const cleanJ = (j) => (!j || j=="0") ? "00:00" : (j.toString().includes("T") ? j.split("T")[1].substring(0,5) : j.toString().substring(0,5));
         async function loadAdmin(){
             const [uR, cR, hR] = await Promise.all([fetch(`${API}?mode=get_users`), fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`)]);
             const users = await uR.json(), config = await cR.json(), jams = await hR.json();
             document.getElementById('cLat').value=config.lat; document.getElementById('cLng').value=config.lng; document.getElementById('cRad').value=config.radius;
             const cH = document.getElementById('contH'); cH.innerHTML = "";
             jams.forEach(h => {
-                cH.innerHTML += `<tr class="border-b border-white/5"><td class="p-2 font-bold text-sky-400">${h[0]}</td>
-                ${[1,2,3,4,5,6].map(i => `<td><input class="w-10 bg-transparent text-center" value="${cleanJ(h[i])}"></td>`).join('')}</tr>`;
+                // Hanya ambil 7 kolom pertama (Hari + 6 Jam) sesuai database
+                cH.innerHTML += `<tr class="border-b border-white/5 font-bold"><td class="p-3 text-sky-400">${h[0]}</td>
+                ${[1,2,3,4,5,6].map(i => `<td><input class="w-12 bg-transparent text-center text-white" value="${cleanJ(h[i])}"></td>`).join('')}</tr>`;
             });
         }
         async function saveAllSettings(){
@@ -218,7 +225,7 @@
             }
             msg("Berhasil!"); loadAdmin();
         }
-        function switchTab(tId){ document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden')); document.getElementById(tId).classList.remove('hidden'); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); event.target.classList.add('active'); }
+        function switchTab(tId){ document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden')); document.getElementById(tId).classList.remove('hidden'); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); }
         async function saveC(){ await fetch(API,{method:'POST',body:JSON.stringify({action:"update_config", lat:document.getElementById('cLat').value, lng:document.getElementById('cLng').value, radius:document.getElementById('cRad').value})}); msg("Updated!"); }
     </script>
 </body>
