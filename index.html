@@ -16,10 +16,13 @@
         .input-cinematic:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         .tab-btn.active { background: #38bdf8; color: #0f172a; }
         .hidden { display: none !important; }
-        table th, table td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: center; font-size: 11px; }
+        table th, table td { border: 1px solid rgba(255,255,255,0.1); padding: 8px; text-align: center; font-size: 10px; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
         .bg-offline { background: #fb7185; }
+        /* Style untuk rotasi kamera */
+        #v.mirror { transform: scaleX(-1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="p-2 md:p-4 min-h-screen">
@@ -27,13 +30,15 @@
 
     <div id="loginPage" class="min-h-screen flex items-center justify-center">
         <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border border-white/10">
-            <img src="https://cdn-icons-png.flaticon.com/512/2602/2602414.png" class="w-20 mx-auto mb-6">
+            <div class="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-full flex items-center justify-center overflow-hidden border-2 border-sky-500/50">
+                <img src="logo.png" class="w-20 h-auto" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
+            </div>
             <h1 class="font-bold text-xl uppercase tracking-tight">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.1</p>
+            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.2</p>
             <div class="space-y-4">
                 <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center" placeholder="USERNAME">
                 <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95">MASUK KE SISTEM</button>
+                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95 uppercase text-xs tracking-wider">Masuk ke Sistem</button>
             </div>
         </div>
     </div>
@@ -41,6 +46,7 @@
     <div id="app" class="hidden max-w-6xl mx-auto">
         <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6">
             <div class="flex items-center gap-3">
+                <img src="logo.png" class="w-6 h-6 object-contain" onerror="this.style.display='none'">
                 <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase">USER</span>
             </div>
             <div class="flex gap-4 text-[10px] font-bold items-center">
@@ -64,7 +70,9 @@
                         <button onclick="manageH('add')" class="bg-sky-500 text-[10px] px-4 py-2 rounded-xl font-bold">+ HARI</button>
                     </div>
                     <table class="w-full">
-                        <thead><tr class="text-slate-400 bg-white/5"><th>Hari</th><th>Masuk</th><th>Batas</th><th>Telat</th><th>Batas</th><th>Pulang</th><th>Batas</th><th>Aksi</th></tr></thead>
+                        <thead><tr class="text-slate-400 bg-white/5">
+                            <th>Hari</th><th>Masuk</th><th>Limit</th><th>Telat</th><th>Limit</th><th>Pulang</th><th>Limit</th><th>Aksi</th>
+                        </tr></thead>
                         <tbody id="contH"></tbody>
                     </table>
                 </div>
@@ -90,7 +98,7 @@
                 <div class="glass p-6 rounded-3xl">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-sm font-bold uppercase">Rekap Bulanan</h3>
-                        <button onclick="downloadPDF()" class="bg-red-600 text-xs px-5 py-2.5 rounded-xl font-bold">PDF</button>
+                        <button onclick="downloadPDF()" class="bg-red-600 text-xs px-5 py-2.5 rounded-xl font-bold">UNDUH PDF</button>
                     </div>
                     <table class="w-full" id="pdfTable">
                         <thead><tr class="bg-white/5"><th>Nama</th><th>H</th><th>S</th><th>I</th><th>A</th><th>T</th></tr></thead>
@@ -101,15 +109,20 @@
         </div>
 
         <div id="vPetugas" class="hidden">
-            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto">
-                <input id="cariS" list="lS" onchange="pilihSiswa(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-lg font-bold mb-4" placeholder="Ketik Nama Siswa...">
+            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto relative">
+                <input id="cariS" list="lS" onchange="pilihSiswa(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-lg font-bold mb-4" placeholder="Cari Nama Siswa...">
                 <datalist id="lS"></datalist>
                 <div id="bK" class="text-sky-400 font-bold mb-6 text-xl">KELAS: -</div>
-                <div class="relative inline-block w-full">
-                    <video id="v" autoplay playsinline class="rounded-3xl mb-6 border-2 border-sky-500/50 mx-auto w-full bg-black"></video>
+                
+                <div class="relative inline-block w-full overflow-hidden rounded-3xl border-2 border-sky-500/50 mb-6 bg-black">
+                    <video id="v" autoplay playsinline class="w-full h-auto"></video>
+                    <button onclick="switchCamera()" class="absolute top-4 right-4 bg-black/50 hover:bg-sky-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all border border-white/20 backdrop-blur-md">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                     <canvas id="canvas" class="hidden"></canvas>
                 </div>
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl tracking-widest disabled:opacity-50">ABSEN SEKARANG</button>
+                
+                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl tracking-widest disabled:opacity-50 active:scale-95 transition-all">ABSEN SEKARANG</button>
             </div>
         </div>
     </div>
@@ -117,6 +130,8 @@
     <script>
         const API = "https://script.google.com/macros/s/AKfycbwwytzUd3cnzgM37lsV_QBs9khM4cgsF6-jRaqTjKtC_58Hxb8t8ZTDJNW_LDFKjAgvpg/exec";
         let SISWA = [], SELECTED_SISWA = null, LAT = 0, LNG = 0;
+        let currentFacingMode = "environment"; 
+        let stream = null;
 
         function msg(t){ 
             const b=document.getElementById('toast'); 
@@ -148,7 +163,7 @@
                     }
                     initGPS();
                 } else msg("Username/PIN Salah!");
-            } catch(e) { msg("Gagal terhubung ke Server!"); }
+            } catch(e) { msg("Koneksi Server Gagal!"); }
         }
 
         function initGPS() {
@@ -158,19 +173,33 @@
             }, () => msg("Aktifkan GPS!"), {enableHighAccuracy:true});
         }
 
+        // --- CAMERA LOGIC ---
         async function startC(){
+            if (stream) { stream.getTracks().forEach(track => track.stop()); }
             try {
-                const s = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}});
-                document.getElementById('v').srcObject = s;
+                const constraints = { video: { facingMode: currentFacingMode } };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                
+                // Mirror effect untuk kamera depan (selfie)
+                if(currentFacingMode === "user") video.classList.add('mirror');
+                else video.classList.remove('mirror');
+                
                 document.getElementById('camD').className = 'status-dot bg-online';
-            } catch(e) { msg("Kamera diblokir!"); }
+            } catch(e) { msg("Izin Kamera Diperlukan!"); }
+        }
+
+        function switchCamera() {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            startC();
+            msg("Beralih Kamera...");
         }
 
         async function loadS(){
             const res = await fetch(`${API}?mode=get_siswa`);
             SISWA = await res.json();
-            const dl = document.getElementById('lS');
-            dl.innerHTML = SISWA.map(s => `<option value="${s.nama}">`).join('');
+            document.getElementById('lS').innerHTML = SISWA.map(s => `<option value="${s.nama}">`).join('');
         }
 
         function pilihSiswa(val){
@@ -186,31 +215,36 @@
 
         async function absen(){
             if(!SELECTED_SISWA) return msg("Pilih Siswa!");
-            if(LAT === 0) return msg("Menunggu sinyal GPS...");
+            if(LAT === 0) return msg("GPS belum siap!");
 
             const btn = document.getElementById('btnA');
-            btn.disabled = true; msg("Memproses...");
+            btn.disabled = true; msg("Mengirim data...");
 
-            // Capture Foto (Base64)
             const video = document.getElementById('v');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const foto = canvas.toDataURL('image/jpeg', 0.7);
+            const ctx = canvas.getContext('2d');
 
-            const payload = {
-                action: "absen",
-                nama: SELECTED_SISWA.nama,
-                kelas: SELECTED_SISWA.kelas,
-                hp: SELECTED_SISWA.hp,
-                lat: LAT, lng: LNG,
-                foto: foto
-            };
+            // Handle mirror capture jika kamera depan
+            if(currentFacingMode === "user") {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0);
+            
+            const foto = canvas.toDataURL('image/jpeg', 0.6);
 
             try {
-                const res = await fetch(API, {method: 'POST', body: JSON.stringify(payload)});
+                const res = await fetch(API, {method: 'POST', body: JSON.stringify({
+                    action: "absen",
+                    nama: SELECTED_SISWA.nama,
+                    kelas: SELECTED_SISWA.kelas,
+                    hp: SELECTED_SISWA.hp,
+                    lat: LAT, lng: LNG,
+                    foto: foto
+                })});
                 const result = await res.text();
-                msg("HASIL: " + result);
+                msg(result);
                 document.getElementById('cariS').value = "";
                 document.getElementById('bK').innerText = "KELAS: -";
                 SELECTED_SISWA = null;
@@ -221,9 +255,7 @@
         // --- ADMIN FUNCTIONS ---
         async function loadA(){
             const [cR, hR, uR] = await Promise.all([
-                fetch(`${API}?mode=get_config`), 
-                fetch(`${API}?mode=get_settings`),
-                fetch(`${API}?mode=get_users`)
+                fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`), fetch(`${API}?mode=get_users`)
             ]);
             const config = await cR.json(), hams = await hR.json(), users = await uR.json();
             
@@ -231,9 +263,8 @@
             document.getElementById('cLng').value = config.lng;
             document.getElementById('cRad').value = config.radius;
 
-            const cH = document.getElementById('contH');
             const clean = (j) => (typeof j === 'string' && j.includes('T')) ? j.split('T')[1].substring(0, 5) : j;
-            cH.innerHTML = hams.map(h => `
+            document.getElementById('contH').innerHTML = hams.map(h => `
                 <tr>
                     <td class="font-bold">${h[0]}</td>
                     <td>${clean(h[1])}</td><td>${clean(h[2])}</td>
@@ -242,11 +273,10 @@
                     <td><button onclick="delH('${h[0]}')" class="text-red-400"><i class="fas fa-trash"></i></button></td>
                 </tr>`).join('');
 
-            const cU = document.getElementById('contU');
-            cU.innerHTML = users.map(u => `
+            document.getElementById('contU').innerHTML = users.map(u => `
                 <div class="flex justify-between glass p-3 rounded-xl items-center">
                     <span class="text-xs font-bold">${u.username} (${u.role})</span>
-                    <button class="text-red-400 text-[10px]">HAPUS</button>
+                    <button class="text-red-400 text-[10px]"><i class="fas fa-user-minus"></i></button>
                 </div>`).join('');
         }
 
@@ -258,7 +288,7 @@
                 lng: document.getElementById('cLng').value,
                 radius: document.getElementById('cRad').value
             })});
-            msg("Konfigurasi disimpan!");
+            msg("Berhasil disimpan!");
         }
 
         async function loadLaporan(){
@@ -280,7 +310,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.text("REKAP ABSENSI SMPN 2 KAWALI", 105, 20, {align:"center"});
-            doc.autoTable({ html: '#pdfTable', startY: 30, theme: 'grid' });
+            doc.autoTable({ html: '#pdfTable', startY: 30, theme: 'grid', styles: {fontSize: 8} });
             doc.save("Rekap_Absensi.pdf");
         }
     </script>
