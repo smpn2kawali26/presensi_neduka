@@ -2,121 +2,107 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presensi Neduka v4.5 Official</title>
+    <title>NEDUKA v4.6 Official</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-grad { background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%); }
         video { width: 100%; border-radius: 1.5rem; transform: scaleX(-1); background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="p-3 md:p-6">
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[100] text-sm font-bold border-sky-500 border text-white shadow-2xl"></div>
+<body class="p-4 flex flex-col items-center">
+    <div id="toast" class="fixed top-6 glass p-4 rounded-2xl hidden z-50 border-sky-500 border font-bold"></div>
 
-    <div id="loginPage" class="min-h-screen flex items-center justify-center">
+    <div id="pageLogin" class="min-h-[80vh] flex items-center justify-center w-full">
         <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center">
-            <i class="fas fa-fingerprint text-5xl text-sky-500 mb-6"></i>
-            <h1 class="font-bold text-xl uppercase tracking-tighter">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Digital Attendance v4.5</p>
-            <div class="space-y-4">
-                <input id="u" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-center font-bold" placeholder="USERNAME">
-                <input id="pin" type="password" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold transition-all active:scale-95">MASUK</button>
-            </div>
+            <h1 class="text-2xl font-black tracking-tighter mb-2">SMPN 2 KAWALI</h1>
+            <p class="text-[10px] text-slate-400 tracking-widest uppercase mb-8">System Integrated v4.6</p>
+            <input id="u" class="w-full p-4 rounded-2xl bg-slate-900 mb-4 border border-slate-700 text-center font-bold" placeholder="USERNAME">
+            <input id="pin" type="password" class="w-full p-4 rounded-2xl bg-slate-900 mb-6 border border-slate-700 text-center tracking-[0.5em]" placeholder="PIN">
+            <button onclick="login()" id="btnLogin" class="btn-grad w-full p-4 rounded-2xl font-bold uppercase shadow-lg shadow-blue-500/20 transition-all active:scale-95">Verify Identity</button>
         </div>
     </div>
 
-    <div id="app" class="hidden max-w-4xl mx-auto space-y-4">
+    <div id="app" class="hidden w-full max-w-4xl space-y-4">
         <nav class="glass p-4 rounded-3xl flex justify-between items-center px-6">
-            <div class="flex items-center gap-3">
-                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+            <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
+            <div id="gpsLabel" class="text-[10px] font-bold flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> GPS MENCARI...
             </div>
-            <div class="flex items-center gap-4 text-[10px] font-bold">
-                <div id="gpsStatus" class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div> GPS: <span id="distLabel">...</span></div>
-                <button onclick="location.reload()" class="text-red-500"><i class="fas fa-power-off"></i></button>
-            </div>
+            <button onclick="location.reload()" class="text-red-500 text-sm"><i class="fas fa-power-off"></i></button>
         </nav>
 
         <div id="vPetugas" class="hidden max-w-md mx-auto space-y-4">
             <div class="glass p-6 rounded-[2.5rem] space-y-4">
                 <input id="cariS" list="lS" oninput="cekS(this.value)" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-center font-bold text-lg" placeholder="Nama Siswa...">
                 <datalist id="lS"></datalist>
-                <div id="bK" class="bg-sky-500/10 text-sky-400 font-bold py-2 rounded-xl text-center text-[10px] uppercase">KELAS: -</div>
+                <div id="boxKelas" class="text-center font-bold text-sky-400 text-sm bg-sky-500/10 py-2 rounded-xl border border-sky-500/20">- KELAS -</div>
                 <video id="v" autoplay playsinline></video>
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-[2rem] font-black text-xl uppercase shadow-xl disabled:opacity-30" disabled>ABSEN SEKARANG</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="absen('MASUK')" class="btn-grad p-4 rounded-2xl font-bold uppercase text-xs disabled:opacity-30">Masuk</button>
+                    <button onclick="absen('PULANG')" class="bg-emerald-600 p-4 rounded-2xl font-bold uppercase text-xs">Pulang</button>
+                </div>
             </div>
         </div>
 
-        <div id="vAdmin" class="hidden space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-sky-400 font-bold text-sm mb-4"><i class="fas fa-map-marker-alt mr-2"></i>SETTING LOKASI</h3>
-                    <div class="space-y-3">
-                        <input id="cLat" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Latitude">
-                        <input id="cLng" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Longitude">
-                        <input id="cRad" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Radius (Meter)">
-                        <button onclick="saveConfig()" class="w-full bg-emerald-600 p-3 rounded-xl text-xs font-bold uppercase">Update Lokasi</button>
-                    </div>
-                </div>
-                <div class="glass p-6 rounded-3xl overflow-auto max-h-64">
-                    <h3 class="text-sky-400 font-bold text-sm mb-4"><i class="fas fa-clock mr-2"></i>JADWAL HARI INI</h3>
-                    <div id="contJ" class="text-[10px] space-y-2"></div>
-                </div>
+        <div id="vAdmin" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass p-6 rounded-3xl space-y-4">
+                <h3 class="font-bold text-sky-400 text-sm italic"><i class="fas fa-map-marked-alt mr-2"></i>Location Control</h3>
+                <input id="cLat" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Latitude">
+                <input id="cLng" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Longitude">
+                <input id="cRad" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Radius (Meter)">
+                <button onclick="saveConf()" class="w-full bg-sky-600 p-3 rounded-xl text-xs font-bold uppercase">Update Config</button>
+            </div>
+            <div class="glass p-6 rounded-3xl overflow-auto h-64">
+                <h3 class="font-bold text-sky-400 text-sm italic mb-4"><i class="fas fa-clock mr-2"></i>Work Schedule</h3>
+                <div id="contJ" class="text-[10px] space-y-2"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbzpAMRBe7MPI0AGKO_qDSY2GSx3-Q8YXB8hgrNNp-dUDIKUIeieSRBQju9Xkvip_vTZhw/exec";
+        const API = "MASUKKAN_URL_APPS_SCRIPT_DISINI";
         let SISWA = [], pos = null, conf = null;
 
-        function showMsg(t){ const b=document.getElementById('toast'); b.innerText=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
+        function msg(t){ const b=document.getElementById('toast'); b.innerText=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
 
         async function login(){
-            const u = document.getElementById('u').value, p = document.getElementById('pin').value;
+            const u = document.getElementById('u').value.trim(), p = document.getElementById('pin').value;
             const btn = document.getElementById('btnLogin');
             btn.innerText = "AUTHENTICATING...";
             try {
-                const res = await fetch(`${API}?mode=get_users`);
-                const users = await res.json();
-                const user = users.find(x => x.username.toLowerCase() == u.toLowerCase() && x.pin == p);
+                const r = await fetch(API + "?mode=get_users");
+                const users = await r.json();
+                const user = users.find(x => x[0].toString().toLowerCase() === u.toLowerCase() && x[3].toString() === p);
                 if(user) {
-                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('pageLogin').classList.add('hidden');
                     document.getElementById('app').classList.remove('hidden');
-                    document.getElementById('roleLabel').innerText = user.role;
-                    if(user.role.toUpperCase() === "ADMIN") { 
-                        document.getElementById('vAdmin').classList.remove('hidden'); 
-                        loadAdminData(); 
-                    } else { 
-                        document.getElementById('vPetugas').classList.remove('hidden'); 
-                        startCam(); loadSiswa(); startGPS(); 
-                    }
-                } else { alert("User/PIN Salah!"); btn.innerText = "MASUK"; }
-            } catch(e) { alert("Koneksi Gagal!"); btn.innerText = "MASUK"; }
+                    document.getElementById('roleLabel').innerText = user[2];
+                    if(user[2].toUpperCase() === "ADMIN") { document.getElementById('vAdmin').classList.remove('hidden'); loadAdmin(); }
+                    else { document.getElementById('vPetugas').classList.remove('hidden'); initPetugas(); }
+                } else { alert("PIN SALAH!"); btn.innerText = "Verify Identity"; }
+            } catch(e) { alert("ERROR KONEKSI!"); btn.innerText = "Verify Identity"; }
         }
 
-        async function startCam(){ document.getElementById('v').srcObject = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}); }
-        
-        async function loadSiswa(){
-            const res = await fetch(`${API}?mode=get_siswa`);
-            SISWA = await res.json();
-            const dl = document.getElementById('lS');
-            SISWA.forEach(s => { let o = document.createElement('option'); o.value = s.nama; dl.appendChild(o); });
+        function initPetugas(){
+            navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}).then(s => document.getElementById('v').srcObject = s);
+            fetch(API + "?mode=get_siswa").then(r=>r.json()).then(d => {
+                SISWA = d;
+                d.forEach(s => { let o=document.createElement('option'); o.value=s[1]; document.getElementById('lS').appendChild(o); });
+            });
+            startGPS();
         }
 
         function startGPS(){
-            fetch(`${API}?mode=get_config`).then(r=>r.json()).then(c=>{
-                conf = {lat: c[0], lng: c[1], rad: c[2]};
-                navigator.geolocation.watchPosition(p=>{
+            fetch(API + "?mode=get_config").then(r=>r.json()).then(c => {
+                conf = {lat: c[0][1], lng: c[1][1], rad: c[2][1]};
+                navigator.geolocation.watchPosition(p => {
                     pos = p.coords;
                     const d = Math.round(calcD(p.coords.latitude, p.coords.longitude, conf.lat, conf.lng));
-                    document.getElementById('distLabel').innerText = d + "m";
-                    document.getElementById('gpsStatus').firstElementChild.className = d <= conf.rad ? "w-2 h-2 rounded-full bg-green-500" : "w-2 h-2 rounded-full bg-red-500";
-                    const btn = document.getElementById('btnA');
-                    if(d > conf.rad) { btn.disabled = true; btn.innerText = "DILUAR RADIUS"; }
-                    else { btn.innerText = "ABSEN SEKARANG"; cekS(document.getElementById('cariS').value); }
+                    document.getElementById('gpsLabel').innerHTML = `<div class="w-2 h-2 rounded-full ${d <= conf.rad ? 'bg-green-500' : 'bg-red-500'}"></div> ${d}m DARI SEKOLAH`;
                 }, null, {enableHighAccuracy:true});
             });
         }
@@ -127,35 +113,45 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function cekS(v){ const s = SISWA.find(x=>x.nama===v); document.getElementById('bK').innerText = s ? `KELAS: ${s.kelas}` : "KELAS: -"; document.getElementById('btnA').disabled = !s; }
+        function cekS(v){ const s = SISWA.find(x=>x[1]===v); document.getElementById('boxKelas').innerText = s ? s[2] : "- KELAS -"; }
 
-        async function absen(){
-            const s = SISWA.find(x=>x.nama===document.getElementById('cariS').value);
-            const btn = document.getElementById('btnA'); btn.innerText = "KIRIM..."; btn.disabled = true;
-            const canvas = document.createElement('canvas'); canvas.width=400; canvas.height=400;
-            canvas.getContext('2d').drawImage(document.getElementById('v'), 0, 0, 400, 400);
-            try {
-                const res = await fetch(API, {method:'POST', body:JSON.stringify({action:"absen", nama:s.nama, kelas:s.kelas, lat:pos.latitude, lng:pos.longitude, foto:canvas.toDataURL('image/jpeg', 0.5)})});
-                showMsg("BERHASIL: " + await res.text());
-                document.getElementById('cariS').value = ""; cekS("");
-            } catch(e){ showMsg("Gagal Terkirim!"); }
-            btn.innerText = "ABSEN SEKARANG";
+        async function absen(status){
+            const nama = document.getElementById('cariS').value;
+            const s = SISWA.find(x=>x[1]===nama);
+            if(!s) return alert("PILIH SISWA!");
+            if(calcD(pos.latitude, pos.longitude, conf.lat, conf.lng) > conf.rad) return alert("ANDA DILUAR RADIUS!");
+
+            msg("SEDANG MENGIRIM...");
+            const can = document.createElement('canvas'); can.width=400; can.height=400;
+            can.getContext('2d').drawImage(document.getElementById('v'),0,0,400,400);
+            
+            const res = await fetch(API, {method:'POST', body:JSON.stringify({
+                action:"absen", nama:s[1], kelas:s[2], hp:s[3], lat:pos.latitude, lng:pos.longitude, status:status, foto:can.toDataURL('image/jpeg', 0.6)
+            })});
+            const txt = await res.text();
+            if(txt === "DUPLICATE") alert("SISWA SUDAH ABSEN!");
+            else { msg("ABSEN BERHASIL!"); document.getElementById('cariS').value=""; }
         }
 
-        async function loadAdminData(){
-            const [cR, sR] = await Promise.all([fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`)]);
-            const config = await cR.json(), sets = await sR.json();
-            document.getElementById('cLat').value = config[0];
-            document.getElementById('cLng').value = config[1];
-            document.getElementById('cRad').value = config[2];
-            let html = ""; sets.forEach(r => html += `<div class="flex justify-between border-b border-white/5 py-1"><span>${r[0]}</span><span class="text-sky-400">${r[1]}-${r[2]}</span></div>`);
-            document.getElementById('contJ').innerHTML = html;
+        async function loadAdmin(){
+            const [cR, sR] = await Promise.all([fetch(API+"?mode=get_config"), fetch(API+"?mode=get_settings")]);
+            const c = await cR.json(), s = await sR.json();
+            document.getElementById('cLat').value = c[0][1];
+            document.getElementById('cLng').value = c[1][1];
+            document.getElementById('cRad').value = c[2][1];
+            let h = ""; s.forEach(r => h += `<div class="flex justify-between border-b border-white/5 py-1"><span>${r[0]}</span><span class="text-sky-400">${r[1]}-${r[6]}</span></div>`);
+            document.getElementById('contJ').innerHTML = h;
         }
 
-        async function saveConfig(){
-            const body = { action:"update_config", lat:document.getElementById('cLat').value, lng:document.getElementById('cLng').value, radius:document.getElementById('cRad').value };
-            await fetch(API, {method:'POST', body:JSON.stringify(body)});
-            showMsg("LOKASI DIPERBARUI!");
+        async function saveConf(){
+            msg("SAVING...");
+            await fetch(API, {method:'POST', body:JSON.stringify({
+                action:"update_config", 
+                lat:document.getElementById('cLat').value, 
+                lng:document.getElementById('cLng').value, 
+                radius:document.getElementById('cRad').value
+            })});
+            msg("CONFIG UPDATED!");
         }
     </script>
 </body>
