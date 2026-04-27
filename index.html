@@ -1,158 +1,154 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEDUKA v4.6 Official</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background: #0f172a; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-grad { background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%); }
-        video { width: 100%; border-radius: 1.5rem; transform: scaleX(-1); background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .hidden { display: none !important; }
-    </style>
-</head>
-<body class="p-4 flex flex-col items-center">
-    <div id="toast" class="fixed top-6 glass p-4 rounded-2xl hidden z-50 border-sky-500 border font-bold"></div>
+// ================= CONFIGURATION =================
+const FOLDER_ID = "1TLl6Qf1nzcFxBrflC5TQSNWnzI0Q--mh"; 
+const TOKEN_FONNTE = "bbkSznjPdSKN9WAYVy1L"; 
+const TIMEZONE = "Asia/Jakarta";
 
-    <div id="pageLogin" class="min-h-[80vh] flex items-center justify-center w-full">
-        <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center">
-            <h1 class="text-2xl font-black tracking-tighter mb-2">SMPN 2 KAWALI</h1>
-            <p class="text-[10px] text-slate-400 tracking-widest uppercase mb-8">System Integrated v4.6</p>
-            <input id="u" class="w-full p-4 rounded-2xl bg-slate-900 mb-4 border border-slate-700 text-center font-bold" placeholder="USERNAME">
-            <input id="pin" type="password" class="w-full p-4 rounded-2xl bg-slate-900 mb-6 border border-slate-700 text-center tracking-[0.5em]" placeholder="PIN">
-            <button onclick="login()" id="btnLogin" class="btn-grad w-full p-4 rounded-2xl font-bold uppercase shadow-lg shadow-blue-500/20 transition-all active:scale-95">Verify Identity</button>
-        </div>
-    </div>
+function doGet(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!e.parameter || !e.parameter.mode) return ContentService.createTextOutput("NEDUKA API ACTIVE");
+  const mode = e.parameter.mode;
 
-    <div id="app" class="hidden w-full max-w-4xl space-y-4">
-        <nav class="glass p-4 rounded-3xl flex justify-between items-center px-6">
-            <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase"></span>
-            <div id="gpsLabel" class="text-[10px] font-bold flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> GPS MENCARI...
-            </div>
-            <button onclick="location.reload()" class="text-red-500 text-sm"><i class="fas fa-power-off"></i></button>
-        </nav>
+  try {
+    if (mode === "get_users") {
+      const data = ss.getSheetByName("USER").getDataRange().getValues();
+      return outputJSON(data.slice(1).map(r => ({ username: String(r[0]).trim().toLowerCase(), role: String(r[2]).toUpperCase(), pin: String(r[3]).trim() })));
+    }
+    if (mode === "get_settings") return outputJSON(ss.getSheetByName("Setting").getDataRange().getValues().slice(1));
+    if (mode === "get_siswa") return outputJSON(ss.getSheetByName("Siswa").getDataRange().getValues().slice(1).map(r => ({ nama: r[0], kelas: r[1], hp: r[2] })));
+    if (mode === "get_config") {
+      const vals = ss.getSheetByName("Config").getRange("A2:B4").getValues();
+      return outputJSON({ lat: vals[0][1], lng: vals[1][1], radius: vals[2][1] });
+    }
+    // NEW: AMBIL DATA DARI SHEET REK.BLN
+    if (mode === "get_rekap") {
+      const sh = ss.getSheetByName("REK.BLN");
+      const data = sh.getDataRange().getValues().slice(1);
+      return outputJSON(data.map(r => ({ nama: r[0], hadir: r[1], sakit: r[2], izin: r[3], alpa: r[4], telat: r[5] })));
+    }
+  } catch (err) { return ContentService.createTextOutput("Error: " + err.message); }
+}
 
-        <div id="vPetugas" class="hidden max-w-md mx-auto space-y-4">
-            <div class="glass p-6 rounded-[2.5rem] space-y-4">
-                <input id="cariS" list="lS" oninput="cekS(this.value)" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-center font-bold text-lg" placeholder="Nama Siswa...">
-                <datalist id="lS"></datalist>
-                <div id="boxKelas" class="text-center font-bold text-sky-400 text-sm bg-sky-500/10 py-2 rounded-xl border border-sky-500/20">- KELAS -</div>
-                <video id="v" autoplay playsinline></video>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="absen('MASUK')" class="btn-grad p-4 rounded-2xl font-bold uppercase text-xs disabled:opacity-30">Masuk</button>
-                    <button onclick="absen('PULANG')" class="bg-emerald-600 p-4 rounded-2xl font-bold uppercase text-xs">Pulang</button>
-                </div>
-            </div>
-        </div>
+function doPost(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const data = JSON.parse(e.postData.contents);
 
-        <div id="vAdmin" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="glass p-6 rounded-3xl space-y-4">
-                <h3 class="font-bold text-sky-400 text-sm italic"><i class="fas fa-map-marked-alt mr-2"></i>Location Control</h3>
-                <input id="cLat" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Latitude">
-                <input id="cLng" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Longitude">
-                <input id="cRad" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs" placeholder="Radius (Meter)">
-                <button onclick="saveConf()" class="w-full bg-sky-600 p-3 rounded-xl text-xs font-bold uppercase">Update Config</button>
-            </div>
-            <div class="glass p-6 rounded-3xl overflow-auto h-64">
-                <h3 class="font-bold text-sky-400 text-sm italic mb-4"><i class="fas fa-clock mr-2"></i>Work Schedule</h3>
-                <div id="contJ" class="text-[10px] space-y-2"></div>
-            </div>
-        </div>
-    </div>
+  // MANAJEMEN CONFIG (LAT, LNG, RADIUS)
+  if (data.action === "update_config") {
+    const sh = ss.getSheetByName("Config");
+    sh.getRange("B2").setValue(data.lat); 
+    sh.getRange("B3").setValue(data.lng); 
+    sh.getRange("B4").setValue(data.radius);
+    return ContentService.createTextOutput("CONFIG_UPDATED");
+  }
 
-    <script>
-        const API = "MASUKKAN_URL_APPS_SCRIPT_DISINI";
-        let SISWA = [], pos = null, conf = null;
+  // MANAJEMEN USER & SETTING (ADD, EDIT, DELETE)
+  if (data.action === "manage_user" || data.action === "manage_setting") {
+    const sheetName = data.action === "manage_user" ? "USER" : "Setting";
+    const sh = ss.getSheetByName(sheetName);
+    const vals = sh.getDataRange().getValues();
 
-        function msg(t){ const b=document.getElementById('toast'); b.innerText=t; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'),3000); }
-
-        async function login(){
-            const u = document.getElementById('u').value.trim(), p = document.getElementById('pin').value;
-            const btn = document.getElementById('btnLogin');
-            btn.innerText = "AUTHENTICATING...";
-            try {
-                const r = await fetch(API + "?mode=get_users");
-                const users = await r.json();
-                const user = users.find(x => x[0].toString().toLowerCase() === u.toLowerCase() && x[3].toString() === p);
-                if(user) {
-                    document.getElementById('pageLogin').classList.add('hidden');
-                    document.getElementById('app').classList.remove('hidden');
-                    document.getElementById('roleLabel').innerText = user[2];
-                    if(user[2].toUpperCase() === "ADMIN") { document.getElementById('vAdmin').classList.remove('hidden'); loadAdmin(); }
-                    else { document.getElementById('vPetugas').classList.remove('hidden'); initPetugas(); }
-                } else { alert("PIN SALAH!"); btn.innerText = "Verify Identity"; }
-            } catch(e) { alert("ERROR KONEKSI!"); btn.innerText = "Verify Identity"; }
+    if (data.sub === "add") {
+      sh.appendRow(data.row);
+    } 
+    else if (data.sub === "edit") {
+      for (let i = 1; i < vals.length; i++) {
+        if (vals[i][0] == data.id) {
+          sh.getRange(i + 1, 1, 1, data.row.length).setValues([data.row]);
+          break;
         }
+      }
+    } 
+    else if (data.sub === "delete") {
+      for (let i = vals.length - 1; i >= 1; i--) {
+        if (vals[i][0] == data.id) sh.deleteRow(i + 1);
+      }
+    }
+    return ContentService.createTextOutput("SUCCESS");
+  }
 
-        function initPetugas(){
-            navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}).then(s => document.getElementById('v').srcObject = s);
-            fetch(API + "?mode=get_siswa").then(r=>r.json()).then(d => {
-                SISWA = d;
-                d.forEach(s => { let o=document.createElement('option'); o.value=s[1]; document.getElementById('lS').appendChild(o); });
-            });
-            startGPS();
-        }
+  // LOGIKA ABSENSI
+  if (data.action === "absen") {
+    const now = new Date();
+    const jamNow = Utilities.formatDate(now, TIMEZONE, "HH:mm");
+    const tglKey = Utilities.formatDate(now, TIMEZONE, "yyyy-MM-dd");
+    const namaHari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][now.getDay()];
+    
+    const config = ss.getSheetByName("Config").getRange("B2:B4").getValues();
+    const dist = getDistance(data.lat, data.lng, config[0][0], config[1][0]);
+    
+    // Validasi Radius
+    if (dist > config[2][0]) return ContentService.createTextOutput("DI LUAR RADIUS (" + Math.round(dist) + "m)");
 
-        function startGPS(){
-            fetch(API + "?mode=get_config").then(r=>r.json()).then(c => {
-                conf = {lat: c[0][1], lng: c[1][1], rad: c[2][1]};
-                navigator.geolocation.watchPosition(p => {
-                    pos = p.coords;
-                    const d = Math.round(calcD(p.coords.latitude, p.coords.longitude, conf.lat, conf.lng));
-                    document.getElementById('gpsLabel').innerHTML = `<div class="w-2 h-2 rounded-full ${d <= conf.rad ? 'bg-green-500' : 'bg-red-500'}"></div> ${d}m DARI SEKOLAH`;
-                }, null, {enableHighAccuracy:true});
-            });
-        }
+    const s = ss.getSheetByName("Setting").getDataRange().getValues().find(r => r[0] == namaHari);
+    if (!s) return ContentService.createTextOutput("HARI LIBUR");
 
-        function calcD(la1, lo1, la2, lo2) {
-            const R = 6371000, dLa = (la2-la1)*Math.PI/180, dLo = (lo2-lo1)*Math.PI/180;
-            const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
+    // Menentukan Mode (Masuk atau Pulang) berdasarkan Batas Pulang Awal (s[5])
+    let mode = (toMenit(jamNow) < toMenit(s[5])) ? "Masuk" : "Pulang";
+    
+    // Cek Double Absen di hari yang sama
+    const shAbsen = ss.getSheetByName("Absensi");
+    const log = shAbsen.getDataRange().getValues();
+    const isDouble = log.some(r => r[1] == data.nama && r[3] == mode && Utilities.formatDate(new Date(r[0]), TIMEZONE, "yyyy-MM-dd") == tglKey);
+    if (isDouble) return ContentService.createTextOutput("SUDAH " + mode.toUpperCase());
 
-        function cekS(v){ const s = SISWA.find(x=>x[1]===v); document.getElementById('boxKelas').innerText = s ? s[2] : "- KELAS -"; }
+    // Cek Keterangan TEPAT/TELAT/PULANG
+    let ket = "TEPAT";
+    if (mode === "Masuk" && toMenit(jamNow) > toMenit(s[2])) ket = "TELAT";
+    if (mode === "Pulang") ket = "PULANG";
 
-        async function absen(status){
-            const nama = document.getElementById('cariS').value;
-            const s = SISWA.find(x=>x[1]===nama);
-            if(!s) return alert("PILIH SISWA!");
-            if(calcD(pos.latitude, pos.longitude, conf.lat, conf.lng) > conf.rad) return alert("ANDA DILUAR RADIUS!");
+    // Simpan Foto Jika Telat
+    let fURL = "";
+    if (ket === "TELAT" && data.foto) {
+      try {
+        const blob = Utilities.newBlob(Utilities.base64Decode(data.foto.split(",")[1]), "image/jpeg", "TELAT_" + data.nama + "_" + tglKey + ".jpg");
+        fURL = DriveApp.getFolderById(FOLDER_ID).createFile(blob).getUrl();
+      } catch (e) { fURL = "Upload Gagal"; }
+    }
 
-            msg("SEDANG MENGIRIM...");
-            const can = document.createElement('canvas'); can.width=400; can.height=400;
-            can.getContext('2d').drawImage(document.getElementById('v'),0,0,400,400);
-            
-            const res = await fetch(API, {method:'POST', body:JSON.stringify({
-                action:"absen", nama:s[1], kelas:s[2], hp:s[3], lat:pos.latitude, lng:pos.longitude, status:status, foto:can.toDataURL('image/jpeg', 0.6)
-            })});
-            const txt = await res.text();
-            if(txt === "DUPLICATE") alert("SISWA SUDAH ABSEN!");
-            else { msg("ABSEN BERHASIL!"); document.getElementById('cariS').value=""; }
-        }
+    shAbsen.appendRow([now, data.nama, data.kelas, mode, ket, data.lat, data.lng, fURL]);
+    
+    // Masukkan ke Antrian WhatsApp
+    const pesan = `*SMPN 2 KAWALI - PRESENSI*\n\nNama: ${data.nama}\nKelas: ${data.kelas}\nStatus: ${mode} (${ket})\nJam: ${jamNow}\n\n_Sistem Otomatis Neduka_`;
+    ss.getSheetByName("WA_QUEUE").appendRow([now, data.nama, data.hp, pesan, "PENDING"]);
+    
+    return ContentService.createTextOutput(ket);
+  }
+}
 
-        async function loadAdmin(){
-            const [cR, sR] = await Promise.all([fetch(API+"?mode=get_config"), fetch(API+"?mode=get_settings")]);
-            const c = await cR.json(), s = await sR.json();
-            document.getElementById('cLat').value = c[0][1];
-            document.getElementById('cLng').value = c[1][1];
-            document.getElementById('cRad').value = c[2][1];
-            let h = ""; s.forEach(r => h += `<div class="flex justify-between border-b border-white/5 py-1"><span>${r[0]}</span><span class="text-sky-400">${r[1]}-${r[6]}</span></div>`);
-            document.getElementById('contJ').innerHTML = h;
-        }
+// ================= HELPER FUNCTIONS =================
 
-        async function saveConf(){
-            msg("SAVING...");
-            await fetch(API, {method:'POST', body:JSON.stringify({
-                action:"update_config", 
-                lat:document.getElementById('cLat').value, 
-                lng:document.getElementById('cLng').value, 
-                radius:document.getElementById('cRad').value
-            })});
-            msg("CONFIG UPDATED!");
-        }
-    </script>
-</body>
-</html>
+function toMenit(j){ 
+  if (j instanceof Date) return j.getHours() * 60 + j.getMinutes();
+  const p = String(j).split(":"); 
+  return parseInt(p[0])*60 + parseInt(p[1]); 
+}
+
+function getDistance(lat1, lon1, lat2, lon2){
+  const R=6371e3, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function outputJSON(d){ 
+  return ContentService.createTextOutput(JSON.stringify(d)).setMimeType(ContentService.MimeType.JSON); 
+}
+
+// WORKER WA & CLEANER
+function kirimAntrianWA() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("WA_QUEUE");
+  if (!sh) return;
+  const d = sh.getDataRange().getValues();
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][4] === "PENDING") {
+      try {
+        UrlFetchApp.fetch("https://api.fonnte.com/send", {
+          method: "post",
+          payload: { target: d[i][2], message: d[i][3] },
+          headers: { Authorization: TOKEN_FONNTE }
+        });
+        sh.getRange(i+1, 5).setValue("SENT");
+        Utilities.sleep(2000); 
+      } catch (e) {}
+    }
+  }
+}
