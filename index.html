@@ -43,7 +43,7 @@
                 <img src="logo.png" class="w-20 h-auto" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
             </div>
             <h1 class="font-bold text-xl uppercase tracking-tight">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.3</p>
+            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.4</p>
             <div class="space-y-4">
                 <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center" placeholder="USERNAME">
                 <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
@@ -131,9 +131,17 @@
     </div>
 
     <script>
+        // --- KONFIGURASI ---
         const API = "https://script.google.com/macros/s/AKfycbwwytzUd3cnzgM37lsV_QBs9khM4cgsF6-jRaqTjKtC_58Hxb8t8ZTDJNW_LDFKjAgvpg/exec";
         let SISWA = [], SELECTED_SISWA = null, LAT = 0, LNG = 0, stream = null, currentFacingMode = "environment";
         const labelKolom = ["M.AWAL", "M.AKHIR", "T.AWAL", "T.AKHIR", "P.AWAL", "P.AKHIR", "PT.AWAL", "PT.AKHIR"];
+
+        // --- ASSET SUARA ---
+        const sndSuccess = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Suara Kring/Bell
+        const sndError = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');   // Suara Totet/Buzzer
+
+        function playSuccess() { sndSuccess.play().catch(e => console.log("Audio play failed")); }
+        function playError() { sndError.play().catch(e => console.log("Audio play failed")); }
 
         function msg(t){ 
             const b=document.getElementById('toast'); 
@@ -141,7 +149,7 @@
             setTimeout(()=>b.classList.add('hidden'),3000); 
         }
 
-        // --- KOMPRESI GAMBAR (OPTIMASI STORAGE & SPEED) ---
+        // --- KOMPRESI GAMBAR ---
         function compressImage(base64Str) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -160,7 +168,7 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.5)); // Kualitas 50%
+                    resolve(canvas.toDataURL('image/jpeg', 0.5)); 
                 };
             });
         }
@@ -186,7 +194,10 @@
                         startC(); loadS();
                     }
                     initGPS();
-                } else msg("Login Gagal!");
+                } else {
+                    playError();
+                    msg("Login Gagal!");
+                }
             } catch(e) { msg("Koneksi Error!"); }
         }
 
@@ -225,10 +236,13 @@
         }
 
         async function absen(){
-            if(!SELECTED_SISWA || LAT === 0) return msg("Lengkapi Data & GPS!");
+            if(!SELECTED_SISWA || LAT === 0) {
+                playError();
+                return msg("Lengkapi Data & GPS!");
+            }
             const btn = document.getElementById('btnA'); 
             btn.disabled = true; 
-            msg("Mengompres & Mengirim...");
+            msg("Mengirim...");
 
             const video = document.getElementById('v'), canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth; 
@@ -238,7 +252,6 @@
             if(currentFacingMode === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
             ctx.drawImage(video, 0, 0);
             
-            // Kompresi sebelum kirim
             const rawFoto = canvas.toDataURL('image/jpeg', 0.9);
             const fotoTerkompresi = await compressImage(rawFoto);
 
@@ -252,11 +265,23 @@
                     lng: LNG, 
                     foto: fotoTerkompresi
                 })});
-                msg(await res.text());
-                document.getElementById('cariS').value = ""; 
-                SELECTED_SISWA = null;
-                document.getElementById('bK').innerText = "KELAS: -";
-            } catch(e) { msg("Error Kirim!"); }
+                
+                const resultText = await res.text();
+                msg(resultText);
+
+                if(resultText.includes("BERHASIL")) {
+                    playSuccess(); // BUNYI KRING
+                    document.getElementById('cariS').value = ""; 
+                    SELECTED_SISWA = null;
+                    document.getElementById('bK').innerText = "KELAS: -";
+                } else {
+                    playError(); // BUNYI TOTET
+                }
+
+            } catch(e) { 
+                playError();
+                msg("Error Kirim!"); 
+            }
             btn.disabled = false;
         }
 
