@@ -1,366 +1,190 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi SMPN 2 Kawali</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; overflow-x: hidden; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .input-cinematic { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); color: white; transition: all 0.3s; }
-        .input-cinematic:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        .tab-btn.active { background: #38bdf8; color: #0f172a; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .bg-online { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
-        .bg-offline { background: #fb7185; }
-        #v.mirror { transform: scaleX(-1); }
-        table th, table td { border: 1px solid rgba(255,255,255,0.05); padding: 10px; text-align: center; font-size: 11px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Absensi MPLS</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
-<body class="p-2 md:p-4 min-h-screen">
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl hidden z-[300] text-sm font-bold border-sky-500 border text-center min-w-[280px] shadow-2xl"></div>
 
-    <div id="modalEdit" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[2rem] w-full max-w-2xl border border-sky-500/30">
-            <h3 id="editTitle" class="text-xl font-bold mb-6 text-sky-400 uppercase tracking-tighter">Edit Jadwal</h3>
-            <div id="editForm" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
-            <div class="flex gap-4">
-                <button onclick="closeModal()" class="flex-1 bg-slate-700 py-4 rounded-xl font-bold text-xs">BATAL</button>
-                <button onclick="saveWaktu()" class="flex-1 bg-sky-600 py-4 rounded-xl font-bold text-xs">SIMPAN PERUBAHAN</button>
-            </div>
+<body>
+
+    <!-- =======================================================
+         SPLASH SCREEN
+    ======================================================== -->
+
+    <div id="splashScreen" class="splash">
+
+        <div class="splash-content">
+
+            <img
+                src="assets/logo.png"
+                alt="Logo Sekolah"
+                class="logo">
+
+            <h1>
+
+                SMP Negeri 2 Kawali
+
+            </h1>
+
+            <h2>
+
+                ABSENSI MPLS
+
+            </h2>
+
+            <p>
+
+                Tahun Pelajaran 2026 / 2027
+
+            </p>
+
+            <div class="loader"></div>
+
+            <p id="loadingText">
+
+                Memuat aplikasi...
+
+            </p>
+
         </div>
+
     </div>
 
-    <div id="loginPage" class="min-h-screen flex items-center justify-center">
-        <div class="glass p-10 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border border-white/10">
-            <div class="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-full flex items-center justify-center overflow-hidden border-2 border-sky-500/50">
-                <img src="logo.png" class="w-20 h-auto" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2602/2602414.png'">
+
+    <!-- =======================================================
+         LOGIN
+    ======================================================== -->
+
+    <div id="loginPage"
+         class="page hidden">
+
+        <div class="login-card">
+
+            <h2>
+
+                LOGIN
+
+            </h2>
+
+            <label>
+
+                Username / NISN
+
+            </label>
+
+            <input
+                type="text"
+                id="username"
+                autocomplete="off"
+                placeholder="Masukkan Username">
+
+            <label>
+
+                Password
+
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Masukkan Password">
+
+            <label>
+
+                Login Sebagai
+
+            </label>
+
+            <select id="role">
+
+                <option value="ADMIN">
+
+                    Admin
+
+                </option>
+
+                <option value="PETUGAS">
+
+                    Petugas
+
+                </option>
+
+                <option value="GURU">
+
+                    Guru
+
+                </option>
+
+                <option value="KEPALA">
+
+                    Kepala Sekolah
+
+                </option>
+
+                <option value="ORANGTUA">
+
+                    Orang Tua
+
+                </option>
+
+            </select>
+
+            <button id="btnLogin">
+
+                MASUK
+
+            </button>
+
+            <div id="loginMessage">
+
             </div>
-            <h1 class="font-bold text-xl uppercase tracking-tight">SMPN 2 KAWALI</h1>
-            <p class="text-slate-400 text-[10px] mb-8 tracking-widest uppercase">Sistem Absensi v2.4</p>
-            <div class="space-y-4">
-                <input id="u" class="input-cinematic w-full p-4 rounded-2xl text-center" placeholder="USERNAME">
-                <input id="pin" type="password" class="input-cinematic w-full p-4 rounded-2xl text-center tracking-[0.5em]" placeholder="PIN">
-                <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-4 rounded-2xl font-bold text-white transition-all shadow-lg active:scale-95 text-xs">MASUK KE SISTEM</button>
-            </div>
+
         </div>
+
     </div>
 
-    <div id="app" class="hidden max-w-6xl mx-auto">
-        <nav class="flex justify-between items-center glass p-4 rounded-3xl mb-6 px-6">
-            <div class="flex items-center gap-3">
-                <span id="roleLabel" class="text-[10px] font-bold bg-sky-500/20 text-sky-400 px-3 py-1 rounded-full uppercase tracking-widest">USER</span>
-            </div>
-            <div class="flex gap-4 text-[10px] font-bold items-center">
-                <div class="flex items-center gap-1.5"><span id="gpsD" class="status-dot bg-offline"></span> GPS</div>
-                <div class="flex items-center gap-1.5"><span id="camD" class="status-dot bg-offline"></span> CAM</div>
-                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-[9px]">LOGOUT</button>
-            </div>
-        </nav>
 
-        <div id="vAdmin" class="hidden space-y-6 pb-10">
-            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="switchTab('tWaktu', this)" class="tab-btn active px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">SETTING WAKTU</button>
-                <button onclick="switchTab('tLokasi', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">LOKASI & USER</button>
-                <button onclick="switchTab('tLaporan', this)" class="tab-btn px-6 py-3 rounded-2xl glass font-bold text-xs whitespace-nowrap">LAPORAN REKAP</button>
-            </div>
+    <!-- =======================================================
+         SCRIPT
+    ======================================================== -->
 
-            <div id="tWaktu" class="tab-content space-y-4">
-                <div class="glass p-6 rounded-3xl overflow-x-auto">
-                    <h3 class="text-sm font-bold uppercase mb-6 text-sky-400"><i class="fas fa-clock mr-2"></i>Jadwal Harian</h3>
-                    <table class="w-full">
-                        <thead class="bg-white/5">
-                            <tr>
-                                <th>Hari</th><th>Masuk</th><th>Limit</th><th>Telat</th><th>Limit</th><th>Pulang</th><th>Limit</th><th>P.Awal</th><th>P.Limit</th><th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contH"></tbody>
-                    </table>
-                </div>
-            </div>
+    <script src="js/config.js"></script>
 
-            <div id="tLokasi" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-6 rounded-3xl space-y-4">
-                    <h3 class="text-xs font-bold uppercase text-red-400"><i class="fas fa-map-marker-alt mr-2"></i>Geofencing</h3>
-                    <input id="cLat" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Latitude">
-                    <input id="cLng" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Longitude">
-                    <input id="cRad" class="input-cinematic w-full p-4 rounded-xl text-xs" placeholder="Radius (m)">
-                    <button onclick="saveC()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold text-xs">SIMPAN KONFIGURASI</button>
-                </div>
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-xs font-bold uppercase mb-4">Kelola Petugas</h3>
-                    <div id="contU" class="space-y-2"></div>
-                </div>
-            </div>
+    <script src="js/helper.js"></script>
 
-            <div id="tLaporan" class="tab-content hidden space-y-4">
-                <div class="glass p-6 rounded-3xl">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-sm font-bold uppercase">Rekap Bulanan</h3>
-                        <button onclick="downloadPDF()" class="bg-red-600 text-[10px] px-5 py-2.5 rounded-xl font-bold italic">DOWNLOAD PDF</button>
-                    </div>
-                    <table class="w-full" id="pdfTable">
-                        <thead class="bg-white/5"><tr><th>Nama</th><th>H</th><th>S</th><th>I</th><th>A</th><th>T</th></tr></thead>
-                        <tbody id="contL"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <script src="js/api.js"></script>
 
-        <div id="vPetugas" class="hidden">
-            <div class="glass p-8 rounded-[2.5rem] text-center shadow-xl max-w-md mx-auto">
-                <input id="cariS" list="lS" onchange="pilihSiswa(this.value)" class="input-cinematic w-full p-5 rounded-2xl text-center text-lg font-bold mb-4" placeholder="Cari Nama Siswa...">
-                <datalist id="lS"></datalist>
-                <div id="bK" class="text-sky-400 font-bold mb-6 text-xl tracking-tighter italic">KELAS: -</div>
-                <div class="relative inline-block w-full overflow-hidden rounded-3xl border-2 border-sky-500/50 mb-6 bg-black aspect-video">
-                    <video id="v" autoplay playsinline class="w-full h-full object-cover"></video>
-                    <button onclick="switchCamera()" class="absolute top-4 right-4 bg-black/50 hover:bg-sky-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all border border-white/20 backdrop-blur-md">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                    <canvas id="canvas" class="hidden"></canvas>
-                </div>
-                <button id="btnA" onclick="absen()" class="w-full bg-sky-600 py-5 rounded-3xl font-black text-xl tracking-widest active:scale-95 transition-all">ABSEN SEKARANG</button>
-            </div>
-        </div>
-    </div>
+    <script src="js/login.js"></script>
 
     <script>
-        // --- KONFIGURASI ---
-        const API = "https://script.google.com/macros/s/AKfycbwwytzUd3cnzgM37lsV_QBs9khM4cgsF6-jRaqTjKtC_58Hxb8t8ZTDJNW_LDFKjAgvpg/exec";
-        let SISWA = [], SELECTED_SISWA = null, LAT = 0, LNG = 0, stream = null, currentFacingMode = "environment";
-        const labelKolom = ["M.AWAL", "M.AKHIR", "T.AWAL", "T.AKHIR", "P.AWAL", "P.AKHIR", "PT.AWAL", "PT.AKHIR"];
 
-        // --- ASSET SUARA ---
-        const sndSuccess = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Suara Kring/Bell
-        const sndError = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');   // Suara Totet/Buzzer
+        window.onload = function () {
 
-        function playSuccess() { sndSuccess.play().catch(e => console.log("Audio play failed")); }
-        function playError() { sndError.play().catch(e => console.log("Audio play failed")); }
+            setTimeout(function () {
 
-        function msg(t){ 
-            const b=document.getElementById('toast'); 
-            b.innerText=t; b.classList.remove('hidden'); 
-            setTimeout(()=>b.classList.add('hidden'),3000); 
-        }
+                document
+                    .getElementById("splashScreen")
+                    .style.display = "none";
 
-        // --- KOMPRESI GAMBAR ---
-        function compressImage(base64Str) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.src = base64Str;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
-                    let width = img.width;
-                    let height = img.height;
+                document
+                    .getElementById("loginPage")
+                    .classList.remove("hidden");
 
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.5)); 
-                };
-            });
-        }
+            }, 2000);
 
-        async function login(){
-            const u = document.getElementById('u').value.trim().toLowerCase();
-            const p = document.getElementById('pin').value.trim();
-            if(!u || !p) return msg("Isi Username & PIN!");
-            msg("Otentikasi...");
-            try {
-                const res = await fetch(`${API}?mode=get_users`);
-                const users = await res.json();
-                const user = users.find(x => x.username == u && x.pin == p);
-                if(user) {
-                    document.getElementById('loginPage').classList.add('hidden');
-                    document.getElementById('app').classList.remove('hidden');
-                    document.getElementById('roleLabel').innerText = user.role;
-                    if(user.role == "ADMIN") {
-                        document.getElementById('vAdmin').classList.remove('hidden');
-                        loadA(); loadLaporan();
-                    } else {
-                        document.getElementById('vPetugas').classList.remove('hidden');
-                        startC(); loadS();
-                    }
-                    initGPS();
-                } else {
-                    playError();
-                    msg("Login Gagal!");
-                }
-            } catch(e) { msg("Koneksi Error!"); }
-        }
+        };
 
-        function initGPS() {
-            navigator.geolocation.watchPosition(p => {
-                LAT = p.coords.latitude; LNG = p.coords.longitude;
-                document.getElementById('gpsD').className = 'status-dot bg-online';
-            }, () => msg("Aktifkan GPS!"), {enableHighAccuracy:true});
-        }
-
-        async function startC(){
-            if (stream) stream.getTracks().forEach(t => t.stop());
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-                const video = document.getElementById('v');
-                video.srcObject = stream;
-                currentFacingMode === "user" ? video.classList.add('mirror') : video.classList.remove('mirror');
-                document.getElementById('camD').className = 'status-dot bg-online';
-            } catch(e) { msg("Kamera Error!"); }
-        }
-
-        function switchCamera() {
-            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
-            startC();
-        }
-
-        async function loadS(){
-            const res = await fetch(`${API}?mode=get_siswa`);
-            SISWA = await res.json();
-            document.getElementById('lS').innerHTML = SISWA.map(s => `<option value="${s.nama}">`).join('');
-        }
-
-        function pilihSiswa(val){
-            const s = SISWA.find(x => x.nama === val);
-            if(s) { SELECTED_SISWA = s; document.getElementById('bK').innerText = "KELAS: " + s.kelas; }
-        }
-
-        async function absen(){
-            if(!SELECTED_SISWA || LAT === 0) {
-                playError();
-                return msg("Lengkapi Data & GPS!");
-            }
-            const btn = document.getElementById('btnA'); 
-            btn.disabled = true; 
-            msg("Mengirim...");
-
-            const video = document.getElementById('v'), canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth; 
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            if(currentFacingMode === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-            ctx.drawImage(video, 0, 0);
-            
-            const rawFoto = canvas.toDataURL('image/jpeg', 0.9);
-            const fotoTerkompresi = await compressImage(rawFoto);
-
-            try {
-                const res = await fetch(API, {method: 'POST', body: JSON.stringify({
-                    action: "absen", 
-                    nama: SELECTED_SISWA.nama, 
-                    kelas: SELECTED_SISWA.kelas, 
-                    hp: SELECTED_SISWA.hp, 
-                    lat: LAT, 
-                    lng: LNG, 
-                    foto: fotoTerkompresi
-                })});
-                
-                const resultText = await res.text();
-                msg(resultText);
-
-                if(resultText.includes("BERHASIL")) {
-                    playSuccess(); // BUNYI KRING
-                    document.getElementById('cariS').value = ""; 
-                    SELECTED_SISWA = null;
-                    document.getElementById('bK').innerText = "KELAS: -";
-                } else {
-                    playError(); // BUNYI TOTET
-                }
-
-            } catch(e) { 
-                playError();
-                msg("Error Kirim!"); 
-            }
-            btn.disabled = false;
-        }
-
-        // --- ADMIN FUNCTIONS ---
-        async function loadA(){
-            const [cR, hR, uR] = await Promise.all([
-                fetch(`${API}?mode=get_config`), fetch(`${API}?mode=get_settings`), fetch(`${API}?mode=get_users`)
-            ]);
-            const config = await cR.json(), hams = await hR.json(), users = await uR.json();
-            document.getElementById('cLat').value = config.lat;
-            document.getElementById('cLng').value = config.lng;
-            document.getElementById('cRad').value = config.radius;
-
-            document.getElementById('contH').innerHTML = hams.map(h => `
-                <tr>
-                    <td class="font-bold text-sky-400">${h[0]}</td>
-                    ${h.slice(1).map(v => `<td>${v}</td>`).join('')}
-                    <td><button onclick='openEditWaktu(${JSON.stringify(h)})' class="text-amber-500"><i class="fas fa-edit"></i></button></td>
-                </tr>`).join('');
-
-            document.getElementById('contU').innerHTML = users.map(u => `
-                <div class="flex justify-between glass p-3 rounded-xl items-center">
-                    <span class="text-[10px] font-bold">${u.username} (${u.role})</span>
-                    <i class="fas fa-user text-sky-500 opacity-30"></i>
-                </div>`).join('');
-        }
-
-        let editHari = "";
-        function openEditWaktu(data) {
-            editHari = data[0];
-            document.getElementById('editTitle').innerText = "EDIT JADWAL - " + editHari;
-            document.getElementById('editForm').innerHTML = data.slice(1).map((val, i) => `
-                <div class="flex flex-col gap-1">
-                    <label class="text-[9px] text-slate-400 font-bold uppercase">${labelKolom[i]}</label>
-                    <input type="time" value="${val}" class="input-cinematic p-3 rounded-lg text-xs edit-input">
-                </div>`).join('');
-            document.getElementById('modalEdit').classList.remove('hidden');
-        }
-
-        function closeModal() { document.getElementById('modalEdit').classList.add('hidden'); }
-
-        async function saveWaktu() {
-            const inputs = document.querySelectorAll('.edit-input');
-            const rowData = Array.from(inputs).map(i => i.value);
-            msg("Menyimpan...");
-            const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "update_setting", hari: editHari, row: rowData }) });
-            if(await res.text() === "SUCCESS") { msg("Jadwal Diperbarui!"); closeModal(); loadA(); }
-        }
-
-        async function saveC(){
-            msg("Menyimpan...");
-            await fetch(API, {method:'POST', body: JSON.stringify({
-                action: "update_config", lat: document.getElementById('cLat').value, lng: document.getElementById('cLng').value, radius: document.getElementById('cRad').value
-            })});
-            msg("Berhasil!");
-        }
-
-        async function loadLaporan(){
-            const res = await fetch(`${API}?mode=get_rekap`);
-            const data = await res.json();
-            document.getElementById('contL').innerHTML = data.map(r => 
-                `<tr><td>${r.nama}</td><td>${r.hadir}</td><td>${r.sakit}</td><td>${r.izin}</td><td>${r.alpa}</td><td>${r.telat}</td></tr>`
-            ).join('');
-        }
-
-        function switchTab(tId, btn){
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(tId).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        function downloadPDF(){
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("REKAP ABSENSI SMPN 2 KAWALI", 105, 20, {align:"center"});
-            doc.autoTable({ html: '#pdfTable', startY: 30, theme: 'grid', styles: {fontSize: 8} });
-            doc.save("Rekap_Absensi.pdf");
-        }
     </script>
+
 </body>
+
 </html>
