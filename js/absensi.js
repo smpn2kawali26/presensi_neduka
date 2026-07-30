@@ -556,4 +556,182 @@ async function prosesPulang(){
 
     }
 
+}/*****************************************************************
+ * ===============================================================
+ * ABSENSI SISWA v3.0
+ * SMP Negeri 2 Kawali
+ * BAGIAN 4 (FINAL)
+ *****************************************************************/
+
+
+/*===============================================================
+=            RESET FORM
+===============================================================*/
+
+function resetFormAbsensi(){
+
+    resetSiswa();
+
+    const keyword=document.getElementById("keyword");
+
+    if(keyword){
+
+        keyword.value="";
+
+        keyword.focus();
+
+    }
+
+}
+
+
+/*===============================================================
+=            SELESAI ABSENSI
+===============================================================*/
+
+function selesaiAbsensi(){
+
+    resetFormAbsensi();
+
+    refreshGPS();
+
+}
+
+
+/*===============================================================
+=            FOKUS OTOMATIS
+===============================================================*/
+
+window.addEventListener(
+
+    "load",
+
+    function(){
+
+        const keyword=document.getElementById("keyword");
+
+        if(keyword){
+
+            keyword.focus();
+
+        }
+
+    }
+
+);
+
+
+/*===============================================================
+=            REFRESH HALAMAN
+===============================================================*/
+
+function refreshHalaman(){
+
+    location.reload();
+
+}
+
+
+/*===============================================================
+=            CEK KAMERA
+===============================================================*/
+
+function kameraAktif(){
+
+    const video=document.getElementById("camera");
+
+    if(!video){
+
+        return false;
+
+    }
+
+    return (
+
+        video.readyState>=2 &&
+
+        video.videoWidth>0
+
+    );
+
+}
+
+
+/*===============================================================
+=            VALIDASI ABSENSI
+===============================================================*/
+
+function validasiAbsensi(){
+
+    if(!siswaAktif){
+
+        alert("Silakan pilih siswa terlebih dahulu.");
+
+        return false;
+
+    }
+
+    if(!kameraAktif()){
+
+        alert("Kamera belum siap.");
+
+        return false;
+
+    }
+
+    if(!validasiGPS()){
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
+
+/*===============================================================
+=            INFO SISWA
+===============================================================*/
+
+function getSiswaAktif(){
+
+    return siswaAktif;
+
+}
+
+
+/*===============================================================
+=            CLEAR DATA
+===============================================================*/
+
+function clearData(){
+
+    siswaAktif=null;
+
+    lokasiGPS=null;
+
+    resetSiswa();
+
+}
+
+
+/*===============================================================
+=            TEST
+===============================================================*/
+
+function testAbsensi(){
+
+    console.log(
+
+        getSiswaAktif()
+
+    );
+
+    console.log(
+
+        getGPSData()
+
+    );
+
 }
