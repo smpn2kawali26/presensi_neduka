@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard Petugas</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+
+    <header class="topbar">
+
+        <div>
+
+            <h2>Dashboard Petugas</h2>
+
+            <p>ABSENSI MPLS - SMP Negeri 2 Kawali</p>
+
+        </div>
+
+        <button
+            id="btnLogout"
+            onclick="doLogout()">
+
+            Logout
+
+        </button>
+
+    </header>
+
+
+    <!-- =======================================================
+         KONTEN
+    ======================================================== -->
+
+    <main class="container">
+
+        <!-- ==========================================
+             PETUGAS
+        =========================================== -->
+
+        <section class="card">
+
+            <h3>Petugas</h3>
+
+            <p>
+
+                Nama :
+
+                <strong id="namaUser">
+
+                    -
+
+                </strong>
+
+            </p>
+
+        </section>
+
+
+        <!-- ==========================================
+             CARI SISWA
+        =========================================== -->
+
+        <section class="card">
+
+            <h3>Cari Siswa</h3>
+
+            <input
+                type="text"
+                id="keyword"
+                placeholder="Masukkan Nama / NIS / NISN">
+
+            <button
+                id="btnCari">
+
+                Cari
+
+            </button>
+
+        </section>
+
+
+        <!-- ==========================================
+             DATA SISWA
+        =========================================== -->
+
+        <section class="card">
+
+            <h3>Data Siswa</h3>
+
+            <table width="100%">
+
+                <tr>
+
+                    <td width="120">
+
+                        ID
+
+                    </td>
+
+                    <td>
+
+                        :
+
+                        <span id="idSiswa">
+
+                            -
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td>
+
+                        Nama
+
+                    </td>
+
+                    <td>
+
+                        :
+
+                        <span id="namaSiswa">
+
+                            -
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td>
+
+                        Kelas
+
+                    </td>
+
+                    <td>
+
+                        :
+
+                        <span id="kelasSiswa">
+
+                            -
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td>
+
+                        Status
+
+                    </td>
+
+                    <td>
+
+                        :
+
+                        <span id="statusSiswa">
+
+                            -
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+        </section>
+
+
+        <!-- ==========================================
+             CAMERA
+        =========================================== -->
+
+        <section class="card">
+
+            <h3>Kamera</h3>
+
+            <video
+
+                id="camera"
+
+                autoplay
+
+                playsinline
+
+                muted
+
+                width="100%"
+
+                style="border-radius:12px;background:#000;">
+
+            </video>
+
+            <canvas
+
+                id="canvas"
+
+                style="display:none;">
+
+            </canvas>
+
+            <br><br>
+
+            <button
+                id="btnSwitchCamera">
+
+                Ganti Kamera
+
+            </button>
+
+        </section>
+
+
+        <!-- ==========================================
+             GPS
+        =========================================== -->
+
+        <section class="card">
+
+            <h3>GPS</h3>
+
+            <p>
+
+                Latitude :
+
+                <span id="latitude">
+
+                    -
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Longitude :
+
+                <span id="longitude">
+
+                    -
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Akurasi :
+
+                <span id="accuracy">
+
+                    -
+
+                </span>
+
+            </p>
+
+        </section>
+
+
+        <!-- ==========================================
+             ABSENSI
+        =========================================== -->
+
+        <section class="card">
+
+            <button
+                id="btnMasuk">
+
+                ABSEN MASUK
+
+            </button>
+
+            <br><br>
+
+            <button
+                id="btnPulang">
+
+                ABSEN PULANG
+
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- =======================================================
+         SCRIPT
+    ======================================================== -->
+
+    <script src="../js/config.js"></script>
+
+    <script src="../js/helper.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/camera.js"></script>
+    <script src="../js/absensi.js"></script>
+
+</body>
+
+</html>
