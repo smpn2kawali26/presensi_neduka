@@ -14,7 +14,7 @@
 
 const CONFIG = {
 
-    APP_NAME: "ABSENSI MPLS",
+    APP_NAME: "PORTAL ABSENSI",
 
     VERSION: "3.0",
 
