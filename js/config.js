@@ -27,14 +27,10 @@ const CONFIG = {
 =            URL WEB APP APPS SCRIPT
 ===============================================================*/
 /*
- * Setelah Apps Script di Deploy sebagai Web App,
- * ganti URL di bawah ini.
- *
- * Contoh:
- * https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec
+ * URL Web App Google Apps Script terbaru
  */
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_7hM32GISj1-dElP84EY815_4NaUMa4eVbi2-azMXa8lMV7E1CIJ-_oQYXIwFviOb/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8VeckYCB_GGLVcn_23hkUwGLM9ky801l7o0n6TWlwIkphAM6y-Xx4fSPhjyjBAT5P/exec";
 
 
 /*===============================================================
