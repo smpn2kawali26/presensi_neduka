@@ -34,7 +34,7 @@ const CONFIG = {
  * https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec
  */
 
-const WEB_APP_URL = "https://script.google.com/a/macros/guru.smp.belajar.id/s/AKfycbz8VeckYCB_GGLVcn_23hkUwGLM9ky801l7o0n6TWlwIkphAM6y-Xx4fSPhjyjBAT5P/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8VeckYCB_GGLVcn_23hkUwGLM9ky801l7o0n6TWlwIkphAM6y-Xx4fSPhjyjBAT5P/exec";
 
 
 /*===============================================================
