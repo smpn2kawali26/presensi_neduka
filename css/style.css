@@ -369,4 +369,368 @@ RESPONSIVE
 
     }
 
+}/*****************************************************************
+===============================================================
+DASHBOARD
+===============================================================
+*/
+
+.topbar{
+
+    width:100%;
+
+    background:#1565c0;
+
+    color:#ffffff;
+
+    padding:15px 20px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+
+}
+
+.topbar h2{
+
+    margin-bottom:4px;
+
+}
+
+.topbar p{
+
+    font-size:14px;
+
+}
+
+
+/*****************************************************************
+CONTAINER
+*****************************************************************/
+
+.container{
+
+    width:100%;
+
+    max-width:1200px;
+
+    margin:20px auto;
+
+    padding:15px;
+
+}
+
+
+/*****************************************************************
+CARD
+*****************************************************************/
+
+.card{
+
+    background:#ffffff;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+}
+
+.card h3{
+
+    color:#1565c0;
+
+    margin-bottom:15px;
+
+}
+
+
+/*****************************************************************
+INPUT
+*****************************************************************/
+
+.card input{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #dcdcdc;
+
+    border-radius:8px;
+
+    margin-bottom:12px;
+
+    font-size:16px;
+
+}
+
+
+/*****************************************************************
+BUTTON
+*****************************************************************/
+
+.card button{
+
+    width:100%;
+
+    padding:13px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#1565c0;
+
+    color:#ffffff;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.card button:hover{
+
+    background:#0d47a1;
+
+}
+
+
+/*****************************************************************
+TABLE
+*****************************************************************/
+
+.card table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.card table td{
+
+    padding:8px 4px;
+
+}
+
+
+/*****************************************************************
+VIDEO
+*****************************************************************/
+
+video{
+
+    width:100%;
+
+    border-radius:12px;
+
+    background:#000000;
+
+}
+
+
+/*****************************************************************
+DASHBOARD GRID
+*****************************************************************/
+
+.dashboard-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:15px;
+
+}
+
+
+/*****************************************************************
+INFO BOX
+*****************************************************************/
+
+.info-box{
+
+    background:#f5f8ff;
+
+    border-left:5px solid #1565c0;
+
+    border-radius:10px;
+
+    padding:20px;
+
+    text-align:center;
+
+}
+
+.info-box h4{
+
+    color:#555;
+
+    margin-bottom:10px;
+
+}
+
+.info-box h2{
+
+    color:#1565c0;
+
+    font-size:32px;
+
+}
+
+
+/*****************************************************************
+MENU GRID
+*****************************************************************/
+
+.menu-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+
+    gap:15px;
+
+}
+
+
+/*****************************************************************
+MENU BUTTON
+*****************************************************************/
+
+.menu-button{
+
+    padding:18px;
+
+    background:#1565c0;
+
+    color:#ffffff;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    transition:.25s;
+
+}
+
+.menu-button:hover{
+
+    background:#0d47a1;
+
+}
+
+
+/*****************************************************************
+GPS
+*****************************************************************/
+
+#latitude,
+#longitude,
+#accuracy{
+
+    color:#1565c0;
+
+    font-weight:bold;
+
+}
+
+
+/*****************************************************************
+ABSENSI BUTTON
+*****************************************************************/
+
+#btnMasuk{
+
+    background:#2e7d32;
+
+}
+
+#btnMasuk:hover{
+
+    background:#1b5e20;
+
+}
+
+#btnPulang{
+
+    background:#ef6c00;
+
+}
+
+#btnPulang:hover{
+
+    background:#e65100;
+
+}
+
+
+/*****************************************************************
+LOGOUT
+*****************************************************************/
+
+#btnLogout{
+
+    width:auto;
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#ffffff;
+
+    color:#1565c0;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+}
+
+#btnLogout:hover{
+
+    background:#eeeeee;
+
+}
+
+
+/*****************************************************************
+RESPONSIVE
+*****************************************************************/
+
+@media(max-width:768px){
+
+    .topbar{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:10px;
+
+    }
+
+    .container{
+
+        padding:10px;
+
+    }
+
 }
