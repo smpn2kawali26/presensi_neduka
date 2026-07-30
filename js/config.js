@@ -34,7 +34,7 @@ const CONFIG = {
  * https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec
  */
 
-const WEB_APP_URL = "";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxakbCcJQDi5Jm1FEmWKAXPvyRJvYG5oPL-QVVix2cflebAmvI51Y4H3ub7uQqdSapKOg/exec";
 
 
 /*===============================================================
