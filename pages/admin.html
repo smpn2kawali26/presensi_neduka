@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard Admin</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+    <!-- =======================================================
+         HEADER
+    ======================================================== -->
+
+    <header class="topbar">
+
+        <div>
+
+            <h2>
+
+                Dashboard Admin
+
+            </h2>
+
+            <p>
+
+                ABSENSI MPLS - SMP Negeri 2 Kawali
+
+            </p>
+
+        </div>
+
+        <button
+            id="btnLogout"
+            onclick="doLogout()">
+
+            Logout
+
+        </button>
+
+    </header>
+
+
+    <!-- =======================================================
+         DASHBOARD
+    ======================================================== -->
+
+    <main class="container">
+
+        <!-- Selamat Datang -->
+
+        <section class="card">
+
+            <h3>
+
+                Selamat Datang
+
+            </h3>
+
+            <p>
+
+                Nama :
+
+                <strong id="namaUser">
+
+                    -
+
+                </strong>
+
+            </p>
+
+            <p>
+
+                Role :
+
+                <strong id="roleUser">
+
+                    ADMIN
+
+                </strong>
+
+            </p>
+
+        </section>
+
+
+        <!-- Statistik -->
+
+        <section class="card">
+
+            <h3>
+
+                Statistik Hari Ini
+
+            </h3>
+
+            <div class="dashboard-grid">
+
+                <div class="info-box">
+
+                    <h4>
+
+                        Total Siswa
+
+                    </h4>
+
+                    <h2 id="totalSiswa">
+
+                        0
+
+                    </h2>
+
+                </div>
+
+                <div class="info-box">
+
+                    <h4>
+
+                        Hadir Hari Ini
+
+                    </h4>
+
+                    <h2 id="hadirHariIni">
+
+                        0
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Menu -->
+
+        <section class="card">
+
+            <h3>
+
+                Menu Admin
+
+            </h3>
+
+            <div class="menu-grid">
+
+                <button class="menu-button">
+
+                    Data Siswa
+
+                </button>
+
+                <button class="menu-button">
+
+                    Data Guru
+
+                </button>
+
+                <button class="menu-button">
+
+                    Data User
+
+                </button>
+
+                <button class="menu-button">
+
+                    Data Kelas
+
+                </button>
+
+                <button class="menu-button">
+
+                    Absensi
+
+                </button>
+
+                <button class="menu-button">
+
+                    Rekap
+
+                </button>
+
+                <button class="menu-button">
+
+                    Pengaturan
+
+                </button>
+
+                <button class="menu-button">
+
+                    Log Aktivitas
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =======================================================
+         SCRIPT
+    ======================================================== -->
+
+    <script src="../js/config.js"></script>
+
+    <script src="../js/helper.js"></script>
+
+    <script src="../js/api.js"></script>
+
+    <script src="../js/dashboard.js"></script>
+
+</body>
+
+</html>
