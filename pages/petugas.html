@@ -2,16 +2,10 @@
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Petugas</title>
-
     <link rel="stylesheet" href="../css/style.css">
-
 </head>
 
 <body>
@@ -19,313 +13,196 @@
     <!-- =======================================================
          HEADER
     ======================================================== -->
-
     <header class="topbar">
-
         <div>
-
             <h2>Dashboard Petugas</h2>
-
             <p>ABSENSI MPLS - SMP Negeri 2 Kawali</p>
-
         </div>
-
-        <button
-            id="btnLogout"
-            onclick="doLogout()">
-
-            Logout
-
-        </button>
-
+        <button id="btnLogout" onclick="doLogout()">Logout</button>
     </header>
-
 
     <!-- =======================================================
          KONTEN
     ======================================================== -->
-
     <main class="container">
 
-        <!-- ==========================================
-             PETUGAS
-        =========================================== -->
-
+        <!-- PETUGAS -->
         <section class="card">
-
             <h3>Petugas</h3>
-
             <p>
-
-                Nama :
-
-                <strong id="namaUser">
-
-                    -
-
-                </strong>
-
+                Nama : <strong id="namaUser">-</strong>
             </p>
-
         </section>
 
-
-        <!-- ==========================================
-             CARI SISWA
-        =========================================== -->
-
+        <!-- CARI SISWA -->
         <section class="card">
-
             <h3>Cari Siswa</h3>
-
-            <input
-                type="text"
-                id="keyword"
-                placeholder="Masukkan Nama / NIS / NISN">
-
-            <button
-                id="btnCari">
-
-                Cari
-
-            </button>
-
+            <input 
+                type="text" 
+                id="keyword" 
+                placeholder="Ketikan minimal 3 huruf (Nama / NISN)..." 
+                autocomplete="off">
+            <button id="btnCari">Cari</button>
+            <small id="searchStatus" style="display:block; margin-top:8px; color:#666; font-style:italic;"></small>
         </section>
 
-
-        <!-- ==========================================
-             DATA SISWA
-        =========================================== -->
-
+        <!-- DATA SISWA -->
         <section class="card">
-
             <h3>Data Siswa</h3>
-
             <table width="100%">
-
                 <tr>
-
-                    <td width="120">
-
-                        ID
-
-                    </td>
-
-                    <td>
-
-                        :
-
-                        <span id="idSiswa">
-
-                            -
-
-                        </span>
-
-                    </td>
-
+                    <td width="120">ID</td>
+                    <td>: <span id="idSiswa">-</span></td>
                 </tr>
-
                 <tr>
-
-                    <td>
-
-                        Nama
-
-                    </td>
-
-                    <td>
-
-                        :
-
-                        <span id="namaSiswa">
-
-                            -
-
-                        </span>
-
-                    </td>
-
+                    <td>Nama</td>
+                    <td>: <span id="namaSiswa">-</span></td>
                 </tr>
-
                 <tr>
-
-                    <td>
-
-                        Kelas
-
-                    </td>
-
-                    <td>
-
-                        :
-
-                        <span id="kelasSiswa">
-
-                            -
-
-                        </span>
-
-                    </td>
-
+                    <td>Kelas</td>
+                    <td>: <span id="kelasSiswa">-</span></td>
                 </tr>
-
                 <tr>
-
-                    <td>
-
-                        Status
-
-                    </td>
-
-                    <td>
-
-                        :
-
-                        <span id="statusSiswa">
-
-                            -
-
-                        </span>
-
-                    </td>
-
+                    <td>Status</td>
+                    <td>: <span id="statusSiswa">-</span></td>
                 </tr>
-
             </table>
-
         </section>
 
-
-        <!-- ==========================================
-             CAMERA
-        =========================================== -->
-
+        <!-- KAMERA -->
         <section class="card">
-
             <h3>Kamera</h3>
-
-            <video
-
-                id="camera"
-
-                autoplay
-
-                playsinline
-
-                muted
-
-                width="100%"
-
+            <video 
+                id="camera" 
+                autoplay 
+                playsinline 
+                muted 
+                width="100%" 
                 style="border-radius:12px;background:#000;">
-
             </video>
-
-            <canvas
-
-                id="canvas"
-
-                style="display:none;">
-
-            </canvas>
-
+            <canvas id="canvas" style="display:none;"></canvas>
             <br><br>
-
-            <button
-                id="btnSwitchCamera">
-
-                Ganti Kamera
-
-            </button>
-
+            <button id="btnSwitchCamera">Ganti Kamera</button>
         </section>
 
-
-        <!-- ==========================================
-             GPS
-        =========================================== -->
-
+        <!-- GPS -->
         <section class="card">
-
             <h3>GPS</h3>
-
-            <p>
-
-                Latitude :
-
-                <span id="latitude">
-
-                    -
-
-                </span>
-
-            </p>
-
-            <p>
-
-                Longitude :
-
-                <span id="longitude">
-
-                    -
-
-                </span>
-
-            </p>
-
-            <p>
-
-                Akurasi :
-
-                <span id="accuracy">
-
-                    -
-
-                </span>
-
-            </p>
-
+            <p>Latitude : <span id="latitude">-</span></p>
+            <p>Longitude : <span id="longitude">-</span></p>
+            <p>Akurasi : <span id="accuracy">-</span></p>
         </section>
 
-
-        <!-- ==========================================
-             ABSENSI
-        =========================================== -->
-
+        <!-- ABSENSI -->
         <section class="card">
-
-            <button
-                id="btnMasuk">
-
-                ABSEN MASUK
-
-            </button>
-
+            <button id="btnMasuk">ABSEN MASUK</button>
             <br><br>
-
-            <button
-                id="btnPulang">
-
-                ABSEN PULANG
-
-            </button>
-
+            <button id="btnPulang">ABSEN PULANG</button>
         </section>
 
     </main>
 
-
     <!-- =======================================================
-         SCRIPT
+         SCRIPT APLIKASI
     ======================================================== -->
-
     <script src="../js/config.js"></script>
-
     <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/dashboard.js"></script>
     <script src="../js/camera.js"></script>
     <script src="../js/absensi.js"></script>
 
+    <!-- =======================================================
+         LOGIKA PENCARIAN OTOMATIS (AUTO-SEARCH)
+    ======================================================== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputKeyword = document.getElementById("keyword");
+            const btnCari = document.getElementById("btnCari");
+            const searchStatus = document.getElementById("searchStatus");
+            let debounceTimer;
+
+            // Fungsi eksekusi pencarian ke backend API
+            function eksekusiPencarian() {
+                const query = inputKeyword.value.trim();
+
+                if (!query) {
+                    resetDataSiswa();
+                    if(searchStatus) searchStatus.innerText = "";
+                    return;
+                }
+
+                if (searchStatus) searchStatus.innerText = "Mencari data siswa...";
+
+                // Panggil fungsi API Apps Script
+                if (typeof callAPI === "function") {
+                    callAPI({
+                        action: "searchSiswa",
+                        data: { keyword: query }
+                    })
+                    .then(res => {
+                        if (res && res.success && res.data && res.data.length > 0) {
+                            const siswa = res.data[0]; // Ambil hasil pencarian pertama
+                            tampilkanDataSiswa(siswa);
+                            if (searchStatus) searchStatus.innerText = "Data siswa ditemukan!";
+                        } else {
+                            resetDataSiswa();
+                            if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error pencarian:", err);
+                        if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
+                    });
+                } else {
+                    console.error("Fungsi callAPI() tidak ditemukan di api.js");
+                }
+            }
+
+            // Handler: Tampilkan data ke tabel
+            function tampilkanDataSiswa(siswa) {
+                if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = siswa.idSiswa || "-";
+                if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = siswa.nama || "-";
+                if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = siswa.kelas || "-";
+                if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = siswa.status || "AKTIF";
+            }
+
+            // Handler: Reset tabel jika tidak ada data
+            function resetDataSiswa() {
+                if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = "-";
+                if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = "-";
+                if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = "-";
+                if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = "-";
+            }
+
+            // Event 1: Pencarian Otomatis Saat Mengetik (Minimal 3 Huruf)
+            if (inputKeyword) {
+                inputKeyword.addEventListener("input", function () {
+                    clearTimeout(debounceTimer);
+                    const val = this.value.trim();
+
+                    if (val.length >= 3) {
+                        debounceTimer = setTimeout(() => {
+                            eksekusiPencarian();
+                        }, 300); // Penundaan 300ms saat mengetik
+                    } else if (val.length === 0) {
+                        resetDataSiswa();
+                        if (searchStatus) searchStatus.innerText = "";
+                    } else {
+                        if (searchStatus) searchStatus.innerText = "Ketik minimal 3 huruf...";
+                    }
+                });
+            }
+
+            // Event 2: Pencarian Manual saat Klik Tombol Cari
+            if (btnCari) {
+                btnCari.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    eksekusiPencarian();
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
