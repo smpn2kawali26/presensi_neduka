@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Petugas</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Penyesuaian Ukuran Kamera agar Pas dan Tidak Terlalu Besar */
+        .camera-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #camera {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #000;
+        }
+    </style>
 </head>
 
 <body>
@@ -40,7 +57,7 @@
             <input 
                 type="text" 
                 id="keyword" 
-                placeholder="Ketikan minimal 3 huruf (Nama / NISN)..." 
+                placeholder="Ketikan nama siswa (contoh: sus)..." 
                 autocomplete="off">
             <button id="btnCari">Cari</button>
             <small id="searchStatus" style="display:block; margin-top:8px; color:#666; font-style:italic;"></small>
@@ -69,20 +86,20 @@
             </table>
         </section>
 
-        <!-- KAMERA -->
+        <!-- KAMERA (UKURAN DIPERSEMPIT) -->
         <section class="card">
             <h3>Kamera</h3>
-            <video 
-                id="camera" 
-                autoplay 
-                playsinline 
-                muted 
-                width="100%" 
-                style="border-radius:12px;background:#000;">
-            </video>
-            <canvas id="canvas" style="display:none;"></canvas>
-            <br><br>
-            <button id="btnSwitchCamera">Ganti Kamera</button>
+            <div class="camera-container">
+                <video 
+                    id="camera" 
+                    autoplay 
+                    playsinline 
+                    muted>
+                </video>
+                <canvas id="canvas" style="display:none;"></canvas>
+                <br><br>
+                <button id="btnSwitchCamera">Ganti Kamera</button>
+            </div>
         </section>
 
         <!-- GPS -->
@@ -113,7 +130,7 @@
     <script src="../js/absensi.js"></script>
 
     <!-- =======================================================
-         LOGIKA PENCARIAN OTOMATIS (AUTO-SEARCH)
+         LOGIKA PENCARIAN SISWA (BEBAS ERROR UNDEFINED)
     ======================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -122,19 +139,17 @@
             const searchStatus = document.getElementById("searchStatus");
             let debounceTimer;
 
-            // Fungsi eksekusi pencarian ke backend API
             function eksekusiPencarian() {
                 const query = inputKeyword.value.trim();
 
                 if (!query) {
                     resetDataSiswa();
-                    if(searchStatus) searchStatus.innerText = "";
+                    if (searchStatus) searchStatus.innerText = "";
                     return;
                 }
 
-                if (searchStatus) searchStatus.innerText = "Mencari data siswa...";
+                if (searchStatus) searchStatus.innerText = "Mencari...";
 
-                // Panggil fungsi API Apps Script
                 if (typeof callAPI === "function") {
                     callAPI({
                         action: "searchSiswa",
@@ -142,9 +157,9 @@
                     })
                     .then(res => {
                         if (res && res.success && res.data && res.data.length > 0) {
-                            const siswa = res.data[0]; // Ambil hasil pencarian pertama
+                            const siswa = res.data[0]; 
                             tampilkanDataSiswa(siswa);
-                            if (searchStatus) searchStatus.innerText = "Data siswa ditemukan!";
+                            if (searchStatus) searchStatus.innerText = "Data ditemukan!";
                         } else {
                             resetDataSiswa();
                             if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
@@ -152,22 +167,24 @@
                     })
                     .catch(err => {
                         console.error("Error pencarian:", err);
-                        if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
+                        if (searchStatus) searchStatus.innerText = "Gagal memuat data.";
                     });
-                } else {
-                    console.error("Fungsi callAPI() tidak ditemukan di api.js");
                 }
             }
 
-            // Handler: Tampilkan data ke tabel
-            function tampilkanDataSiswa(siswa) {
-                if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = siswa.idSiswa || "-";
-                if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = siswa.nama || "-";
-                if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = siswa.kelas || "-";
-                if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = siswa.status || "AKTIF";
+            // Mencegah 'undefined' dengan memeriksa semua kemungkinan kunci properti dari response backend
+            function tampilkanDataSiswa(s) {
+                const id = s.idSiswa || s.ID_SISWA || s.id || s.nisn || s.NISN || "-";
+                const nama = s.nama || s.NAMA || s.namaSiswa || "-";
+                const kelas = s.kelas || s.KELAS || s.kelasSiswa || "-";
+                const status = s.status || s.STATUS || "AKTIF";
+
+                if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = id;
+                if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = nama;
+                if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = kelas;
+                if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = status;
             }
 
-            // Handler: Reset tabel jika tidak ada data
             function resetDataSiswa() {
                 if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = "-";
                 if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = "-";
@@ -175,26 +192,23 @@
                 if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = "-";
             }
 
-            // Event 1: Pencarian Otomatis Saat Mengetik (Minimal 3 Huruf)
+            // Pencarian Otomatis saat Mengetik (Debounce 300ms)
             if (inputKeyword) {
                 inputKeyword.addEventListener("input", function () {
                     clearTimeout(debounceTimer);
                     const val = this.value.trim();
 
-                    if (val.length >= 3) {
+                    if (val.length >= 2) { // Dimulai dari 2 karakter
                         debounceTimer = setTimeout(() => {
                             eksekusiPencarian();
-                        }, 300); // Penundaan 300ms saat mengetik
+                        }, 300);
                     } else if (val.length === 0) {
                         resetDataSiswa();
                         if (searchStatus) searchStatus.innerText = "";
-                    } else {
-                        if (searchStatus) searchStatus.innerText = "Ketik minimal 3 huruf...";
                     }
                 });
             }
 
-            // Event 2: Pencarian Manual saat Klik Tombol Cari
             if (btnCari) {
                 btnCari.addEventListener("click", function (e) {
                     e.preventDefault();
