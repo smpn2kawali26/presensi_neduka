@@ -1,288 +1,61 @@
 /*****************************************************************
- * ===============================================================
- * ABSENSI SISWA v3.0
- * SMP Negeri 2 Kawali
- * camera.js
- * ===============================================================
- * LIVE CAMERA
+ * camera.js - AKSES KAMERA WEB & HP
  *****************************************************************/
 
+let currentStream = null;
+let facingMode = "user"; // "user" (kamera depan) atau "environment" (kamera belakang)
 
-/*===============================================================
-=            VARIABLE
-===============================================================*/
+// Inisialisasi kamera saat window dimuat
+window.addEventListener("DOMContentLoaded", function () {
+    startCamera();
 
-let cameraStream = null;
+    const btnSwitch = document.getElementById("btnSwitchCamera");
+    if (btnSwitch) {
+        btnSwitch.addEventListener("click", switchCamera);
+    }
+});
 
-let currentFacing = "environment";
+async function startCamera() {
+    stopCamera(); // Hentikan stream sebelumnya jika ada
 
+    const video = document.getElementById("camera");
+    if (!video) return;
 
-/*===============================================================
-=            LOAD
-===============================================================*/
-
-window.addEventListener(
-
-    "load",
-
-    function(){
-
-        startCamera();
-
+    // Cek ketersediaan API MediaDevices
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Browser kamu tidak mendukung akses kamera atau koneksi belum HTTPS!");
+        return;
     }
 
-);
+    const constraints = {
+        video: {
+            facingMode: facingMode,
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+        },
+        audio: false
+    };
 
-
-/*===============================================================
-=            START CAMERA
-===============================================================*/
-
-async function startCamera(){
-
-    try{
-
-        stopCamera();
-
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-
-            video:{
-
-                width:CAMERA.WIDTH,
-
-                height:CAMERA.HEIGHT,
-
-                facingMode:currentFacing
-
-            },
-
-            audio:false
-
-        });
-
-        const video=document.getElementById("camera");
-
-        if(video){
-
-            video.srcObject=cameraStream;
-
-            await video.play();
-
-        }
-
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        currentStream = stream;
+        video.srcObject = stream;
+        video.play();
+    } catch (err) {
+        console.error("Gagal membuka kamera:", err);
+        alert("Tidak dapat mengakses kamera. Pastikan izin kamera sudah diizinkan di browser!");
     }
-
-    catch(err){
-
-        console.error(err);
-
-        alert("Kamera tidak dapat diakses.");
-
-    }
-
 }
 
-
-/*===============================================================
-=            STOP CAMERA
-===============================================================*/
-
-function stopCamera(){
-
-    if(cameraStream){
-
-        cameraStream.getTracks().forEach(function(track){
-
-            track.stop();
-
-        });
-
-        cameraStream=null;
-
+function stopCamera() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
     }
-
 }
 
-
-/*===============================================================
-=            SWITCH CAMERA
-===============================================================*/
-
-async function switchCamera(){
-
-    if(currentFacing==="environment"){
-
-        currentFacing="user";
-
-    }else{
-
-        currentFacing="environment";
-
-    }
-
-    await startCamera();
-
+function switchCamera() {
+    // Flip antara kamera depan dan belakang (khusus HP)
+    facingMode = (facingMode === "user") ? "environment" : "user";
+    startCamera();
 }
-
-
-/*===============================================================
-=            BUTTON SWITCH
-===============================================================*/
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    function(){
-
-        const btn=document.getElementById(
-
-            "btnSwitchCamera"
-
-        );
-
-        if(btn){
-
-            btn.onclick=switchCamera;
-
-        }
-
-    }
-
-);
-
-
-/*===============================================================
-=            CAPTURE
-===============================================================*/
-
-function captureImage(){
-
-    const video=document.getElementById("camera");
-
-    const canvas=document.getElementById("canvas");
-
-    if(!video||!canvas){
-
-        return null;
-
-    }
-
-    canvas.width=video.videoWidth;
-
-    canvas.height=video.videoHeight;
-
-    const ctx=canvas.getContext("2d");
-
-    ctx.drawImage(
-
-        video,
-
-        0,
-
-        0,
-
-        canvas.width,
-
-        canvas.height
-
-    );
-
-    return canvas.toDataURL(
-
-        CAMERA.IMAGE_TYPE,
-
-        CAMERA.QUALITY
-
-    );
-
-}
-
-
-/*===============================================================
-=            BASE64
-===============================================================*/
-
-function captureBase64(){
-
-    const img=captureImage();
-
-    if(!img){
-
-        return null;
-
-    }
-
-    return img.replace(
-
-        /^data:image\/(png|jpeg|jpg);base64,/,
-
-        ""
-
-    );
-
-}
-
-
-/*===============================================================
-=            SNAPSHOT
-===============================================================*/
-
-function saveSnapshot(){
-
-    return captureBase64();
-
-}
-
-
-/*===============================================================
-=            RESTART CAMERA
-===============================================================*/
-
-async function restartCamera(){
-
-    await startCamera();
-
-}
-
-
-/*===============================================================
-=            PAGE HIDDEN
-===============================================================*/
-
-document.addEventListener(
-
-    "visibilitychange",
-
-    function(){
-
-        if(document.hidden){
-
-            stopCamera();
-
-        }else{
-
-            startCamera();
-
-        }
-
-    }
-
-);
-
-
-/*===============================================================
-=            BEFORE UNLOAD
-===============================================================*/
-
-window.addEventListener(
-
-    "beforeunload",
-
-    function(){
-
-        stopCamera();
-
-    }
-
-);
