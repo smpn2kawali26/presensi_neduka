@@ -7,7 +7,60 @@
     <title>Dashboard Petugas</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        /* Penyesuaian Ukuran Kamera agar Pas dan Tidak Terlalu Besar */
+        /* CSS Khusus Dropdown Autocomplete Pencarian */
+        .search-box-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #0056b3;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #eef6ff;
+            color: #0056b3;
+        }
+
+        .dropdown-item .siswa-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .dropdown-item .siswa-kelas {
+            font-size: 12px;
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* Kamera Compact */
         .camera-container {
             width: 100%;
             max-width: 400px;
@@ -17,7 +70,7 @@
 
         #camera {
             width: 100%;
-            max-height: 250px;
+            max-height: 240px;
             object-fit: cover;
             border-radius: 12px;
             background: #000;
@@ -51,15 +104,21 @@
             </p>
         </section>
 
-        <!-- CARI SISWA -->
+        <!-- CARI SISWA (DENGAN DROPDOWN REKOMENDASI) -->
         <section class="card">
             <h3>Cari Siswa</h3>
-            <input 
-                type="text" 
-                id="keyword" 
-                placeholder="Ketikan nama siswa (contoh: sus)..." 
-                autocomplete="off">
-            <button id="btnCari">Cari</button>
+            <div class="search-box-wrapper">
+                <input 
+                    type="text" 
+                    id="keyword" 
+                    placeholder="Ketikan nama siswa..." 
+                    autocomplete="off">
+                
+                <!-- CONTAINER DROPDOWN HASIL PENCARIAN -->
+                <div id="dropdownResults" class="dropdown-results"></div>
+            </div>
+            
+            <button id="btnCari" style="margin-top: 10px;">Cari</button>
             <small id="searchStatus" style="display:block; margin-top:8px; color:#666; font-style:italic;"></small>
         </section>
 
@@ -86,16 +145,11 @@
             </table>
         </section>
 
-        <!-- KAMERA (UKURAN DIPERSEMPIT) -->
+        <!-- KAMERA -->
         <section class="card">
             <h3>Kamera</h3>
             <div class="camera-container">
-                <video 
-                    id="camera" 
-                    autoplay 
-                    playsinline 
-                    muted>
-                </video>
+                <video id="camera" autoplay playsinline muted></video>
                 <canvas id="canvas" style="display:none;"></canvas>
                 <br><br>
                 <button id="btnSwitchCamera">Ganti Kamera</button>
@@ -130,19 +184,21 @@
     <script src="../js/absensi.js"></script>
 
     <!-- =======================================================
-         LOGIKA PENCARIAN SISWA (BEBAS ERROR UNDEFINED)
+         LOGIKA PENCARIAN DROPDOWN AUTOMATIC
     ======================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const inputKeyword = document.getElementById("keyword");
             const btnCari = document.getElementById("btnCari");
+            const dropdownResults = document.getElementById("dropdownResults");
             const searchStatus = document.getElementById("searchStatus");
             let debounceTimer;
 
-            function eksekusiPencarian() {
+            function jalankanPencarian() {
                 const query = inputKeyword.value.trim();
 
                 if (!query) {
+                    sembunyikanDropdown();
                     resetDataSiswa();
                     if (searchStatus) searchStatus.innerText = "";
                     return;
@@ -157,32 +213,72 @@
                     })
                     .then(res => {
                         if (res && res.success && res.data && res.data.length > 0) {
-                            const siswa = res.data[0]; 
-                            tampilkanDataSiswa(siswa);
-                            if (searchStatus) searchStatus.innerText = "Data ditemukan!";
+                            tampilkanDropdown(res.data);
+                            if (searchStatus) searchStatus.innerText = `Ditemukan ${res.data.length} siswa. Pilih nama di bawah.`;
                         } else {
+                            sembunyikanDropdown();
                             resetDataSiswa();
                             if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
                         }
                     })
                     .catch(err => {
                         console.error("Error pencarian:", err);
-                        if (searchStatus) searchStatus.innerText = "Gagal memuat data.";
+                        sembunyikanDropdown();
+                        if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
                     });
                 }
             }
 
-            // Mencegah 'undefined' dengan memeriksa semua kemungkinan kunci properti dari response backend
-            function tampilkanDataSiswa(s) {
-                const id = s.idSiswa || s.ID_SISWA || s.id || s.nisn || s.NISN || "-";
-                const nama = s.nama || s.NAMA || s.namaSiswa || "-";
-                const kelas = s.kelas || s.KELAS || s.kelasSiswa || "-";
-                const status = s.status || s.STATUS || "AKTIF";
+            // Fungsi membuat elemen daftar dropdown
+            function tampilkanDropdown(listSiswa) {
+                dropdownResults.innerHTML = "";
 
+                listSiswa.forEach(siswa => {
+                    const item = document.createElement("div");
+                    item.className = "dropdown-item";
+                    
+                    const nama = siswa.nama || siswa.NAMA || "-";
+                    const kelas = siswa.kelas || siswa.KELAS || "-";
+
+                    item.innerHTML = `
+                        <span class="siswa-name">${nama}</span>
+                        <span class="siswa-kelas">${kelas}</span>
+                    `;
+
+                    // Klik item dropdown untuk memilih siswa
+                    item.addEventListener("click", function () {
+                        pilihSiswa(siswa);
+                    });
+
+                    dropdownResults.appendChild(item);
+                });
+
+                dropdownResults.style.display = "block";
+            }
+
+            function sembunyikanDropdown() {
+                if (dropdownResults) {
+                    dropdownResults.style.display = "none";
+                    dropdownResults.innerHTML = "";
+                }
+            }
+
+            function pilihSiswa(siswa) {
+                const id = siswa.idSiswa || siswa.ID_SISWA || siswa.nisn || "-";
+                const nama = siswa.nama || siswa.NAMA || "-";
+                const kelas = siswa.kelas || siswa.KELAS || "-";
+                const status = siswa.status || siswa.STATUS || "AKTIF";
+
+                // Set isi tabel
                 if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = id;
                 if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = nama;
                 if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = kelas;
                 if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = status;
+
+                // Set input teks & tutup dropdown
+                inputKeyword.value = nama;
+                sembunyikanDropdown();
+                if (searchStatus) searchStatus.innerText = "Siswa terpilih!";
             }
 
             function resetDataSiswa() {
@@ -192,17 +288,18 @@
                 if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = "-";
             }
 
-            // Pencarian Otomatis saat Mengetik (Debounce 300ms)
+            // Event Otomatis Ketik Minimal 2-3 Karakter
             if (inputKeyword) {
                 inputKeyword.addEventListener("input", function () {
                     clearTimeout(debounceTimer);
                     const val = this.value.trim();
 
-                    if (val.length >= 2) { // Dimulai dari 2 karakter
+                    if (val.length >= 2) {
                         debounceTimer = setTimeout(() => {
-                            eksekusiPencarian();
+                            jalankanPencarian();
                         }, 300);
-                    } else if (val.length === 0) {
+                    } else {
+                        sembunyikanDropdown();
                         resetDataSiswa();
                         if (searchStatus) searchStatus.innerText = "";
                     }
@@ -212,9 +309,16 @@
             if (btnCari) {
                 btnCari.addEventListener("click", function (e) {
                     e.preventDefault();
-                    eksekusiPencarian();
+                    jalankanPencarian();
                 });
             }
+
+            // Tutup dropdown jika klik di luar area input pencarian
+            document.addEventListener("click", function (e) {
+                if (!e.target.closest(".search-box-wrapper")) {
+                    sembunyikanDropdown();
+                }
+            });
         });
     </script>
 </body>
