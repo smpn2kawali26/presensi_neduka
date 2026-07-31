@@ -19,10 +19,10 @@
             left: 0;
             right: 0;
             background: #ffffff;
-            border: 1px solid #0056b3;
+            border: 2px solid #0056b3;
             border-top: none;
             border-radius: 0 0 8px 8px;
-            max-height: 200px;
+            max-height: 220px;
             overflow-y: auto;
             z-index: 9999;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -32,7 +32,7 @@
         .dropdown-item {
             padding: 10px 14px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -80,9 +80,7 @@
 
 <body>
 
-    <!-- =======================================================
-         HEADER
-    ======================================================== -->
+    <!-- HEADER -->
     <header class="topbar">
         <div>
             <h2>Dashboard Petugas</h2>
@@ -91,34 +89,32 @@
         <button id="btnLogout" onclick="doLogout()">Logout</button>
     </header>
 
-    <!-- =======================================================
-         KONTEN
-    ======================================================== -->
+    <!-- KONTEN -->
     <main class="container">
 
         <!-- PETUGAS -->
         <section class="card">
             <h3>Petugas</h3>
             <p>
-                Nama : <strong id="namaUser">-</strong>
+                Nama : <strong id="namaUser">PETUGAS OSIS</strong>
             </p>
         </section>
 
-        <!-- CARI SISWA (DENGAN DROPDOWN REKOMENDASI) -->
+        <!-- CARI SISWA -->
         <section class="card">
             <h3>Cari Siswa</h3>
             <div class="search-box-wrapper">
                 <input 
                     type="text" 
                     id="keyword" 
-                    placeholder="Ketikan nama siswa..." 
+                    placeholder="Ketik nama siswa (misal: Ali, Fairuz)..." 
                     autocomplete="off">
                 
                 <!-- CONTAINER DROPDOWN HASIL PENCARIAN -->
                 <div id="dropdownResults" class="dropdown-results"></div>
             </div>
             
-            <button id="btnCari" style="margin-top: 10px;">Cari</button>
+            <button id="btnCari" style="margin-top: 10px; width: 100%;">Cari</button>
             <small id="searchStatus" style="display:block; margin-top:8px; color:#666; font-style:italic;"></small>
         </section>
 
@@ -156,36 +152,21 @@
             </div>
         </section>
 
-        <!-- GPS -->
-        <section class="card">
-            <h3>GPS</h3>
-            <p>Latitude : <span id="latitude">-</span></p>
-            <p>Longitude : <span id="longitude">-</span></p>
-            <p>Akurasi : <span id="accuracy">-</span></p>
-        </section>
-
         <!-- ABSENSI -->
         <section class="card">
-            <button id="btnMasuk">ABSEN MASUK</button>
-            <br><br>
-            <button id="btnPulang">ABSEN PULANG</button>
+            <button id="btnMasuk" style="width: 100%; margin-bottom: 10px;">ABSEN MASUK</button>
+            <button id="btnPulang" style="width: 100%;">ABSEN PULANG</button>
         </section>
 
     </main>
 
-    <!-- =======================================================
-         SCRIPT APLIKASI
-    ======================================================== -->
+    <!-- LOAD EXTERNAL JS -->
     <script src="../js/config.js"></script>
     <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/dashboard.js"></script>
-    <script src="../js/camera.js"></script>
-    <script src="../js/absensi.js"></script>
 
-    <!-- =======================================================
-         LOGIKA PENCARIAN DROPDOWN AUTOMATIC
-    ======================================================== -->
+    <!-- LOGIKA DROPDOWN PENCARIAN PERBAIKAN -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const inputKeyword = document.getElementById("keyword");
@@ -194,7 +175,7 @@
             const searchStatus = document.getElementById("searchStatus");
             let debounceTimer;
 
-            function jalankanPencarian() {
+            async function eksekusiPencarian() {
                 const query = inputKeyword.value.trim();
 
                 if (!query) {
@@ -204,32 +185,32 @@
                     return;
                 }
 
-                if (searchStatus) searchStatus.innerText = "Mencari...";
+                if (searchStatus) searchStatus.innerText = "Mencari data...";
 
-                if (typeof callAPI === "function") {
-                    callAPI({
-                        action: "searchSiswa",
-                        data: { keyword: query }
-                    })
-                    .then(res => {
-                        if (res && res.success && res.data && res.data.length > 0) {
-                            tampilkanDropdown(res.data);
-                            if (searchStatus) searchStatus.innerText = `Ditemukan ${res.data.length} siswa. Pilih nama di bawah.`;
-                        } else {
-                            sembunyikanDropdown();
-                            resetDataSiswa();
-                            if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Error pencarian:", err);
+                try {
+                    // MEMANGGIL SESUAI DENGAN API.JS KAMU: apiSearchSiswa(query)
+                    let res;
+                    if (typeof apiSearchSiswa === "function") {
+                        res = await apiSearchSiswa(query);
+                    } else {
+                        res = await callAPI("searchSiswa", { keyword: query });
+                    }
+
+                    if (res && res.success && res.data && res.data.length > 0) {
+                        tampilkanDropdown(res.data);
+                        if (searchStatus) searchStatus.innerText = `Ditemukan ${res.data.length} siswa. Klik salah satu di bawah:`;
+                    } else {
                         sembunyikanDropdown();
-                        if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
-                    });
+                        resetDataSiswa();
+                        if (searchStatus) searchStatus.innerText = (res && res.message) ? res.message : "Siswa tidak ditemukan.";
+                    }
+                } catch (err) {
+                    console.error("Error pencarian:", err);
+                    sembunyikanDropdown();
+                    if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
                 }
             }
 
-            // Fungsi membuat elemen daftar dropdown
             function tampilkanDropdown(listSiswa) {
                 dropdownResults.innerHTML = "";
 
@@ -245,7 +226,6 @@
                         <span class="siswa-kelas">${kelas}</span>
                     `;
 
-                    // Klik item dropdown untuk memilih siswa
                     item.addEventListener("click", function () {
                         pilihSiswa(siswa);
                     });
@@ -269,16 +249,14 @@
                 const kelas = siswa.kelas || siswa.KELAS || "-";
                 const status = siswa.status || siswa.STATUS || "AKTIF";
 
-                // Set isi tabel
                 if (document.getElementById("idSiswa")) document.getElementById("idSiswa").innerText = id;
                 if (document.getElementById("namaSiswa")) document.getElementById("namaSiswa").innerText = nama;
                 if (document.getElementById("kelasSiswa")) document.getElementById("kelasSiswa").innerText = kelas;
                 if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = status;
 
-                // Set input teks & tutup dropdown
                 inputKeyword.value = nama;
                 sembunyikanDropdown();
-                if (searchStatus) searchStatus.innerText = "Siswa terpilih!";
+                if (searchStatus) searchStatus.innerText = "Siswa berhasil dipilih!";
             }
 
             function resetDataSiswa() {
@@ -288,7 +266,7 @@
                 if (document.getElementById("statusSiswa")) document.getElementById("statusSiswa").innerText = "-";
             }
 
-            // Event Otomatis Ketik Minimal 2-3 Karakter
+            // Event Otomatis Ketik Minimal 2 Karakter
             if (inputKeyword) {
                 inputKeyword.addEventListener("input", function () {
                     clearTimeout(debounceTimer);
@@ -296,7 +274,7 @@
 
                     if (val.length >= 2) {
                         debounceTimer = setTimeout(() => {
-                            jalankanPencarian();
+                            eksekusiPencarian();
                         }, 300);
                     } else {
                         sembunyikanDropdown();
@@ -309,11 +287,11 @@
             if (btnCari) {
                 btnCari.addEventListener("click", function (e) {
                     e.preventDefault();
-                    jalankanPencarian();
+                    eksekusiPencarian();
                 });
             }
 
-            // Tutup dropdown jika klik di luar area input pencarian
+            // Tutup dropdown jika klik di luar box
             document.addEventListener("click", function (e) {
                 if (!e.target.closest(".search-box-wrapper")) {
                     sembunyikanDropdown();
