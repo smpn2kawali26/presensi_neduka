@@ -21,7 +21,7 @@ const CONFIG = {
 =            URL WEB APP APPS SCRIPT (URL BARU REVISI)
 ===============================================================*/
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8VeckYCB_GGLVcn_23hkUwGLM9ky801l7o0n6TWlwIkphAM6y-Xx4fSPhjyjBAT5P/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPhmSshtGAwc0yoYbu67Scp4EJJEbsBXx2q9ZeVtRvY3PG6-v4VP4UtqFM-4tmX6jJ/exec";
 
 /*===============================================================
 =            STORAGE
