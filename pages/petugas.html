@@ -41,12 +41,18 @@
         .camera-box { width: 100%; border-radius: 10px; overflow: hidden; background: #1e293b; min-height: 240px; display: flex; justify-content: center; align-items: center; }
         .camera-box video { width: 100%; height: auto; max-height: 300px; object-fit: cover; display: block; }
 
+        /* Style Dua Tombol Masuk & Pulang */
+        .btn-group-absen { display: flex; gap: 10px; margin-top: 15px; }
         .btn-absen {
-            width: 100%; padding: 13px; background: #16a34a; color: white; border: none;
-            border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;
-            margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            flex: 1; padding: 13px; color: white; border: none;
+            border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s;
         }
-        .btn-absen:hover { background: #15803d; }
+        .btn-masuk { background: #16a34a; }
+        .btn-masuk:hover { background: #15803d; }
+        .btn-pulang { background: #2563eb; }
+        .btn-pulang:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -56,7 +62,7 @@
             <h1>Dashboard Petugas</h1>
             <p>SMP Negeri 2 Kawali</p>
         </div>
-        <a href="../index.html" class="btn-keluar"><i class="fa-solid fa-power-off"></i> Keluar</a>
+        <a href="../index.html" class="btn-keluar" onclick="localStorage.clear()"><i class="fa-solid fa-power-off"></i> Keluar</a>
     </div>
 
     <div class="container">
@@ -99,35 +105,39 @@
             </div>
         </div>
 
-        <!-- Kamera Pemindai -->
+        <!-- Kamera Pemindai & Tombol Absen -->
         <div class="card">
             <div class="card-title" style="margin-bottom: 12px;">Kamera Pemindai / Foto</div>
             <div class="camera-box">
                 <video id="webcam" autoplay playsinline muted></video>
             </div>
-            <button type="button" id="btnProsesAbsen" class="btn-absen">
-                <i class="fa-solid fa-camera"></i> SIMPAN ABSENSI
-            </button>
+            
+            <!-- Dua Tombol Masuk & Pulang -->
+            <div class="btn-group-absen">
+                <button type="button" id="btnAbsenMasuk" class="btn-absen btn-masuk">
+                    <i class="fa-solid fa-right-to-bracket"></i> ABSEN MASUK
+                </button>
+                <button type="button" id="btnAbsenPulang" class="btn-absen btn-pulang">
+                    <i class="fa-solid fa-right-from-bracket"></i> ABSEN PULANG
+                </button>
+            </div>
         </div>
 
     </div>
 
-    <canvas id="canvasSnap" style="display:none;"></canvas>
-
     <script src="../js/config.js"></script>
     <script>
         let masterSiswaGlobal = [];
-        let aturanJadwalGlobal = [];
         let siswaDipilihObj = null;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Ambil Nama Sesi User Login
+            // Check Session Login
             const loggedUser = JSON.parse(localStorage.getItem("userLoggedIn") || "{}");
             if (loggedUser.NAMA) {
                 document.getElementById("namaPetugasTxt").innerText = ": " + loggedUser.NAMA;
             }
 
-            // Jalankan Webcam
+            // Inisialisasi Kamera Webcam
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -135,10 +145,10 @@
                     .catch(function(err) { console.warn("Kamera tidak aktif:", err); });
             }
 
-            // Muat Data Siswa dari Sheet
+            // Tarik Data Siswa via JSONP
             muatDataDaftarSiswa();
 
-            // Event Input Cari Siswa
+            // Search Filter Dropdown
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
 
@@ -154,14 +164,14 @@
 
                     const matches = masterSiswaGlobal.filter(s => {
                         const nama = getVal(s, ['NAMA', 'nama', 'Nama']);
-                        const nisn = getVal(s, ['NISN', 'nisn', 'ID', 'id', 'NIS']);
+                        const nisn = getVal(s, ['NISN', 'nisn', 'ID', 'id']);
                         return nama.toLowerCase().includes(query) || nisn.toLowerCase().includes(query);
                     });
 
                     if (matches.length > 0) {
                         matches.forEach(siswa => {
                             const itemNama = getVal(siswa, ['NAMA', 'nama', 'Nama']);
-                            const itemNisn = getVal(siswa, ['NISN', 'nisn', 'ID', 'id', 'NIS']);
+                            const itemNisn = getVal(siswa, ['NISN', 'nisn', 'ID', 'id']);
                             const itemKelas = getVal(siswa, ['KELAS', 'kelas', 'Kelas']);
 
                             const item = document.createElement("div");
@@ -193,108 +203,97 @@
                 });
             }
 
-            // Event Simpan Absensi
-            const btnAbsen = document.getElementById("btnProsesAbsen");
-            if (btnAbsen) {
-                btnAbsen.addEventListener("click", function() {
-                    if (!siswaDipilihObj) {
-                        alert("⚠️ Silakan pilih siswa dari hasil pencarian terlebih dahulu!");
-                        return;
-                    }
+            // Listener Tombol Masuk & Pulang
+            document.getElementById("btnAbsenMasuk").addEventListener("click", function() {
+                eksekusiAbsensi("MASUK");
+            });
 
-                    const statusJam = cekStatusAbsenJamIni();
-                    
-                    // PENGECEKAN NOTIFIKASI TELAT ATAU PULANG CEPAT
-                    if (statusJam.status === "TELAT") {
-                        alert(`⚠️ NOTIFIKASI: Siswa ${getVal(siswaDipilihObj, ['NAMA', 'nama'])} TERCATAT TERLAMBAT! (${statusJam.keterangan})`);
-                    } else if (statusJam.status === "PULANG_CEPAT") {
-                        alert(`⚠️ NOTIFIKASI: Siswa ${getVal(siswaDipilihObj, ['NAMA', 'nama'])} PULANG LEBIH AWAL / PULANG CEPAT!`);
-                    }
-
-                    mainkanSuaraKamera();
-
-                    const canvas = document.getElementById("canvasSnap");
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    const ctx = canvas.getContext("2d");
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const fotoBase64 = canvas.toDataURL("image/jpeg", 0.7);
-
-                    const payload = {
-                        action: "simpanAbsensi",
-                        nisn: getVal(siswaDipilihObj, ['NISN', 'nisn', 'ID', 'id']),
-                        nama: getVal(siswaDipilihObj, ['NAMA', 'nama']),
-                        kelas: getVal(siswaDipilihObj, ['KELAS', 'kelas']),
-                        status: statusJam.status,
-                        keterangan: statusJam.keterangan,
-                        foto: fotoBase64,
-                        petugas: loggedUser.NAMA || "PETUGAS OSIS"
-                    };
-
-                    btnAbsen.disabled = true;
-                    btnAbsen.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
-
-                    if (typeof API_URL !== "undefined" && API_URL !== "") {
-                        fetch(API_URL, {
-                            method: "POST",
-                            body: JSON.stringify(payload)
-                        })
-                        .then(r => r.json())
-                        .then(res => {
-                            if (statusJam.status !== "TELAT" && statusJam.status !== "PULANG_CEPAT") {
-                                alert("✅ Absensi Berhasil Disimpan!");
-                            }
-                            resetForm();
-                        })
-                        .catch(err => {
-                            if (statusJam.status !== "TELAT" && statusJam.status !== "PULANG_CEPAT") {
-                                alert("✅ Absensi Berhasil Disimpan!");
-                            }
-                            resetForm();
-                        })
-                        .finally(() => {
-                            btnAbsen.disabled = false;
-                            btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
-                        });
-                    }
-                });
-            }
+            document.getElementById("btnAbsenPulang").addEventListener("click", function() {
+                eksekusiAbsensi("PULANG");
+            });
         });
 
-        // Ambil data siswa dari Web App Sheet
-        async function muatDataDaftarSiswa() {
-            try {
-                if (typeof API_URL !== "undefined" && API_URL !== "") {
-                    const res = await fetch(API_URL + "?action=getDashboardData");
-                    const data = await res.json();
-                    if (data.siswa && data.siswa.length > 0) {
-                        masterSiswaGlobal = data.siswa;
-                    }
-                    if (data.jadwal) {
-                        aturanJadwalGlobal = data.jadwal;
-                    }
-                }
-            } catch(e) {
-                console.warn("Gagal tarik data sheet:", e);
+        // Pengambilan Data Siswa Tembus CORS (JSONP)
+        function muatDataDaftarSiswa() {
+            if (typeof API_URL === "undefined" || API_URL === "") return;
+            const script = document.createElement('script');
+            script.src = API_URL + "?action=getDashboardData&callback=handleDashboardData";
+            document.body.appendChild(script);
+        }
+
+        function handleDashboardData(data) {
+            if (data && data.siswa) {
+                masterSiswaGlobal = data.siswa;
             }
         }
 
-        // Kalkulasi Status Waktu Masuk/Telat/Pulang Cepat
-        function cekStatusAbsenJamIni() {
-            const now = new Date();
-            const jam = String(now.getHours()).padStart(2, '0');
-            const menit = String(now.getMinutes()).padStart(2, '0');
-            const waktuSekarang = `${jam}:${menit}`;
-
-            // Contoh batas jam operasional standar SMP 2 Kawali (Jam 07:00 Masuk)
-            if (waktuSekarang > "07:15" && waktuSekarang < "12:00") {
-                return { status: "TELAT", keterangan: `Terlambat (Jam ${waktuSekarang})` };
-            } else if (waktuSekarang >= "12:00" && waktuSekarang < "13:30") {
-                return { status: "PULANG_CEPAT", keterangan: `Pulang Lebih Awal (Jam ${waktuSekarang})` };
-            } else if (waktuSekarang >= "13:30") {
-                return { status: "PULANG", keterangan: "Pulang Tepat Waktu" };
+        // Eksekusi Absen & Bunyi Beep Kamera
+        function eksekusiAbsensi(tipeAbsen) {
+            if (!siswaDipilihObj) {
+                alert("⚠️ Silakan pilih siswa dari pencarian terlebih dahulu!");
+                return;
             }
-            return { status: "MASUK", keterangan: "Tepat Waktu" };
+
+            // Bunyi Beep Nyaring
+            bunyiBeepKamera();
+
+            const namaSiswa = getVal(siswaDipilihObj, ['NAMA', 'nama']);
+            const nisnSiswa = getVal(siswaDipilihObj, ['NISN', 'nisn', 'ID']);
+            const kelasSiswa = getVal(siswaDipilihObj, ['KELAS', 'kelas']);
+            const loggedUser = JSON.parse(localStorage.getItem("userLoggedIn") || "{}");
+
+            // Cek Keterangan Jam
+            const now = new Date();
+            const jamStr = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+            let statusNotif = "Tepat Waktu";
+
+            if (tipeAbsen === "MASUK" && jamStr > "07:15") {
+                statusNotif = "Terlambat";
+                alert(`⚠️ NOTIFIKASI: Siswa ${namaSiswa} TERCATAT TERLAMBAT! (Jam ${jamStr})`);
+            } else if (tipeAbsen === "PULANG" && jamStr < "13:00") {
+                statusNotif = "Pulang Cepat";
+                alert(`⚠️ NOTIFIKASI: Siswa ${namaSiswa} PULANG LEBIH AWAL / PULANG CEPAT! (Jam ${jamStr})`);
+            }
+
+            const urlAbsen = API_URL + `?action=simpanAbsensi` +
+                `&nisn=${encodeURIComponent(nisnSiswa)}` +
+                `&nama=${encodeURIComponent(namaSiswa)}` +
+                `&kelas=${encodeURIComponent(kelasSiswa)}` +
+                `&tipe=${encodeURIComponent(tipeAbsen)}` +
+                `&status=${encodeURIComponent(tipeAbsen)}` +
+                `&keterangan=${encodeURIComponent(statusNotif)}` +
+                `&petugas=${encodeURIComponent(loggedUser.NAMA || "PETUGAS OSIS")}` +
+                `&callback=handleAbsenResponse`;
+
+            const script = document.createElement('script');
+            script.src = urlAbsen;
+            document.body.appendChild(script);
+        }
+
+        function handleAbsenResponse(res) {
+            alert("✅ Absensi Berhasil Disimpan!");
+            resetForm();
+        }
+
+        // Fungsi Suara Beep Kamera Synthesizer 100% Nyaring
+        function bunyiBeepKamera() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = "square";
+                osc.frequency.setValueAtTime(1200, audioCtx.currentTime); // Frekuensi nada Beep
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15); // Durasi Beep 0.15 Detik
+            } catch (e) {
+                console.warn("Audio Context error:", e);
+            }
         }
 
         function getVal(obj, keys) {
@@ -304,21 +303,6 @@
                 }
             }
             return "-";
-        }
-
-        function mainkanSuaraKamera() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = "sine";
-                osc.frequency.setValueAtTime(800, ctx.currentTime);
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.1);
-            } catch(e) {}
         }
 
         function resetForm() {
