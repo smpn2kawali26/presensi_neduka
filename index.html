@@ -172,7 +172,7 @@
     <script src="js/api.js"></script>
     <script src="js/login.js"></script>
 
-    <script>
+<script>
         document.addEventListener("DOMContentLoaded", function () {
             // 1. FITUR IKON TANDA MATA (SHOW/HIDE PASSWORD)
             const togglePassword = document.getElementById("btnTogglePassword");
@@ -191,7 +191,7 @@
             const form = document.getElementById("loginForm");
             const statusMsg = document.getElementById("loginStatus");
 
-async function prosesMasuk() {
+            async function prosesMasuk() {
                 const user = document.getElementById("username").value.trim().toLowerCase();
                 const pass = document.getElementById("password").value.trim();
 
@@ -204,19 +204,23 @@ async function prosesMasuk() {
                 statusMsg.innerText = "Memproses login...";
 
                 try {
-                    let response = null;
-
-                    // Panggil fungsi API eksternal dan tunggu respons aslinya
-                    if (typeof handleLogin === "function") {
-                        response = await handleLogin(user, pass); 
-                    } else if (typeof doLogin === "function") {
-                        response = await doLogin(user, pass);
+                    // Pastikan variabel API_URL dari js/config.js terbaca
+                    if (typeof API_URL === "undefined") {
+                        statusMsg.style.color = "#ef4444";
+                        statusMsg.innerText = "Error: API_URL tidak ditemukan di config.js!";
+                        return;
                     }
 
-                    // 1. CEK STATUS DARI BACKEND: Hanya lanjut jika server menjawab success = true
+                    // Panggil API Google Apps Script secara langsung
+                    const url = `${API_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+                    
+                    const request = await fetch(url, { method: "GET" });
+                    const response = await request.json();
+
+                    // 1. CEK STATUS DARI BACKEND
                     if (response && response.success === true) {
                         
-                        // 2. AMBIL ROLE DARI DATABASE (Struktur mengikuti Login.gs atau Code.gs)
+                        // 2. AMBIL ROLE DARI DATABASE
                         const roleData = (response.data && response.data.role) ? response.data.role : 
                                          (response.user && response.user.ROLE) ? response.user.ROLE : "";
                         const userRole = roleData.toUpperCase();
@@ -228,31 +232,30 @@ async function prosesMasuk() {
                         localStorage.setItem("user_logged_in", user);
                         localStorage.setItem("user_role", userRole);
 
-                        // 3. REDIRECT BERDASARKAN ROLE DATABASE
+                        // 3. REDIRECT BERDASARKAN ROLE
                         setTimeout(() => {
                             if (userRole === "ADMIN") {
                                 window.location.href = "pages/admin.html";
                             } else if (userRole === "PETUGAS") {
                                 window.location.href = "pages/petugas.html";
                             } else if (userRole === "GURU") {
-                                window.location.href = "pages/guru.html"; // Ubah ke pages/guru.html jika halamannya sudah dibuat
+                                window.location.href = "pages/guru.html"; 
                             } else if (userRole === "KEPALA SEKOLAH" || userRole === "KEPSEK") {
-                                window.location.href = "pages/kepsek.html"; // Sesuaikan nama halamannya
+                                window.location.href = "pages/kepsek.html"; 
                             } else {
-                                // Default jika role tidak spesifik tetapi sukses login
                                 window.location.href = "pages/petugas.html";
                             }
                         }, 800);
 
                     } else {
-                        // JIKA GAGAL: (Username/Password asal, atau data tidak ada)
-                        statusMsg.style.color = "#ef4444"; // Merah
+                        // JIKA GAGAL: Tangkap pesan error dari Apps Script
+                        statusMsg.style.color = "#ef4444"; 
                         statusMsg.innerText = (response && response.message) ? response.message : "Username atau Password Salah!";
                     }
 
                 } catch (error) {
                     statusMsg.style.color = "#ef4444";
-                    statusMsg.innerText = "Gagal menghubungi server.";
+                    statusMsg.innerText = "Gagal menghubungi server Apps Script.";
                     console.error("Error Login:", error);
                 }
             }
