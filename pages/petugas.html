@@ -165,7 +165,6 @@
     <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/camera.js"></script>
-    <script src="../js/absensi.js"></script>
 
     <script>
         let masterSiswaGlobal = [];
@@ -173,22 +172,18 @@
         let siswaDipilihObj = null;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. AKTIFKAN KAMERA BROWSER
+            // Aktifkan Kamera
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-                    .then(function(stream) {
-                        video.srcObject = stream;
-                    })
-                    .catch(function(err) {
-                        console.warn("Kamera tidak dapat diakses:", err);
-                    });
+                    .then(function(stream) { video.srcObject = stream; })
+                    .catch(function(err) { console.warn("Kamera tidak dapat diakses:", err); });
             }
 
-            // 2. MUAT DATA SISWA & ATURAN JAM
+            // Load Data Siswa & Jadwal
             muatDataDaftarSiswa();
 
-            // 3. DROPDOWN PENCARIAN SISWA (PENCARIAN SMART HUBUNGI SHEET)
+            // Pencarian & Dropdown Siswa
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
 
@@ -202,7 +197,6 @@
                         return;
                     }
 
-                    // Pencarian fleksibel mendukung properti Nama/NAMA/nama/nisn/NISN/id/ID
                     const matches = masterSiswaGlobal.filter(s => {
                         const nama = (s.NAMA || s.nama || s.Nama || "").toString().toLowerCase();
                         const nisn = (s.NISN || s.nisn || s.ID || s.id || "").toString().toLowerCase();
@@ -232,7 +226,7 @@
                         });
                         dropdown.style.display = "block";
                     } else {
-                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa belum siap atau tidak ditemukan</div>`;
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa belum terload / tidak ditemukan</div>`;
                         dropdown.style.display = "block";
                     }
                 });
@@ -244,7 +238,7 @@
                 });
             }
 
-            // 4. PROSES ABSEN + DETEKSI KETERANGAN TELAT + SUARA
+            // Simpan Absensi
             const btnAbsen = document.getElementById("btnProsesAbsen");
             if (btnAbsen) {
                 btnAbsen.addEventListener("click", function() {
@@ -253,13 +247,9 @@
                         return;
                     }
 
-                    // A. Cek Aturan Jam dari Sheet
                     const statusJam = cekStatusAbsenJamIni();
-                    
-                    // B. Mainkan Suara Kamera
                     mainkanSuaraKamera();
 
-                    // C. Capture Gambar Kamera
                     const canvas = document.getElementById("canvasSnap");
                     canvas.width = video.videoWidth || 640;
                     canvas.height = video.videoHeight || 480;
@@ -272,7 +262,7 @@
                         nisn: siswaDipilihObj.NISN || siswaDipilihObj.nisn || siswaDipilihObj.ID || siswaDipilihObj.id,
                         nama: siswaDipilihObj.NAMA || siswaDipilihObj.nama || siswaDipilihObj.Nama,
                         kelas: siswaDipilihObj.KELAS || siswaDipilihObj.kelas || siswaDipilihObj.Kelas,
-                        status: statusJam.status, // "MASUK", "TELAT", "PULANG", dst
+                        status: statusJam.status,
                         keterangan: statusJam.keterangan,
                         foto: fotoBase64,
                         petugas: "PETUGAS OSIS"
@@ -281,12 +271,11 @@
                     btnAbsen.disabled = true;
                     btnAbsen.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
 
-                    // Peringatan Notifikasi Jika Telat
                     if (statusJam.status === "TELAT") {
                         alert(`⚠️ NOTIFIKASI: ${payload.nama} TERCATAT TELAT!`);
                     }
 
-                    if (typeof API_URL !== "undefined") {
+                    if (typeof API_URL !== "undefined" && API_URL !== "") {
                         fetch(API_URL, {
                             method: "POST",
                             body: JSON.stringify(payload)
@@ -314,23 +303,19 @@
             }
         });
 
-        // FUNGSI MUAT DATA SPREADSHEET (MENDUKUNG MULTI-SOURCE RETRY)
         async function muatDataDaftarSiswa() {
             try {
-                if (typeof getSiswaData === "function") {
-                    masterSiswaGlobal = await getSiswaData();
-                } else if (typeof API_URL !== "undefined") {
+                if (typeof API_URL !== "undefined" && API_URL !== "") {
                     const res = await fetch(API_URL + "?action=getDashboardData");
                     const data = await res.json();
                     if (data.siswa) masterSiswaGlobal = data.siswa;
                     if (data.jadwal) aturanJadwalGlobal = data.jadwal;
                 }
             } catch(e) {
-                console.warn("Retrying fetch data siswa...", e);
+                console.warn("Gagal memuat API Sheet:", e);
             }
         }
 
-        // FUNGSI CEK ATURAN JAM ABSEN (DARI SHEET)
         function cekStatusAbsenJamIni() {
             const now = new Date();
             const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -346,7 +331,6 @@
                 return { status: "MASUK", keterangan: "Tepat Waktu" };
             }
 
-            // Pengecekan Aturan Jam Sheet
             if (waktuSekarang >= configHari.MASUK_AWAL && waktuSekarang <= configHari.MASUK_AKHIR) {
                 return { status: "MASUK", keterangan: "Tepat Waktu" };
             } else if (waktuSekarang >= configHari.TELAT_AWAL && waktuSekarang <= configHari.TELAT_AKHIR) {
@@ -358,7 +342,6 @@
             }
         }
 
-        // EFEK SUARA SHUTTER / BEEP
         function mainkanSuaraKamera() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
