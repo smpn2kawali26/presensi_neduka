@@ -7,41 +7,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f0f4f8; min-height: 100vh; padding-bottom: 40px; }
+        body { background-color: #f0f4f8; min-height: 100vh; padding-bottom: 50px; }
         
-        /* Header Nav */
         .navbar { background: #0d6efd; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .navbar .brand { font-size: 18px; font-weight: bold; }
         .navbar .subbrand { font-size: 12px; opacity: 0.9; }
-        .btn-logout { background: white; color: #0d6efd; border: none; padding: 8px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .btn-logout:hover { background: #e2e8f0; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: #bb2d3b; }
 
-        /* Container */
-        .container { max-width: 800px; margin: 25px auto; padding: 0 15px; }
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .card-title { color: #0d6efd; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        .card-title { color: #0d6efd; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Form Search & Dropdown */
         .search-container { position: relative; }
         .form-control { width: 100%; padding: 12px 15px; font-size: 15px; border: 1px solid #ced4da; border-radius: 8px; outline: none; }
         .form-control:focus { border-color: #0d6efd; }
         
-        .dropdown-list {
-            position: absolute; top: 100%; left: 0; right: 0; background: white;
-            border: 1px solid #0d6efd; border-radius: 0 0 8px 8px; max-height: 200px;
-            overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
-        }
+        /* Dropdown Auto-Search */
+        .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #0d6efd; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; }
         .dropdown-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; text-align: left; }
         .dropdown-item:hover { background-color: #0d6efd; color: white; }
 
-        .btn-primary { width: 100%; padding: 12px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-primary:hover { background: #0b5ed7; }
+        /* Kamera Section */
+        .camera-box { position: relative; width: 100%; max-width: 500px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        canvas { display: none; }
+        .cam-controls { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+        .btn-cam { padding: 8px 16px; border: none; border-radius: 6px; background: #6c757d; color: white; cursor: pointer; font-size: 13px; font-weight: 600; }
+        
+        /* Tombol Masuk & Pulang */
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .btn-action { padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-masuk { background-color: #198754; }
+        .btn-masuk:hover { background-color: #157347; }
+        .btn-pulang { background-color: #fd7e14; }
+        .btn-pulang:hover { background-color: #e86805; }
 
-        /* Data Display */
+        /* GPS Status */
+        .gps-info { font-size: 13px; color: #495057; display: flex; align-items: center; gap: 6px; }
+        .gps-active { color: #198754; font-weight: bold; }
+
         .data-row { display: flex; margin-bottom: 8px; font-size: 14px; }
         .data-label { width: 120px; font-weight: 600; color: #495057; }
         .data-val { font-weight: bold; color: #212529; }
-        .status-msg { margin-top: 8px; font-size: 13px; color: #6c757d; font-style: italic; }
     </style>
 </head>
 <body>
@@ -49,34 +57,35 @@
     <nav class="navbar">
         <div>
             <div class="brand">Dashboard Petugas</div>
-            <div class="subbrand">ABSENSI MPLS - SMP Negeri 2 Kawali</div>
+            <div class="subbrand">ABSENSI DIGITAL - SMP Negeri 2 Kawali</div>
         </div>
-        <button id="btnLogout" class="btn-logout">Logout</button>
+        <button id="btnLogout" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </nav>
 
     <div class="container">
         
-        <!-- Info Petugas -->
+        <!-- Info Petugas & GPS -->
         <div class="card">
-            <div class="card-title">Petugas</div>
+            <div class="card-title">
+                <span>Petugas</span>
+                <span class="gps-info" id="gpsStatus"><i class="fa-solid fa-location-crosshairs"></i> Mendeteksi Lokasi...</span>
+            </div>
             <div class="data-row">
                 <span class="data-label">Nama</span>
                 <span class="data-val">: <span id="namaPetugas">PETUGAS OSIS</span></span>
             </div>
         </div>
 
-        <!-- Cari Siswa -->
+        <!-- Cari Siswa (Auto Dropdown) -->
         <div class="card">
             <div class="card-title">Cari Siswa</div>
             <div class="search-container">
                 <input type="text" id="searchInput" class="form-control" placeholder="Ketik minimal 2 huruf nama / NISN..." autocomplete="off">
                 <div id="dropdownList" class="dropdown-list"></div>
             </div>
-            <button id="btnSearch" class="btn-primary">Cari</button>
-            <div id="searchStatus" class="status-msg">Ketikan nama atau NISN siswa di atas.</div>
         </div>
 
-        <!-- Data Siswa Hasil Pencarian -->
+        <!-- Data Siswa -->
         <div class="card">
             <div class="card-title">Data Siswa</div>
             <div class="data-row"><span class="data-label">ID / NISN</span><span class="data-val">: <span id="dispNisn">-</span></span></div>
@@ -85,9 +94,26 @@
             <div class="data-row"><span class="data-label">Status</span><span class="data-val">: <span id="dispStatus">-</span></span></div>
         </div>
 
+        <!-- Kamera Pemindai / Foto -->
+        <div class="card">
+            <div class="card-title">Kamera Pemindai / Foto</div>
+            <div class="camera-box">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="cam-controls">
+                <button id="btnSwitchCam" class="btn-cam"><i class="fa-solid fa-camera-rotate"></i> Ganti Kamera (Front/Back)</button>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi Absensi -->
+        <div class="action-btns">
+            <button id="btnAbsenMasuk" class="btn-action btn-masuk"><i class="fa-solid fa-right-to-bracket"></i> ABSEN MASUK</button>
+            <button id="btnAbsenPulang" class="btn-action btn-pulang"><i class="fa-solid fa-right-from-bracket"></i> ABSEN PULANG</button>
+        </div>
+
     </div>
 
-    <!-- Script External -->
     <script src="../js/config.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/absensi.js"></script>
