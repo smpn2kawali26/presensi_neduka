@@ -167,7 +167,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. INI SCRIPT AKTIFKAN KAMERA BROWSER
+            // 1. AKTIFKAN KAMERA BROWSER
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -179,17 +179,31 @@
                     });
             }
 
-            // 2. INI SCRIPT DROPDOWN PENCARIAN SISWA
+            // 2. KONEKSI DATA SISWA DARI GOOGLE SHEETS / API REAL-TIME
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
+            let masterSiswaAsli = [];
 
-            const masterSiswa = [
-                { nisn: "12345678", nama: "Adinda Putri", kelas: "7A" },
-                { nisn: "12345679", nama: "Adinda Rahma", kelas: "8B" },
-                { nisn: "12345680", nama: "Aditya Pratama", kelas: "9C" },
-                { nisn: "87654321", nama: "Budi Santoso", kelas: "7B" }
-            ];
+            async function loadDataSiswa() {
+                try {
+                    if (typeof getSiswaData === "function") {
+                        masterSiswaAsli = await getSiswaData();
+                    } else if (typeof fetchSiswa === "function") {
+                        masterSiswaAsli = await fetchSiswa();
+                    } else if (typeof API_URL !== "undefined") {
+                        const res = await fetch(API_URL + "?action=getSiswa");
+                        const json = await res.json();
+                        masterSiswaAsli = json.data || json;
+                    }
+                } catch (err) {
+                    console.error("Gagal mengambil data dari Sheet API:", err);
+                }
+            }
 
+            // Jalankan pengambilan data siswa saat awal buka
+            loadDataSiswa();
+
+            // 3. DROPDOWN PENCARIAN SISWA AUTOMATIS
             if (inputSearch && dropdown) {
                 inputSearch.addEventListener("input", function() {
                     const query = this.value.trim().toLowerCase();
@@ -200,21 +214,28 @@
                         return;
                     }
 
-                    const matches = masterSiswa.filter(s => 
-                        s.nama.toLowerCase().includes(query) || s.nisn.includes(query)
-                    );
+                    // Cari siswa berdasarkan nama, NISN, atau ID dari Google Sheet
+                    const matches = masterSiswaAsli.filter(s => {
+                        const nama = (s.nama || s.Nama || "").toString().toLowerCase();
+                        const nisn = (s.nisn || s.NISN || s.id || s.ID || "").toString().toLowerCase();
+                        return nama.includes(query) || nisn.includes(query);
+                    });
 
                     if (matches.length > 0) {
                         matches.forEach(siswa => {
+                            const itemNama = siswa.nama || siswa.Nama || "-";
+                            const itemNisn = siswa.nisn || siswa.NISN || siswa.id || siswa.ID || "-";
+                            const itemKelas = siswa.kelas || siswa.Kelas || "-";
+
                             const item = document.createElement("div");
                             item.className = "dropdown-item";
-                            item.innerHTML = `<strong>${siswa.nama}</strong> - ${siswa.kelas} (${siswa.nisn})`;
+                            item.innerHTML = `<strong>${itemNama}</strong> - ${itemKelas} (${itemNisn})`;
                             
                             item.addEventListener("click", function() {
-                                inputSearch.value = siswa.nama;
-                                document.getElementById("selectedNisn").innerText = ": " + siswa.nisn;
-                                document.getElementById("selectedNama").innerText = ": " + siswa.nama;
-                                document.getElementById("selectedKelas").innerText = ": " + siswa.kelas;
+                                inputSearch.value = itemNama;
+                                document.getElementById("selectedNisn").innerText = ": " + itemNisn;
+                                document.getElementById("selectedNama").innerText = ": " + itemNama;
+                                document.getElementById("selectedKelas").innerText = ": " + itemKelas;
                                 dropdown.style.display = "none";
                             });
                             
@@ -222,7 +243,7 @@
                         });
                         dropdown.style.display = "block";
                     } else {
-                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Siswa tidak ditemukan</div>`;
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa tidak ditemukan di Sheet</div>`;
                         dropdown.style.display = "block";
                     }
                 });
