@@ -21,7 +21,7 @@ const CONFIG = {
 =            URL WEB APP APPS SCRIPT (URL BARU REVISI)
 ===============================================================*/
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwulMYZnhqGvxpxg_BHSKlpD4tM8tiqgUDRWmRTYhlft_nyPmOmd6Doq1uo6_yTVPCl/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxO-AJKNfdSDQVhMxrQpZ83Z0TeK5_V-16akMwTVHPDi2mqJt6K_br_6wevLnhPiSw6/exec";
 
 // TAMBAHKAN DUA BARIS DI BAWAH INI UNTUK MENCEGAH MISMATCH DENGAN API.JS
 const API_URL = WEB_APP_URL;
