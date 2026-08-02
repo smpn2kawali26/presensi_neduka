@@ -5,31 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Petugas - SMP Negeri 2 Kawali</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; min-height: 100vh; padding-bottom: 40px; }
         
-        /* Navbar Header Top */
+        /* Navbar Top */
         .navbar { background: #0a192f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .brand h1 { font-size: 18px; font-weight: 700; }
         .navbar .brand p { font-size: 12px; color: #94a3b8; }
         .btn-keluar { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
         .btn-keluar:hover { background: #dc2626; }
 
-        /* Container Layout Card Center */
+        /* Container Layout */
         .container { max-width: 500px; margin: 25px auto; padding: 0 15px; }
         .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
         .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
-        /* Style Area Dropdown Pencarian Siswa */
+        /* Style Input Search & Dropdown */
         .search-container { position: relative; }
         .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
         .form-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
         
-        /* Dropdown Hasil Pencarian */
         .dropdown-results {
             position: absolute;
             top: 100%;
@@ -53,31 +51,29 @@
             text-align: left;
         }
         .dropdown-item:hover { background: #f8fafc; color: #1e3a8a; font-weight: 600; }
-        .dropdown-item:last-child { border-bottom: none; }
 
         /* Data Siswa Terpilih */
         .data-row { display: flex; margin-bottom: 6px; font-size: 13px; }
         .data-label { width: 80px; font-weight: 600; color: #475569; }
         .data-val { color: #0f172a; font-weight: 600; }
 
-        /* Camera Box */
+        /* Box Kamera */
         .camera-box { 
             width: 100%; 
-            border-radius: 12px; 
+            border-radius: 10px; 
             overflow: hidden; 
-            background: #000; 
-            min-height: 250px; 
+            background: #1e293b; 
+            min-height: 240px; 
             display: flex; 
             justify-content: center; 
             align-items: center;
-            position: relative;
         }
         .camera-box video { 
             width: 100%; 
-            height: 100%; 
-            max-height: 320px;
+            height: auto; 
+            max-height: 300px;
             object-fit: cover; 
-            border-radius: 12px;
+            display: block;
         }
 
         .btn-absen {
@@ -90,7 +86,6 @@
             font-weight: bold;
             font-size: 15px;
             cursor: pointer;
-            transition: 0.2s;
             margin-top: 15px;
             display: flex;
             align-items: center;
@@ -102,7 +97,6 @@
 </head>
 <body>
 
-    <!-- Header Navbar -->
     <div class="navbar">
         <div class="brand">
             <h1>Dashboard Petugas</h1>
@@ -125,12 +119,11 @@
             </div>
         </div>
 
-        <!-- Pencarian Siswa (Dengan Dropdown) -->
+        <!-- Pencarian Siswa -->
         <div class="card">
             <div class="card-title" style="margin-bottom: 12px;">Pencarian Siswa</div>
             <div class="search-container">
                 <input type="text" id="searchSiswa" class="form-input" placeholder="Ketik Nama atau NISN Siswa..." autocomplete="off">
-                <!-- Box Dropdown Hasil Pencarian -->
                 <div id="dropdownResults" class="dropdown-results"></div>
             </div>
         </div>
@@ -152,11 +145,11 @@
             </div>
         </div>
 
-        <!-- Kamera Pemindai / Foto -->
+        <!-- Kamera Pemindai -->
         <div class="card">
             <div class="card-title" style="margin-bottom: 12px;">Kamera Pemindai / Foto</div>
             <div class="camera-box">
-                <video id="webcam" autoplay playsinline></video>
+                <video id="webcam" autoplay playsinline muted></video>
             </div>
             <button type="button" id="btnProsesAbsen" class="btn-absen">
                 <i class="fa-solid fa-camera"></i> SIMPAN ABSENSI
@@ -165,17 +158,16 @@
 
     </div>
 
-    <!-- Modul Script Utama Project -->
+    <!-- Script Pendukung Project -->
     <script src="../js/config.js"></script>
     <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/camera.js"></script>
     <script src="../js/absensi.js"></script>
 
-    <!-- Script Pengaktif Kamera & Dropdown Pencarian -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. AKTIFKAN KAMERA OTOMATIS
+            // 1. INI SCRIPT AKTIFKAN KAMERA BROWSER
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
@@ -183,11 +175,11 @@
                         video.srcObject = stream;
                     })
                     .catch(function(err) {
-                        console.log("Kamera tidak dapat diakses: ", err);
+                        console.warn("Kamera tidak dapat diakses atau diizinkan:", err);
                     });
             }
 
-            // 2. DROPDOWN PENCARIAN SISWA
+            // 2. INI SCRIPT DROPDOWN PENCARIAN SISWA
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
 
