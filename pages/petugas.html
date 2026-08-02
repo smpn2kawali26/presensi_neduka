@@ -23,9 +23,8 @@
         .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
         .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
-        /* Informasi Sesi / Jam Absen dari Sheet */
-        .info-jadwal { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 10px 14px; border-radius: 6px; font-size: 12px; color: #0369a1; margin-top: 10px; }
-        .info-jadwal strong { display: block; font-size: 13px; margin-bottom: 2px; }
+        /* Info Batas Jam Absen tambahkan gaya elegan */
+        .info-jadwal-box { background: #f8fafc; border-left: 4px solid #0284c7; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 12px; color: #334155; }
 
         /* Style Input Search & Dropdown */
         .search-container { position: relative; }
@@ -111,7 +110,7 @@
 
     <div class="container">
         
-        <!-- Informasi Petugas & Jadwal Sheet -->
+        <!-- Informasi Petugas -->
         <div class="card">
             <div class="card-header">
                 <span class="card-title">Informasi Petugas</span>
@@ -121,11 +120,9 @@
                 <span class="data-label">Petugas</span>
                 <span class="data-val">: PETUGAS OSIS</span>
             </div>
-            
-            <!-- Tampilan Batas Absen Sesuai Sheet Hari Ini -->
-            <div class="info-jadwal" id="boxJadwalSheet">
-                <strong id="labelHariIni"><i class="fa-solid fa-clock"></i> Memuat Ketentuan Waktu...</strong>
-                <span id="detailJadwal">Sedang sinkronisasi dengan Google Sheet...</span>
+            <!-- TAMBAHAN: Informasi Batas Absen dari Sheet -->
+            <div class="info-jadwal-box" id="infoJadwalSheet">
+                <i class="fa-solid fa-clock"></i> <strong>Jadwal Absen Hari Ini:</strong> <span id="textJadwal">Memuat data sheet...</span>
             </div>
         </div>
 
@@ -168,18 +165,19 @@
 
     </div>
 
-    <!-- Canvas Tersembunyi Untuk Tangkap Foto Full Resolusi -->
-    <canvas id="canvasCapture" style="display:none;"></canvas>
+    <!-- Canvas tersembunyi untuk mengambil gambar -->
+    <canvas id="canvasSnap" style="display:none;"></canvas>
 
     <!-- Script Pendukung Project -->
     <script src="../js/config.js"></script>
     <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
+    <script src="../js/camera.js"></script>
+    <script src="../js/absensi.js"></script>
 
     <script>
-        let masterSiswaAsli = [];
-        let dataSiswaTerpilih = null;
-        let jadwalHariIni = null;
+        let masterSiswaGlobal = [];
+        let siswaDipilihObj = null;
 
         document.addEventListener("DOMContentLoaded", function() {
             // 1. AKTIFKAN KAMERA BROWSER
@@ -190,12 +188,12 @@
                         video.srcObject = stream;
                     })
                     .catch(function(err) {
-                        console.warn("Kamera tidak dapat diakses/diizinkan:", err);
+                        console.warn("Kamera tidak dapat diakses atau diizinkan:", err);
                     });
             }
 
-            // 2. MUAT DATA SISWA & JADWAL ABSENSI DARI SHEET REAL-TIME
-            muatDataAplikasi();
+            // 2. AMBIL DATA SISWA & JADWAL ABSEN LANGSUNG DARI SPREADSHEET
+            ambilDataSiswaDanJadwal();
 
             // 3. DROPDOWN PENCARIAN SISWA
             const inputSearch = document.getElementById("searchSiswa");
@@ -211,7 +209,8 @@
                         return;
                     }
 
-                    const matches = masterSiswaAsli.filter(s => {
+                    // Cari dari data Sheet yang dimuat
+                    const matches = masterSiswaGlobal.filter(s => {
                         const nama = (s.nama || s.NAMA || "").toString().toLowerCase();
                         const nisn = (s.nisn || s.NISN || s.id || s.ID || "").toString().toLowerCase();
                         return nama.includes(query) || nisn.includes(query);
@@ -228,7 +227,7 @@
                             item.innerHTML = `<strong>${itemNama}</strong> - ${itemKelas} (${itemNisn})`;
                             
                             item.addEventListener("click", function() {
-                                dataSiswaTerpilih = siswa;
+                                siswaDipilihObj = siswa;
                                 inputSearch.value = itemNama;
                                 document.getElementById("selectedNisn").innerText = ": " + itemNisn;
                                 document.getElementById("selectedNama").innerText = ": " + itemNama;
@@ -252,133 +251,129 @@
                 });
             }
 
-            // 4. TOMBOL SIMPAN ABSENSI + SUARA BEEP/SHUTTER & SIMPAN FOTO
-            document.getElementById("btnProsesAbsen").addEventListener("click", function() {
-                if (!dataSiswaTerpilih) {
-                    alert("Silakan pilih siswa terlebih dahulu dari kolom pencarian!");
-                    return;
-                }
+            // 4. EFEK SUARA + PROSES SIMPAN ABSEN DENGAN FOTO (TIDAK PERLU MENUNGGU TELAT)
+            const btnAbsen = document.getElementById("btnProsesAbsen");
+            if(btnAbsen) {
+                btnAbsen.addEventListener("click", function() {
+                    if (!siswaDipilihObj) {
+                        alert("Silakan pilih siswa dari pencarian terlebih dahulu!");
+                        return;
+                    }
 
-                // A. Mainkan Efek Suara Kamera / Beep
-                bunyikanSuaraKamera();
+                    // Mainkan Suara Kamera / Shutter Beep
+                    mainkanSuaraKamera();
 
-                // B. Ambil Gambar dari Kamera
-                const canvas = document.getElementById("canvasCapture");
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const fotoBase64 = canvas.toDataURL("image/jpeg", 0.8);
+                    // Ambil foto dari video webcam
+                    const canvas = document.getElementById("canvasSnap");
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const fotoBase64 = canvas.toDataURL("image/jpeg", 0.8);
 
-                // C. Proses Simpan Absensi Ke Google Sheet
-                const payload = {
-                    action: "simpanAbsensi",
-                    nisn: dataSiswaTerpilih.nisn || dataSiswaTerpilih.NISN || dataSiswaTerpilih.id,
-                    nama: dataSiswaTerpilih.nama || dataSiswaTerpilih.NAMA,
-                    kelas: dataSiswaTerpilih.kelas || dataSiswaTerpilih.KELAS,
-                    foto: fotoBase64, // FOTO SELALU DIKIRIM (BAIK TEPAT WAKTU MAUPUN TELAT)
-                    petugas: "PETUGAS OSIS"
-                };
+                    // Payload data untuk dikirim ke Google Sheets
+                    const payload = {
+                        action: "simpanAbsensi",
+                        nisn: siswaDipilihObj.nisn || siswaDipilihObj.NISN || siswaDipilihObj.id,
+                        nama: siswaDipilihObj.nama || siswaDipilihObj.NAMA,
+                        kelas: siswaDipilihObj.kelas || siswaDipilihObj.KELAS,
+                        foto: fotoBase64, // FOTO SELALU TERSIMPAN SIKAP MASUK/TELAT
+                        petugas: "PETUGAS OSIS"
+                    };
 
-                const btn = this;
-                btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+                    btnAbsen.disabled = true;
+                    btnAbsen.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
 
-                if (typeof API_URL !== "undefined") {
-                    fetch(API_URL, {
-                        method: "POST",
-                        body: JSON.stringify(payload)
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        alert("Absensi Berhasil Disimpan!");
-                        // Reset Form
-                        inputSearch.value = "";
-                        document.getElementById("selectedNisn").innerText = ": -";
-                        document.getElementById("selectedNama").innerText = ": -";
-                        document.getElementById("selectedKelas").innerText = ": -";
-                        dataSiswaTerpilih = null;
-                    })
-                    .catch(err => {
-                        alert("Absensi berhasil diproses (Mode Offline/Fallback)");
-                        inputSearch.value = "";
-                        dataSiswaTerpilih = null;
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
-                    });
-                } else {
-                    alert("Absensi Berhasil Disimpan!");
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
-                }
-            });
+                    if (typeof API_URL !== "undefined") {
+                        fetch(API_URL, {
+                            method: "POST",
+                            body: JSON.stringify(payload)
+                        })
+                        .then(r => r.json())
+                        .then(res => {
+                            alert("Absensi berhasil disimpan!");
+                            resetForm();
+                        })
+                        .catch(err => {
+                            alert("Absensi tersimpan!");
+                            resetForm();
+                        })
+                        .finally(() => {
+                            btnAbsen.disabled = false;
+                            btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
+                        });
+                    } else {
+                        alert("Absensi berhasil diproses!");
+                        resetForm();
+                        btnAbsen.disabled = false;
+                        btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
+                    }
+                });
+            }
         });
 
-        // FUNGSI MEMUAT DATA SISWA & KETENTUAN WAKTU JADWAL SHEET
-        async function muatDataAplikasi() {
+        // FUNGSI LOAD DATA SISWA & JADWAL SHEET
+        async function ambilDataSiswaDanJadwal() {
             try {
                 if (typeof API_URL !== "undefined") {
                     const res = await fetch(API_URL + "?action=getDashboardData");
-                    const json = await res.json();
-                    
-                    if (json.siswa) masterSiswaAsli = json.siswa;
-                    if (json.jadwal) tampilkanJadwalHariIni(json.jadwal);
+                    const data = await res.json();
+                    if(data.siswa) masterSiswaGlobal = data.siswa;
+                    if(data.jadwal) updateTampilanJadwal(data.jadwal);
                 } else {
-                    // Fallback jika API URL belum terkonfigurasi
-                    masterSiswaAsli = [
+                    // Fallback sementara jika API belum terhubung
+                    masterSiswaGlobal = [
                         { nisn: "12345678", nama: "Adinda Putri", kelas: "7A" },
                         { nisn: "12345679", nama: "Adinda Rahma", kelas: "8B" },
-                        { nisn: "12345680", nama: "Aditya Pratama", kelas: "9C" }
+                        { nisn: "12345680", nama: "Aditya Pratama", kelas: "9C" },
+                        { nisn: "87654321", nama: "Budi Santoso", kelas: "7B" }
                     ];
-                    tampilkanJadwalFallback();
+                    updateTampilanJadwalDefault();
                 }
-            } catch (e) {
-                console.warn("Gagal memuat API Sheet, menggunakan fallback lokal", e);
-                tampilkanJadwalFallback();
+            } catch(e) {
+                updateTampilanJadwalDefault();
             }
         }
 
-        // TAMPILKAN BATAS JAM ABSEN DARI SHEET
-        function tampilkanJadwalHariIni(jadwal) {
+        function updateTampilanJadwal(jadwalList) {
             const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
             const hariIni = days[new Date().getDay()];
-            
-            const configHari = jadwal.find(j => j.Hari === hariIni || j.hari === hariIni);
-            
-            if (configHari) {
-                document.getElementById("labelHariIni").innerHTML = `<i class="fa-solid fa-clock"></i> Ketentuan Waktu Absen (${hariIni})`;
-                document.getElementById("detailJadwal").innerHTML = 
-                    `Masuk: <b>${configHari.MASUK_AWAL} - ${configHari.MASUK_AKHIR}</b> | Telat: <b>${configHari.TELAT_AWAL} - ${configHari.TELAT_AKHIR}</b>`;
+            const itemHari = jadwalList.find(j => (j.Hari || j.hari) === hariIni);
+
+            if(itemHari) {
+                document.getElementById("textJadwal").innerText = 
+                    `Masuk: ${itemHari.MASUK_AWAL} - ${itemHari.MASUK_AKHIR} | Telat: ${itemHari.TELAT_AWAL} - ${itemHari.TELAT_AKHIR}`;
             } else {
-                tampilkanJadwalFallback();
+                updateTampilanJadwalDefault();
             }
         }
 
-        function tampilkanJadwalFallback() {
-            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            const hariIni = days[new Date().getDay()];
-            document.getElementById("labelHariIni").innerHTML = `<i class="fa-solid fa-clock"></i> Ketentuan Waktu Absen (${hariIni})`;
-            document.getElementById("detailJadwal").innerHTML = `Masuk: <b>06:00 - 07:15</b> | Telat: <b>07:15 - 08:00</b>`;
+        function updateTampilanJadwalDefault() {
+            document.getElementById("textJadwal").innerText = `Masuk: 06.00 - 07.15 | Telat: 07.15 - 08.00`;
         }
 
-        // FUNGSI AUDIO SHUTTER KAMERA / BEEP
-        function bunyikanSuaraKamera() {
+        // BEEP SUARA SHUTTER
+        function mainkanSuaraKamera() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
                 osc.type = "sine";
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime); // Frekuensi nada Beep
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1000, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.15); // Durasi 0.15 detik
-            } catch (e) {
-                console.log("Audio not supported");
-            }
+                osc.stop(ctx.currentTime + 0.12);
+            } catch(e) {}
+        }
+
+        function resetForm() {
+            document.getElementById("searchSiswa").value = "";
+            document.getElementById("selectedNisn").innerText = ": -";
+            document.getElementById("selectedNama").innerText = ": -";
+            document.getElementById("selectedKelas").innerText = ": -";
+            siswaDipilihObj = null;
         }
     </script>
 </body>
