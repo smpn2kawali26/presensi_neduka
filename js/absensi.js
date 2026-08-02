@@ -1,148 +1,136 @@
 /*****************************************************************
- * PORTAL ABSENSI - SMP NEGERI 2 KAWALI
- * File: js/absensi.js (Kamera, GPS, Dropdown, Masuk/Pulang, Logout)
+ * LOGIK ABSENSI FRONTEND (DROPDOWN + GPS RADIUS + PORTRAIT CAM)
  *****************************************************************/
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Variable Elements
     const searchInput = document.getElementById("searchInput");
-    const dropdownList = document.getElementById("dropdownList");
+    const dropdownMenu = document.getElementById("dropdownMenu");
     const btnLogout = document.getElementById("btnLogout");
     const gpsStatus = document.getElementById("gpsStatus");
     const video = document.getElementById("webcam");
     const btnSwitchCam = document.getElementById("btnSwitchCam");
-    const btnAbsenMasuk = document.getElementById("btnAbsenMasuk");
-    const btnAbsenPulang = document.getElementById("btnAbsenPulang");
+    const btnMasuk = document.getElementById("btnMasuk");
+    const btnPulang = document.getElementById("btnPulang");
 
     let currentStream = null;
-    let facingMode = "environment"; // Default kamera belakang
+    let facingMode = "environment"; 
     let userLocation = { lat: null, lng: null };
     let selectedSiswa = null;
 
     // 1. LOGOUT
     if (btnLogout) {
-        btnLogout.addEventListener("click", function () {
-            if (confirm("Apakah Anda yakin ingin keluar?")) {
+        btnLogout.addEventListener("click", () => {
+            if (confirm("Yakin ingin keluar?")) {
                 localStorage.clear();
                 window.location.href = "../index.html";
             }
         });
     }
 
-    // 2. DETEKSI LOKASI (GPS)
+    // 2. DETEKSI GPS LOKASI SPREADSHEET
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 userLocation.lat = pos.coords.latitude;
                 userLocation.lng = pos.coords.longitude;
                 if (gpsStatus) {
-                    gpsStatus.innerHTML = `<i class="fa-solid fa-circle-check gps-active"></i> GPS Aktif (${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})`;
+                    gpsStatus.className = "gps-badge gps-ok";
+                    gpsStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> GPS Terkunci`;
                 }
             },
             (err) => {
-                if (gpsStatus) gpsStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:red;"></i> GPS Mati/Diizinkan`;
+                if (gpsStatus) {
+                    gpsStatus.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> GPS Mati`;
+                }
             },
             { enableHighAccuracy: true }
         );
     }
 
-    // 3. KAMERA (FRONT / BACK SWITCH)
+    // 3. KAMERA PORTRAIT
     async function startCamera() {
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-        }
+        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
         try {
-            const constraints = { video: { facingMode: facingMode } };
-            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode, width: { ideal: 480 }, height: { ideal: 640 } } });
             video.srcObject = currentStream;
-        } catch (err) {
-            console.error("Kamera gagal dibuka:", err);
-        }
+        } catch (e) { console.error("Kamera Error:", e); }
     }
 
     if (btnSwitchCam) {
-        btnSwitchCam.addEventListener("click", function () {
+        btnSwitchCam.addEventListener("click", () => {
             facingMode = (facingMode === "user") ? "environment" : "user";
             startCamera();
         });
     }
+    startCamera();
 
-    startCamera(); // Jalankan Kamera Otomatis
-
-    // 4. AUTO DROPDOWN SISWA
-    let timer;
+    // 4. AUTOMATIC DROPDOWN SEARCH
+    let searchTimer;
     if (searchInput) {
         searchInput.addEventListener("input", function () {
-            clearTimeout(timer);
-            const keyword = this.value.trim();
+            clearTimeout(searchTimer);
+            const val = this.value.trim();
 
-            if (keyword.length < 2) {
-                if (dropdownList) dropdownList.style.display = "none";
+            if (val.length < 2) {
+                if (dropdownMenu) dropdownMenu.style.display = "none";
                 return;
             }
 
-            timer = setTimeout(() => {
-                cariSiswaAPI(keyword);
-            }, 300);
+            searchTimer = setTimeout(() => {
+                fetchSiswa(val);
+            }, 250);
         });
     }
 
-    async function cariSiswaAPI(keyword) {
+    async function fetchSiswa(kw) {
         try {
             const res = await fetch(CONFIG.BASE_URL, {
                 method: "POST",
                 mode: "cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "searchSiswa", keyword: keyword })
+                body: JSON.stringify({ action: "searchSiswa", keyword: kw })
             });
-            const data = await res.json();
+            const result = await res.json();
 
-            if (data.success && data.data && data.data.length > 0) {
-                renderDropdown(data.data);
+            if (result.success && result.data && result.data.length > 0) {
+                renderDropdown(result.data);
             } else {
-                if (dropdownList) dropdownList.style.display = "none";
+                if (dropdownMenu) dropdownMenu.style.display = "none";
             }
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function renderDropdown(list) {
-        if (!dropdownList) return;
-        dropdownList.innerHTML = "";
-        list.forEach(siswa => {
-            const item = document.createElement("div");
-            item.className = "dropdown-item";
-            item.innerHTML = `<strong>${siswa.nama}</strong> (${siswa.kelas}) - NISN: ${siswa.nisn}`;
-            item.addEventListener("click", () => {
-                pilihSiswa(siswa);
-                dropdownList.style.display = "none";
+        if (!dropdownMenu) return;
+        dropdownMenu.innerHTML = "";
+        list.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "dropdown-item";
+            div.innerHTML = `<strong>${item.nama}</strong> (${item.kelas}) - NISN: ${item.nisn}`;
+            div.addEventListener("click", () => {
+                selectedSiswa = item;
+                searchInput.value = item.nama;
+                document.getElementById("dispNisn").innerText = item.nisn || item.id;
+                document.getElementById("dispNama").innerText = item.nama;
+                document.getElementById("dispKelas").innerText = item.kelas;
+                dropdownMenu.style.display = "none";
             });
-            dropdownList.appendChild(item);
+            dropdownMenu.appendChild(div);
         });
-        dropdownList.style.display = "block";
+        dropdownMenu.style.display = "block";
     }
 
-    function pilihSiswa(siswa) {
-        selectedSiswa = siswa;
-        if (searchInput) searchInput.value = siswa.nama;
-        document.getElementById("dispNisn").innerText = siswa.nisn || siswa.id || "-";
-        document.getElementById("dispNama").innerText = siswa.nama || "-";
-        document.getElementById("dispKelas").innerText = siswa.kelas || "-";
-        document.getElementById("dispStatus").innerText = siswa.status || "AKTIF";
-    }
+    document.addEventListener("click", (e) => {
+        if (e.target !== searchInput && dropdownMenu) dropdownMenu.style.display = "none";
+    });
 
-    // 5. TOMBOL ABSEN MASUK & PULANG
-    if (btnAbsenMasuk) {
-        btnAbsenMasuk.addEventListener("click", () => prosesAbsensi("MASUK"));
-    }
-    if (btnAbsenPulang) {
-        btnAbsenPulang.addEventListener("click", () => prosesAbsensi("PULANG"));
-    }
+    // 5. SIMPAN ABSENSI DENGAN VALIDASI RADIUS
+    if (btnMasuk) btnMasuk.addEventListener("click", () => sendAbsensi("MASUK"));
+    if (btnPulang) btnPulang.addEventListener("click", () => sendAbsensi("PULANG"));
 
-    async function prosesAbsensi(tipe) {
+    async function sendAbsensi(status) {
         if (!selectedSiswa) {
-            alert("Pilih data siswa terlebih dahulu melalui pencarian nama!");
+            alert("Pilih siswa terlebih dahulu dari dropdown pencarian!");
             return;
         }
 
@@ -151,35 +139,33 @@ document.addEventListener("DOMContentLoaded", function () {
             nisn: selectedSiswa.nisn || selectedSiswa.id,
             nama: selectedSiswa.nama,
             kelas: selectedSiswa.kelas,
-            status: tipe, // MASUK / PULANG
+            status: status,
             lat: userLocation.lat,
             lng: userLocation.lng,
             petugas: "PETUGAS OSIS"
         };
 
         try {
-            const response = await fetch(CONFIG.BASE_URL, {
+            const res = await fetch(CONFIG.BASE_URL, {
                 method: "POST",
                 mode: "cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload)
             });
-            const result = await response.json();
+            const result = await res.json();
 
             if (result.success) {
-                alert(`BERHASIL! Absensi ${tipe} atas nama ${selectedSiswa.nama} telah dicatat.`);
-                // Reset Form
+                alert(result.message);
                 selectedSiswa = null;
-                if (searchInput) searchInput.value = "";
+                searchInput.value = "";
                 document.getElementById("dispNisn").innerText = "-";
                 document.getElementById("dispNama").innerText = "-";
                 document.getElementById("dispKelas").innerText = "-";
-                document.getElementById("dispStatus").innerText = "-";
             } else {
-                alert("Gagal mencatat absensi: " + result.message);
+                alert("DITOLAK: " + result.message);
             }
         } catch (e) {
-            alert("Terjadi kesalahan koneksi ke server.");
+            alert("Koneksi gagal.");
         }
     }
 });
