@@ -97,7 +97,7 @@
                         <tr>
                             <td>Siti Aminah</td>
                             <td><span class="badge badge-telat">TELAT</span></td>
-                            <td><button class="btn-note" onclick="bukaModal('Siti Aminah')">Catatan</button></td>
+                            <td><button class="btn-note" onclick="bukaModal('Siti Aminah')">Tambah Catatan</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -105,6 +105,50 @@
         </div>
     </main>
 
-    <!-- Modal (tetap sama, namun bisa disesuaikan jika perlu) -->
+        <!-- Modal Catatan -->
+
+    <div id="modal" class="modal">
+
+        <div class="modal-box">
+
+            <h3 id="modalTitle">Catatan untuk Siswa</h3>
+
+            <textarea id="catatanInput" placeholder="Tulis perkembangan siswa..."></textarea>
+
+            <button style="background: blue; border:none; margin-top:10px; width:100%; color:white; cursor:pointer; onclick="simpanCatatan()">Simpan Catatan</button>
+
+            <button onclick="tutupModal()" style="background: red; border:none; margin-top:10px; width:100%; color:white; cursor:pointer;">Batal</button>
+
+        </div>
+
+    </div>
+
+        <script>
+
+        const modal = document.getElementById('modal');
+
+        function bukaModal(nama) {
+
+            document.getElementById('modalTitle').innerText = "Catatan untuk " + nama;
+
+            modal.style.display = 'flex';
+
+        }
+
+        function tutupModal() {
+
+            modal.style.display = 'none';
+
+        }
+
+        function simpanCatatan() {
+
+            alert("Catatan berhasil disimpan!");
+
+            tutupModal();
+
+        }
+
+    </script>
 </body>
 </html>
