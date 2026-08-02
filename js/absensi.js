@@ -1,130 +1,185 @@
 /*****************************************************************
  * PORTAL ABSENSI - SMP NEGERI 2 KAWALI
- * File: js/absensi.js (Dropdown Auto-Suggest + Logout Fix)
+ * File: js/absensi.js (Kamera, GPS, Dropdown, Masuk/Pulang, Logout)
  *****************************************************************/
 
 document.addEventListener("DOMContentLoaded", function () {
+    // Variable Elements
     const searchInput = document.getElementById("searchInput");
-    const btnSearch = document.getElementById("btnSearch");
     const dropdownList = document.getElementById("dropdownList");
     const btnLogout = document.getElementById("btnLogout");
-    const searchStatus = document.getElementById("searchStatus");
+    const gpsStatus = document.getElementById("gpsStatus");
+    const video = document.getElementById("webcam");
+    const btnSwitchCam = document.getElementById("btnSwitchCam");
+    const btnAbsenMasuk = document.getElementById("btnAbsenMasuk");
+    const btnAbsenPulang = document.getElementById("btnAbsenPulang");
 
-    // 1. FITUR LOGOUT (PASTI BISA LOGOUT)
+    let currentStream = null;
+    let facingMode = "environment"; // Default kamera belakang
+    let userLocation = { lat: null, lng: null };
+    let selectedSiswa = null;
+
+    // 1. LOGOUT
     if (btnLogout) {
         btnLogout.addEventListener("click", function () {
             if (confirm("Apakah Anda yakin ingin keluar?")) {
                 localStorage.clear();
-                sessionStorage.clear();
-                // Redirect balik ke halaman utama login
                 window.location.href = "../index.html";
             }
         });
     }
 
-    // 2. AUTO-SUGGEST DROPDOWN SAAT KETIK (MINIMAL 2 HURUF)
-    let typingTimer;
+    // 2. DETEKSI LOKASI (GPS)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                userLocation.lat = pos.coords.latitude;
+                userLocation.lng = pos.coords.longitude;
+                if (gpsStatus) {
+                    gpsStatus.innerHTML = `<i class="fa-solid fa-circle-check gps-active"></i> GPS Aktif (${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})`;
+                }
+            },
+            (err) => {
+                if (gpsStatus) gpsStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:red;"></i> GPS Mati/Diizinkan`;
+            },
+            { enableHighAccuracy: true }
+        );
+    }
+
+    // 3. KAMERA (FRONT / BACK SWITCH)
+    async function startCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+        try {
+            const constraints = { video: { facingMode: facingMode } };
+            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = currentStream;
+        } catch (err) {
+            console.error("Kamera gagal dibuka:", err);
+        }
+    }
+
+    if (btnSwitchCam) {
+        btnSwitchCam.addEventListener("click", function () {
+            facingMode = (facingMode === "user") ? "environment" : "user";
+            startCamera();
+        });
+    }
+
+    startCamera(); // Jalankan Kamera Otomatis
+
+    // 4. AUTO DROPDOWN SISWA
+    let timer;
     if (searchInput) {
         searchInput.addEventListener("input", function () {
-            clearTimeout(typingTimer);
-            const val = this.value.trim();
+            clearTimeout(timer);
+            const keyword = this.value.trim();
 
-            if (val.length < 2) {
+            if (keyword.length < 2) {
                 if (dropdownList) dropdownList.style.display = "none";
                 return;
             }
 
-            typingTimer = setTimeout(() => {
-                fetchSuggestions(val);
-            }, 300); // Tunda 300ms agar tidak spam server
+            timer = setTimeout(() => {
+                cariSiswaAPI(keyword);
+            }, 300);
         });
     }
 
-    // Klik tombol Cari Manual
-    if (btnSearch) {
-        btnSearch.addEventListener("click", function () {
-            if (dropdownList) dropdownList.style.display = "none";
-            const val = searchInput.value.trim();
-            if (val) fetchSuggestions(val, true);
-        });
-    }
-
-    // Tutup dropdown jika klik di luar area input
-    document.addEventListener("click", function (e) {
-        if (e.target !== searchInput && dropdownList) {
-            dropdownList.style.display = "none";
-        }
-    });
-
-    // Fungsi Fetch ke Backend
-    async function fetchSuggestions(keyword, selectFirst = false) {
-        if (searchStatus) searchStatus.innerText = "Mencari...";
-        
+    async function cariSiswaAPI(keyword) {
         try {
-            const response = await fetch(CONFIG.BASE_URL, {
+            const res = await fetch(CONFIG.BASE_URL, {
                 method: "POST",
                 mode: "cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "searchSiswa",
-                    keyword: keyword
-                })
+                body: JSON.stringify({ action: "searchSiswa", keyword: keyword })
             });
+            const data = await res.json();
 
-            const res = await response.json();
-
-            if (res.success && res.data && res.data.length > 0) {
-                if (searchStatus) searchStatus.innerText = `Ditemukan ${res.data.length} data.`;
-                
-                if (selectFirst) {
-                    pilihSiswa(res.data[0]);
-                } else {
-                    renderDropdown(res.data);
-                }
+            if (data.success && data.data && data.data.length > 0) {
+                renderDropdown(data.data);
             } else {
                 if (dropdownList) dropdownList.style.display = "none";
-                if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
-                resetDataDisplay();
             }
-        } catch (err) {
-            console.error(err);
-            if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
+        } catch (e) {
+            console.error(e);
         }
     }
 
-    // Render Pilihan di Dropdown
     function renderDropdown(list) {
         if (!dropdownList) return;
         dropdownList.innerHTML = "";
-
-        list.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "dropdown-item";
-            div.innerHTML = `<strong>${item.nama}</strong> (${item.kelas}) - NISN: ${item.nisn}`;
-            div.addEventListener("click", function () {
-                pilihSiswa(item);
+        list.forEach(siswa => {
+            const item = document.createElement("div");
+            item.className = "dropdown-item";
+            item.innerHTML = `<strong>${siswa.nama}</strong> (${siswa.kelas}) - NISN: ${siswa.nisn}`;
+            item.addEventListener("click", () => {
+                pilihSiswa(siswa);
                 dropdownList.style.display = "none";
             });
-            dropdownList.appendChild(div);
+            dropdownList.appendChild(item);
         });
-
         dropdownList.style.display = "block";
     }
 
-    // Menampilkan Data Siswa yang Dipilih
     function pilihSiswa(siswa) {
+        selectedSiswa = siswa;
         if (searchInput) searchInput.value = siswa.nama;
         document.getElementById("dispNisn").innerText = siswa.nisn || siswa.id || "-";
         document.getElementById("dispNama").innerText = siswa.nama || "-";
         document.getElementById("dispKelas").innerText = siswa.kelas || "-";
         document.getElementById("dispStatus").innerText = siswa.status || "AKTIF";
-        if (searchStatus) searchStatus.innerText = "Data siswa berhasil dimuat.";
     }
 
-    function resetDataDisplay() {
-        document.getElementById("dispNisn").innerText = "-";
-        document.getElementById("dispNama").innerText = "-";
-        document.getElementById("dispKelas").innerText = "-";
-        document.getElementById("dispStatus").innerText = "-";
+    // 5. TOMBOL ABSEN MASUK & PULANG
+    if (btnAbsenMasuk) {
+        btnAbsenMasuk.addEventListener("click", () => prosesAbsensi("MASUK"));
+    }
+    if (btnAbsenPulang) {
+        btnAbsenPulang.addEventListener("click", () => prosesAbsensi("PULANG"));
+    }
+
+    async function prosesAbsensi(tipe) {
+        if (!selectedSiswa) {
+            alert("Pilih data siswa terlebih dahulu melalui pencarian nama!");
+            return;
+        }
+
+        const payload = {
+            action: "saveAbsensi",
+            nisn: selectedSiswa.nisn || selectedSiswa.id,
+            nama: selectedSiswa.nama,
+            kelas: selectedSiswa.kelas,
+            status: tipe, // MASUK / PULANG
+            lat: userLocation.lat,
+            lng: userLocation.lng,
+            petugas: "PETUGAS OSIS"
+        };
+
+        try {
+            const response = await fetch(CONFIG.BASE_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`BERHASIL! Absensi ${tipe} atas nama ${selectedSiswa.nama} telah dicatat.`);
+                // Reset Form
+                selectedSiswa = null;
+                if (searchInput) searchInput.value = "";
+                document.getElementById("dispNisn").innerText = "-";
+                document.getElementById("dispNama").innerText = "-";
+                document.getElementById("dispKelas").innerText = "-";
+                document.getElementById("dispStatus").innerText = "-";
+            } else {
+                alert("Gagal mencatat absensi: " + result.message);
+            }
+        } catch (e) {
+            alert("Terjadi kesalahan koneksi ke server.");
+        }
     }
 });
