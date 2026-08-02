@@ -6,206 +6,47 @@
     <title>Dashboard Petugas - SMP Negeri 2 Kawali</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; min-height: 100vh; padding-bottom: 40px; }
         
-        body { 
-            background: #f1f5f9; 
-            min-height: 100vh; 
-            padding-bottom: 40px; 
-        }
-        
-        /* Header Top */
-        .navbar { 
-            background: #0a192f; 
-            color: white; 
-            padding: 15px 30px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        
-        .navbar .brand h1 { 
-            font-size: 18px; 
-            font-weight: 700; 
-        }
-        
-        .navbar .brand p { 
-            font-size: 12px; 
-            color: #94a3b8; 
-        }
-        
-        .btn-keluar { 
-            background: #ef4444; 
-            color: white; 
-            border: none; 
-            padding: 8px 16px; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-decoration: none; 
-            font-size: 13px; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 6px; 
-        }
-        
-        .btn-keluar:hover { 
-            background: #dc2626; 
-        }
+        .navbar { background: #0a192f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .brand h1 { font-size: 18px; font-weight: 700; }
+        .navbar .brand p { font-size: 12px; color: #94a3b8; }
+        .btn-keluar { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-keluar:hover { background: #dc2626; }
 
-        /* Layout Container */
-        .container { 
-            max-width: 500px; 
-            margin: 25px auto; 
-            padding: 0 15px; 
-        }
-        
-        .card { 
-            background: white; 
-            border-radius: 12px; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-        }
-        
-        .card-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 15px; 
-            border-bottom: 1px solid #f1f5f9; 
-            padding-bottom: 10px; 
-        }
-        
-        .card-title { 
-            font-weight: 700; 
-            color: #0f172a; 
-            font-size: 15px; 
-        }
-        
-        .badge-gps { 
-            background: #dcfce7; 
-            color: #166534; 
-            padding: 4px 8px; 
-            border-radius: 20px; 
-            font-size: 11px; 
-            font-weight: 600; 
-        }
+        .container { max-width: 500px; margin: 25px auto; padding: 0 15px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
+        .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
-        /* Input & Dropdown Search */
-        .search-container { 
-            position: relative; 
-        }
-        
-        .form-input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1.5px solid #cbd5e1; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            outline: none; 
-            transition: 0.2s; 
-        }
-        
-        .form-input:focus { 
-            border-color: #1e3a8a; 
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); 
-        }
+        .search-container { position: relative; }
+        .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
         
         .dropdown-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            display: none;
-            margin-top: 5px;
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid #cbd5e1; border-radius: 8px;
+            max-height: 220px; overflow-y: auto; z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; margin-top: 5px;
         }
-        
-        .dropdown-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 13px;
-            text-align: left;
-        }
-        
-        .dropdown-item:hover { 
-            background: #f8fafc; 
-            color: #1e3a8a; 
-            font-weight: 600; 
-        }
+        .dropdown-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 13px; text-align: left; color: #334155; }
+        .dropdown-item:hover { background: #f8fafc; color: #1e3a8a; font-weight: 600; }
 
-        /* Data Row Display */
-        .data-row { 
-            display: flex; 
-            margin-bottom: 6px; 
-            font-size: 13px; 
-        }
-        
-        .data-label { 
-            width: 80px; 
-            font-weight: 600; 
-            color: #475569; 
-        }
-        
-        .data-val { 
-            color: #0f172a; 
-            font-weight: 600; 
-        }
+        .data-row { display: flex; margin-bottom: 6px; font-size: 13px; }
+        .data-label { width: 80px; font-weight: 600; color: #475569; }
+        .data-val { color: #0f172a; font-weight: 600; }
 
-        /* Camera Box */
-        .camera-box { 
-            width: 100%; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            background: #1e293b; 
-            min-height: 240px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-        }
-        
-        .camera-box video { 
-            width: 100%; 
-            height: auto; 
-            max-height: 300px;
-            object-fit: cover; 
-            display: block;
-        }
+        .camera-box { width: 100%; border-radius: 10px; overflow: hidden; background: #1e293b; min-height: 240px; display: flex; justify-content: center; align-items: center; }
+        .camera-box video { width: 100%; height: auto; max-height: 300px; object-fit: cover; display: block; }
 
-        /* Submit Button */
         .btn-absen {
-            width: 100%;
-            padding: 13px;
-            background: #16a34a;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            width: 100%; padding: 13px; background: #16a34a; color: white; border: none;
+            border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;
+            margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        
-        .btn-absen:hover { 
-            background: #15803d; 
-        }
+        .btn-absen:hover { background: #15803d; }
     </style>
 </head>
 <body>
@@ -228,7 +69,7 @@
             </div>
             <div class="data-row">
                 <span class="data-label">Petugas</span>
-                <span class="data-val" id="namaPetugasVal">: PETUGAS OSIS</span>
+                <span class="data-val" id="namaPetugasTxt">: PETUGAS OSIS</span>
             </div>
         </div>
 
@@ -273,45 +114,31 @@
 
     <canvas id="canvasSnap" style="display:none;"></canvas>
 
-    <!-- Script Pendukung Project -->
     <script src="../js/config.js"></script>
-    <script src="../js/helper.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/camera.js"></script>
-
     <script>
         let masterSiswaGlobal = [];
         let aturanJadwalGlobal = [];
         let siswaDipilihObj = null;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Cek Sesi Login Sesuai User
-            const sessionUser = localStorage.getItem("userLoggedIn");
-            if (sessionUser) {
-                try {
-                    const uObj = JSON.parse(sessionUser);
-                    if (uObj.NAMA) {
-                        document.getElementById("namaPetugasVal").innerText = ": " + uObj.NAMA;
-                    }
-                } catch(e){}
+            // Ambil Nama Sesi User Login
+            const loggedUser = JSON.parse(localStorage.getItem("userLoggedIn") || "{}");
+            if (loggedUser.NAMA) {
+                document.getElementById("namaPetugasTxt").innerText = ": " + loggedUser.NAMA;
             }
 
-            // Aktifkan Kamera Browser
+            // Jalankan Webcam
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-                    .then(function(stream) { 
-                        video.srcObject = stream; 
-                    })
-                    .catch(function(err) { 
-                        console.warn("Kamera tidak dapat diakses:", err); 
-                    });
+                    .then(function(stream) { video.srcObject = stream; })
+                    .catch(function(err) { console.warn("Kamera tidak aktif:", err); });
             }
 
-            // Load Data Siswa & Jadwal dari Google Sheet
+            // Muat Data Siswa dari Sheet
             muatDataDaftarSiswa();
 
-            // Pencarian & Dropdown Siswa
+            // Event Input Cari Siswa
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
 
@@ -326,20 +153,20 @@
                     }
 
                     const matches = masterSiswaGlobal.filter(s => {
-                        const nama = (s.NAMA || s.nama || s.Nama || "").toString().toLowerCase();
-                        const nisn = (s.NISN || s.nisn || s.ID || s.id || "").toString().toLowerCase();
-                        return nama.includes(query) || nisn.includes(query);
+                        const nama = getVal(s, ['NAMA', 'nama', 'Nama']);
+                        const nisn = getVal(s, ['NISN', 'nisn', 'ID', 'id', 'NIS']);
+                        return nama.toLowerCase().includes(query) || nisn.toLowerCase().includes(query);
                     });
 
                     if (matches.length > 0) {
                         matches.forEach(siswa => {
-                            const itemNama = siswa.NAMA || siswa.nama || siswa.Nama || "-";
-                            const itemNisn = siswa.NISN || siswa.nisn || siswa.ID || siswa.id || "-";
-                            const itemKelas = siswa.KELAS || siswa.kelas || siswa.Kelas || "-";
+                            const itemNama = getVal(siswa, ['NAMA', 'nama', 'Nama']);
+                            const itemNisn = getVal(siswa, ['NISN', 'nisn', 'ID', 'id', 'NIS']);
+                            const itemKelas = getVal(siswa, ['KELAS', 'kelas', 'Kelas']);
 
                             const item = document.createElement("div");
                             item.className = "dropdown-item";
-                            item.innerHTML = `<strong>${itemNama}</strong> - ${itemKelas} (${itemNisn})`;
+                            item.innerHTML = `<strong>${itemNama}</strong> - Kelas ${itemKelas} (${itemNisn})`;
                             
                             item.addEventListener("click", function() {
                                 siswaDipilihObj = siswa;
@@ -354,7 +181,7 @@
                         });
                         dropdown.style.display = "block";
                     } else {
-                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa belum terload / tidak ditemukan</div>`;
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa tidak ditemukan</div>`;
                         dropdown.style.display = "block";
                     }
                 });
@@ -366,16 +193,24 @@
                 });
             }
 
-            // Simpan Absensi
+            // Event Simpan Absensi
             const btnAbsen = document.getElementById("btnProsesAbsen");
             if (btnAbsen) {
                 btnAbsen.addEventListener("click", function() {
                     if (!siswaDipilihObj) {
-                        alert("Pilih nama siswa dari pencarian terlebih dahulu!");
+                        alert("⚠️ Silakan pilih siswa dari hasil pencarian terlebih dahulu!");
                         return;
                     }
 
                     const statusJam = cekStatusAbsenJamIni();
+                    
+                    // PENGECEKAN NOTIFIKASI TELAT ATAU PULANG CEPAT
+                    if (statusJam.status === "TELAT") {
+                        alert(`⚠️ NOTIFIKASI: Siswa ${getVal(siswaDipilihObj, ['NAMA', 'nama'])} TERCATAT TERLAMBAT! (${statusJam.keterangan})`);
+                    } else if (statusJam.status === "PULANG_CEPAT") {
+                        alert(`⚠️ NOTIFIKASI: Siswa ${getVal(siswaDipilihObj, ['NAMA', 'nama'])} PULANG LEBIH AWAL / PULANG CEPAT!`);
+                    }
+
                     mainkanSuaraKamera();
 
                     const canvas = document.getElementById("canvasSnap");
@@ -383,26 +218,21 @@
                     canvas.height = video.videoHeight || 480;
                     const ctx = canvas.getContext("2d");
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const fotoBase64 = canvas.toDataURL("image/jpeg", 0.8);
+                    const fotoBase64 = canvas.toDataURL("image/jpeg", 0.7);
 
                     const payload = {
                         action: "simpanAbsensi",
-                        nisn: siswaDipilihObj.NISN || siswaDipilihObj.nisn || siswaDipilihObj.ID || siswaDipilihObj.id,
-                        nama: siswaDipilihObj.NAMA || siswaDipilihObj.nama || siswaDipilihObj.Nama,
-                        kelas: siswaDipilihObj.KELAS || siswaDipilihObj.kelas || siswaDipilihObj.Kelas,
+                        nisn: getVal(siswaDipilihObj, ['NISN', 'nisn', 'ID', 'id']),
+                        nama: getVal(siswaDipilihObj, ['NAMA', 'nama']),
+                        kelas: getVal(siswaDipilihObj, ['KELAS', 'kelas']),
                         status: statusJam.status,
                         keterangan: statusJam.keterangan,
                         foto: fotoBase64,
-                        petugas: "PETUGAS OSIS"
+                        petugas: loggedUser.NAMA || "PETUGAS OSIS"
                     };
 
                     btnAbsen.disabled = true;
                     btnAbsen.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
-
-                    // Notifikasi khusus jika telat
-                    if (statusJam.status === "TELAT") {
-                        alert(`⚠️ NOTIFIKASI: ${payload.nama} TERCATAT TELAT!`);
-                    }
 
                     if (typeof API_URL !== "undefined" && API_URL !== "") {
                         fetch(API_URL, {
@@ -411,81 +241,83 @@
                         })
                         .then(r => r.json())
                         .then(res => {
-                            if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
+                            if (statusJam.status !== "TELAT" && statusJam.status !== "PULANG_CEPAT") {
+                                alert("✅ Absensi Berhasil Disimpan!");
+                            }
                             resetForm();
                         })
                         .catch(err => {
-                            if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
+                            if (statusJam.status !== "TELAT" && statusJam.status !== "PULANG_CEPAT") {
+                                alert("✅ Absensi Berhasil Disimpan!");
+                            }
                             resetForm();
                         })
                         .finally(() => {
                             btnAbsen.disabled = false;
                             btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
                         });
-                    } else {
-                        if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
-                        resetForm();
-                        btnAbsen.disabled = false;
-                        btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
                     }
                 });
             }
         });
 
-        // Memuat Data Siswa dan Jadwal dari Apps Script
+        // Ambil data siswa dari Web App Sheet
         async function muatDataDaftarSiswa() {
             try {
                 if (typeof API_URL !== "undefined" && API_URL !== "") {
                     const res = await fetch(API_URL + "?action=getDashboardData");
                     const data = await res.json();
-                    if (data.siswa) masterSiswaGlobal = data.siswa;
-                    if (data.jadwal) aturanJadwalGlobal = data.jadwal;
+                    if (data.siswa && data.siswa.length > 0) {
+                        masterSiswaGlobal = data.siswa;
+                    }
+                    if (data.jadwal) {
+                        aturanJadwalGlobal = data.jadwal;
+                    }
                 }
             } catch(e) {
-                console.warn("Gagal memuat API Sheet:", e);
+                console.warn("Gagal tarik data sheet:", e);
             }
         }
 
-        // Mengecek Aturan Jam Absen Berdasarkan Hari & Jam Real-Time
+        // Kalkulasi Status Waktu Masuk/Telat/Pulang Cepat
         function cekStatusAbsenJamIni() {
             const now = new Date();
-            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            const hariIni = days[now.getDay()];
-
             const jam = String(now.getHours()).padStart(2, '0');
             const menit = String(now.getMinutes()).padStart(2, '0');
             const waktuSekarang = `${jam}:${menit}`;
 
-            const configHari = aturanJadwalGlobal.find(j => (j.Hari || j.hari) === hariIni);
-
-            if (!configHari) {
-                return { status: "MASUK", keterangan: "Tepat Waktu" };
-            }
-
-            if (waktuSekarang >= configHari.MASUK_AWAL && waktuSekarang <= configHari.MASUK_AKHIR) {
-                return { status: "MASUK", keterangan: "Tepat Waktu" };
-            } else if (waktuSekarang >= configHari.TELAT_AWAL && waktuSekarang <= configHari.TELAT_AKHIR) {
-                return { status: "TELAT", keterangan: "Terlambat" };
-            } else if (waktuSekarang >= configHari.PULANG_AWAL && waktuSekarang <= configHari.PULANG_AKHIR) {
+            // Contoh batas jam operasional standar SMP 2 Kawali (Jam 07:00 Masuk)
+            if (waktuSekarang > "07:15" && waktuSekarang < "12:00") {
+                return { status: "TELAT", keterangan: `Terlambat (Jam ${waktuSekarang})` };
+            } else if (waktuSekarang >= "12:00" && waktuSekarang < "13:30") {
+                return { status: "PULANG_CEPAT", keterangan: `Pulang Lebih Awal (Jam ${waktuSekarang})` };
+            } else if (waktuSekarang >= "13:30") {
                 return { status: "PULANG", keterangan: "Pulang Tepat Waktu" };
-            } else {
-                return { status: "DILUAR_JAM", keterangan: "Di luar jam operasional" };
             }
+            return { status: "MASUK", keterangan: "Tepat Waktu" };
         }
 
-        // Sound Effect Shutter
+        function getVal(obj, keys) {
+            for (let k of keys) {
+                if (obj && obj[k] !== undefined && obj[k] !== null && obj[k] !== "") {
+                    return String(obj[k]).trim();
+                }
+            }
+            return "-";
+        }
+
         function mainkanSuaraKamera() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = "sine";
-                osc.frequency.setValueAtTime(900, ctx.currentTime);
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.start();
-                osc.stop(ctx.currentTime + 0.12);
+                osc.stop(ctx.currentTime + 0.1);
             } catch(e) {}
         }
 
