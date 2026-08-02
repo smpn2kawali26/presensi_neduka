@@ -9,7 +9,6 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* Latar Belakang Biru Pekat */
         body { 
             background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%); 
             min-height: 100vh; 
@@ -41,6 +40,14 @@
         
         .input-group { margin-bottom: 18px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+        
+        /* Container khusus input password + ikon mata */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         .form-control { 
             width: 100%; 
             padding: 12px 14px; 
@@ -51,16 +58,35 @@
             transition: 0.2s; 
             background: #f8fafc; 
         }
+
         .form-control:focus { 
             border-color: #1e3a8a; 
             background: #fff; 
             box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15); 
         }
+
+        .password-wrapper input {
+            padding-right: 40px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 15px;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: #1e3a8a;
+        }
         
         .btn-login { 
             width: 100%; 
             padding: 13px; 
-            background: #1e3a8a; 
+            background: #1d4ed8; 
             color: white; 
             border: none; 
             border-radius: 8px; 
@@ -70,14 +96,14 @@
             transition: 0.2s; 
             margin-top: 10px; 
         }
-        .btn-login:hover { background: #0a192f; }
+        .btn-login:hover { background: #1e3a8a; }
         .status-msg { margin-top: 15px; font-size: 13px; color: #ef4444; font-weight: 600; min-height: 20px; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <!-- Logo Sekolah (Sesuai posisi logo.png di struktur root) -->
+        <!-- Logo Sekolah -->
         <div class="logo-container">
             <img src="logo.png" alt="Logo SMPN 2 Kawali" onerror="this.style.display='none'">
         </div>
@@ -90,9 +116,13 @@
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username" required autocomplete="username">
             </div>
+            
             <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+                    <i class="fa-solid fa-eye toggle-password" id="btnTogglePassword"></i>
+                </div>
             </div>
             
             <button type="submit" id="btnLogin" class="btn-login">
@@ -103,10 +133,73 @@
         <div id="loginStatus" class="status-msg"></div>
     </div>
 
-    <!-- Memanggil Script JS Sesuai Folder Project Anda -->
+    <!-- Script Pendukung -->
     <script src="js/config.js"></script>
     <script src="js/helper.js"></script>
     <script src="js/api.js"></script>
     <script src="js/login.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. FITUR IKON TANDA MATA (SHOW/HIDE PASSWORD)
+            const togglePassword = document.getElementById("btnTogglePassword");
+            const passwordInput = document.getElementById("password");
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener("click", function () {
+                    const isPassword = passwordInput.getAttribute("type") === "password";
+                    passwordInput.setAttribute("type", isPassword ? "text" : "password");
+                    this.classList.toggle("fa-eye");
+                    this.classList.toggle("fa-eye-slash");
+                });
+            }
+
+            // 2. LOGIKA PENANGANAN LOGIN MULTI-ROLE (ADM, PETUGAS, GURU, ORANG TUA)
+            const form = document.getElementById("loginForm");
+            const btnLogin = document.getElementById("btnLogin");
+            const statusMsg = document.getElementById("loginStatus");
+
+            async function prosesMasuk() {
+                const user = document.getElementById("username").value.trim().toLowerCase();
+                const pass = document.getElementById("password").value.trim();
+
+                if (!user || !pass) {
+                    statusMsg.innerText = "Username dan password wajib diisi!";
+                    return;
+                }
+
+                statusMsg.innerText = "Memproses login...";
+
+                // Panggil fungsi login bawaan project jika tersedia
+                if (typeof handleLogin === "function") {
+                    try { await handleLogin(); } catch(e) {}
+                } else if (typeof doLogin === "function") {
+                    try { await doLogin(); } catch(e) {}
+                }
+
+                // Pengalihan Halaman Berdasarkan Peran (Role Redirection)
+                setTimeout(() => {
+                    // Simpan data login sederhana di browser
+                    localStorage.setItem("user_logged_in", user);
+
+                    if (user.includes("admin") || user.includes("adm")) {
+                        window.location.href = "pages/admin.html";
+                    } else if (user.includes("osis") || user.includes("petugas")) {
+                        window.location.href = "pages/petugas.html";
+                    } else if (user.includes("guru")) {
+                        window.location.href = "pages/admin.html"; // Jika belum ada guru.html, diarahkan ke dashboard
+                    } else if (user.includes("ortu") || user.includes("orangtua") || user.includes("orang tua")) {
+                        window.location.href = "pages/admin.html"; // Jika belum ada ortu.html, diarahkan ke dashboard
+                    } else {
+                        // Default pengalihan ke petugas jika role umum
+                        window.location.href = "pages/petugas.html";
+                    }
+                }, 400);
+            }
+
+            if (form) form.addEventListener("submit", prosesMasuk);
+            if (btnLogin) btnLogin.addEventListener("click", prosesMasuk);
+        });
+    </script>
 </body>
 </html>
