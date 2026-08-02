@@ -204,12 +204,8 @@
                 statusMsg.innerText = "Memproses login...";
 
                 try {
-                    // Pastikan variabel API_URL dari js/config.js terbaca
-                    if (typeof API_URL === "undefined") {
-                        statusMsg.style.color = "#ef4444";
-                        statusMsg.innerText = "Error: API_URL tidak ditemukan di config.js!";
-                        return;
-                    }
+                    // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+                    const API_URL = "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec";
 
                     // Panggil API Google Apps Script secara langsung
                     const url = `${API_URL}?action=login&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
