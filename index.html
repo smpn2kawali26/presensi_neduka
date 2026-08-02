@@ -5,41 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Absensi - SMP Negeri 2 Kawali</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         
-        .login-card { background: #ffffff; width: 100%; max-width: 400px; padding: 35px 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
+        /* Latar Belakang Biru Pekat */
+        body { 
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+        }
         
-        /* Logo Sekolah */
+        .login-card { 
+            background: #ffffff; 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 35px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+            text-align: center; 
+        }
+        
         .logo-container { margin-bottom: 15px; }
-        .logo-container img { width: 85px; height: auto; object-fit: contain; }
+        .logo-container img { 
+            width: 85px; 
+            height: auto; 
+            object-fit: contain; 
+        }
         
         .login-card h2 { color: #0a192f; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .login-card p { color: #64748b; font-size: 12px; margin-bottom: 25px; font-weight: 600; }
         
         .input-group { margin-bottom: 18px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
-        .form-control { width: 100%; padding: 12px 14px; font-size: 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; transition: 0.2s; background: #f8fafc; }
-        .form-control:focus { border-color: #1e3a8a; background: #fff; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15); }
+        .form-control { 
+            width: 100%; 
+            padding: 12px 14px; 
+            font-size: 14px; 
+            border: 1.5px solid #cbd5e1; 
+            border-radius: 8px; 
+            outline: none; 
+            transition: 0.2s; 
+            background: #f8fafc; 
+        }
+        .form-control:focus { 
+            border-color: #1e3a8a; 
+            background: #fff; 
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15); 
+        }
         
-        .btn-login { width: 100%; padding: 13px; background: #1e3a8a; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-login { 
+            width: 100%; 
+            padding: 13px; 
+            background: #1e3a8a; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 15px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            margin-top: 10px; 
+        }
         .btn-login:hover { background: #0a192f; }
-        .status-msg { margin-top: 15px; font-size: 13px; color: #ef4444; font-weight: 600; }
+        .status-msg { margin-top: 15px; font-size: 13px; color: #ef4444; font-weight: 600; min-height: 20px; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <!-- Logo Sekolah -->
+        <!-- Logo Sekolah (Sesuai posisi logo.png di struktur root) -->
         <div class="logo-container">
-            <img src="assets/img/logo.png" alt="Logo Sekolah" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'; this.onerror=null;">
+            <img src="logo.png" alt="Logo SMPN 2 Kawali" onerror="this.style.display='none'">
         </div>
 
         <h2>PORTAL ABSENSI</h2>
         <p>SMP NEGERI 2 KAWALI</p>
 
-        <!-- Form Login yang Kompatibel dengan JS Awal -->
         <form id="loginForm" onsubmit="return false;">
             <div class="input-group">
                 <label for="username">Username</label>
@@ -58,38 +103,10 @@
         <div id="loginStatus" class="status-msg"></div>
     </div>
 
-    <!-- Script Utama -->
+    <!-- Memanggil Script JS Sesuai Folder Project Anda -->
     <script src="js/config.js"></script>
+    <script src="js/helper.js"></script>
     <script src="js/api.js"></script>
-    <script>
-        // Penanganan fallback jika event listener di api.js terlewat
-        document.addEventListener("DOMContentLoaded", function() {
-            const form = document.getElementById("loginForm");
-            const btn = document.getElementById("btnLogin");
-
-            function eksekusiLogin() {
-                if (typeof handleLogin === "function") {
-                    handleLogin();
-                } else if (typeof doLogin === "function") {
-                    doLogin();
-                } else if (typeof login === "function") {
-                    login();
-                }
-            }
-
-            if (form) {
-                form.addEventListener("submit", function(e) {
-                    e.preventDefault();
-                    eksekusiLogin();
-                });
-            }
-
-            if (btn) {
-                btn.addEventListener("click", function(e) {
-                    eksekusiLogin();
-                });
-            }
-        });
-    </script>
+    <script src="js/login.js"></script>
 </body>
 </html>
