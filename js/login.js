@@ -1,110 +1,78 @@
 /*****************************************************************
- * LOGIKA LOGIN & OTENTIKASI
- * ABSENSI MPLS - SMP Negeri 2 Kawali
+ * ABSENSI SMP NEGERI 2 KAWALI - LOGIN HANDLER
  * js/login.js
  *****************************************************************/
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Ambil Elemen Form & Input
-    const loginForm = document.getElementById("loginForm") || document.querySelector("form");
-    const usernameInput = document.getElementById("username") || document.getElementById("nisn") || document.querySelector("input[type='text']");
-    const passwordInput = document.getElementById("password") || document.querySelector("input[type='password']");
-    const roleSelect = document.getElementById("role") || document.querySelector("select");
-    
-    // Cari elemen untuk menampilkan pesan error/status
-    let errorMessage = document.getElementById("errorMessage") || document.querySelector(".error-message");
-    
-    // Jika elemen error belum ada di HTML, buat otomatis di bawah tombol
-    if (!errorMessage && loginForm) {
-        errorMessage = document.createElement("div");
-        errorMessage.id = "errorMessage";
-        errorMessage.style.color = "#dc3545";
-        errorMessage.style.marginTop = "12px";
-        errorMessage.style.fontSize = "14px";
-        errorMessage.style.textAlign = "center";
-        errorMessage.style.fontWeight = "bold";
-        loginForm.appendChild(errorMessage);
+    const loginForm = document.getElementById("loginForm");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const roleSelect = document.getElementById("role");
+    const btnTogglePassword = document.getElementById("btnTogglePassword");
+    const errorMessage = document.getElementById("errorMessage");
+
+    // FUNGSI 1: FITUR TANDA MATA PASSWORD (POIN 2)
+    if (btnTogglePassword && passwordInput) {
+        btnTogglePassword.addEventListener("click", function () {
+            const isPassword = passwordInput.getAttribute("type") === "password";
+            passwordInput.setAttribute("type", isPassword ? "text" : "password");
+            
+            // Ubah Ikon Mata (Buka / Tutup)
+            this.classList.toggle("fa-eye", !isPassword);
+            this.classList.toggle("fa-eye-slash", isPassword);
+        });
     }
 
-    // 2. Tangan Event Submit Login
+    // FUNGSI 2: HANDLER SUBMIT LOGIN
     if (loginForm) {
         loginForm.addEventListener("submit", async function (e) {
-            e.preventDefault(); // Mencegah reload halaman
+            e.preventDefault();
 
-            const username = usernameInput ? usernameInput.value.trim() : "";
-            const password = passwordInput ? passwordInput.value.trim() : "";
-            const role = roleSelect ? roleSelect.value : "Petugas";
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            const role = roleSelect.value;
 
-            // Validasi Input Kosong
             if (!username || !password) {
-                tampilkanPesan(errorMessage, "Username dan Password wajib diisi!", "red");
+                setMsg("Username dan Password wajib diisi!", "#dc3545");
                 return;
             }
 
-            // Tampilkan Status Loading
-            tampilkanPesan(errorMessage, "Sedang menghubungkan ke server...", "#0056b3");
+            setMsg("Sedang menghubungkan ke server...", "#0d6efd");
 
             try {
-                // Panggil fungsi API Login (Menggunakan callAPI dari api.js)
                 let response;
                 if (typeof apiLogin === "function") {
                     response = await apiLogin(username, password, role);
                 } else if (typeof callAPI === "function") {
-                    response = await callAPI("login", {
-                        username: username,
-                        password: password,
-                        role: role
-                    });
+                    response = await callAPI("login", { username: username, password: password, role: role });
                 } else {
-                    tampilkanPesan(errorMessage, "Gagal: File js/api.js tidak terdeteksi!", "red");
+                    setMsg("Error: js/api.js belum terhubung!", "#dc3545");
                     return;
                 }
 
-                // Respon Berhasil
                 if (response && (response.success || response.status === "success")) {
-                    tampilkanPesan(errorMessage, "Login Berhasil! Mengalihkan...", "green");
-
-                    // Simpan data user ke LocalStorage
-                    const userData = response.user || {
-                        username: username,
-                        nama: username.toUpperCase(),
-                        role: role
-                    };
+                    setMsg("Login Berhasil! Mengalihkan...", "#198754");
                     
-                    if (typeof STORAGE !== "undefined" && STORAGE.USER) {
-                        localStorage.setItem(STORAGE.USER, JSON.stringify(userData));
-                    } else {
-                        localStorage.setItem("ABSENSI_USER", JSON.stringify(userData));
-                    }
+                    const userObj = response.data || response.user || { username: username, role: role };
+                    localStorage.setItem("ABSENSI_USER", JSON.stringify(userObj));
 
-                    // Arahkan ke Halaman Dashboard Petugas
                     setTimeout(() => {
-                        // Cek apakah lokasi saat ini ada di dalam folder pages/ atau di root
-                        if (window.location.pathname.includes("/pages/")) {
-                            window.location.href = "petugas.html";
-                        } else {
-                            window.location.href = "pages/petugas.html";
-                        }
+                        window.location.href = window.location.pathname.includes("/pages/") ? "petugas.html" : "pages/petugas.html";
                     }, 800);
-
                 } else {
-                    // Respon Gagal dari Backend Google Sheets
-                    const pesanError = (response && response.message) ? response.message : "Username atau Password salah!";
-                    tampilkanPesan(errorMessage, pesanError, "red");
+                    setMsg(response.message || "Username atau Password salah!", "#dc3545");
                 }
-
             } catch (err) {
-                console.error("Error Login:", err);
-                tampilkanPesan(errorMessage, "Tidak dapat terhubung ke server.", "red");
+                console.error(err);
+                setMsg("Tidak dapat terhubung ke server.", "#dc3545");
             }
         });
     }
-});
 
-// Fungsi Pembantu Tampilan Pesan
-function tampilkanPesan(element, text, warna) {
-    if (element) {
-        element.innerText = text;
-        element.style.color = warna;
+    function setMsg(text, color) {
+        if (errorMessage) {
+            errorMessage.innerText = text;
+            errorMessage.style.color = color;
+        }
     }
-}
+});
