@@ -8,23 +8,26 @@ const CONFIG = {
     APP_NAME: "Portal Absensi Digital",
     SCHOOL_NAME: "SMP Negeri 2 Kawali",
     
-    // 2. URL GOOGLE APPS SCRIPT (BACKEND REAL ANDA)
+    // 2. URL GOOGLE APPS SCRIPT (BACKEND REAL BARU)
     BASE_URL: "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec",
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec",
+    API_URL: "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec",
 
-    // 3. PENGATURAN LOGO & ASSETS
-    LOGO_URL: "logo.png", // Mengambil langsung dari direktori root GitHub Anda
+    // 3. LOGO
+    LOGO_URL: "logo.png",
 
-    // 4. TIMEOUT & RETRY SETTINGS
-    TIMEOUT_MS: 15000, // Timeout koneksi 15 detik
+    // 4. TIMEOUT
+    TIMEOUT_MS: 15000,
 
-    // 5. HELPER FUNGSI MENDAPATKAN URL API
+    // 5. HELPER API URL
     getApiUrl: function (action = "") {
-        if (!this.BASE_URL || this.BASE_URL.includes("YOUR_DEPLOYMENT_ID_HERE")) {
-            console.warn("CONFIG WARNING: URL Apps Script belum dikonfigurasi dengan benar di js/config.js!");
-        }
         return action ? `${this.BASE_URL}?action=${action}` : this.BASE_URL;
     }
 };
 
-// Freeze object agar konfigurasi tidak sengaja tertimpa oleh script lain
+// Mencegah error jika file lain mencari variabel window.CONFIG atau CONFIG_URL
+window.CONFIG = CONFIG;
+window.CONFIG_URL = CONFIG.BASE_URL;
+window.SCRIPT_URL = CONFIG.BASE_URL;
+
 Object.freeze(CONFIG);
