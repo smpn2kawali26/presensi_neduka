@@ -238,10 +238,12 @@
                                 window.location.href = "pages/guru.html"; 
                             } else if (userRole === "KEPALA SEKOLAH" || userRole === "KEPSEK") {
                                 window.location.href = "pages/kepsek.html"; 
+                            } else if (userRole === "ORANG TUA" || userRole === "ORTU") {
+                                window.location.href = "pages/ortu.html"; 
                             } else {
                                 window.location.href = "pages/petugas.html";
                             }
-                        }, 800);
+                        }, 500);
 
                     } else {
                         // JIKA GAGAL: Tangkap pesan error dari Apps Script
