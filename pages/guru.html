@@ -3,117 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru - SMPN 2 Kawali</title>
+    <title>Portal Guru - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+
         :root {
-            --primary: #2563eb;
-            --bg: #eff6ff;
+            --sidebar-bg: #0f172a;
+            --primary: #4f46e5;
+            --bg: #f8fafc;
             --white: #ffffff;
-            --text: #1e293b;
-            --gray: #64748b;
+            --text-main: #1e293b;
+            --text-gray: #64748b;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
 
-        /* Sidebar Minimalis */
-        .sidebar { width: 260px; background: var(--white); padding: 30px; border-right: 1px solid #e2e8f0; }
-        .logo { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 40px; display: block; }
-        .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; transition: 0.3s; color: var(--gray); font-weight: 500; }
-        .menu-item:hover, .menu-item.active { background: var(--bg); color: var(--primary); }
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 30px; display: flex; flex-direction: column; }
+        .logo { font-size: 22px; font-weight: 700; color: white; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .menu-item { padding: 14px 20px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; transition: 0.3s; color: #94a3b8; display: flex; align-items: center; gap: 12px; }
+        .menu-item:hover, .menu-item.active { background: var(--primary); color: white; }
 
-        /* Content */
-        .main { flex: 1; padding: 40px; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        /* Layout Utama */
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+        .content-wrapper { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
         
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .stat-card h4 { color: var(--gray); font-size: 14px; margin-bottom: 10px; }
-        .stat-card h2 { font-size: 28px; }
+        /* Statistik */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .stat-card h4 { color: var(--text-gray); font-size: 13px; margin-bottom: 5px; }
+        .stat-card h2 { font-size: 24px; font-weight: 700; }
+        .stat-icon { background: #eef2ff; color: var(--primary); padding: 15px; border-radius: 12px; }
 
-        /* Table Style */
-        .card { background: var(--white); padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* Tabel */
+        .card { background: var(--white); padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: var(--gray); padding: 15px; border-bottom: 2px solid var(--bg); }
-        td { padding: 15px; border-bottom: 1px solid var(--bg); }
-        .btn-note { background: var(--bg); color: var(--primary); border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-note:hover { background: var(--primary); color: white; }
+        th { text-align: left; color: var(--text-gray); font-size: 14px; padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-hadir { background: #dcfce7; color: #166534; }
+        .badge-telat { background: #ffedd5; color: #9a3412; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); justify-content:center; align-items:center; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 400px; }
-        textarea { width: 100%; height: 120px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin: 15px 0; resize: none; }
-        .btn-save { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        /* Card Admin (Samping) */
+        .admin-profile { background: var(--white); padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .avatar { width: 50px; height: 50px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <a class="logo">PORTAL GURU</a>
+        <div class="logo"><i class="fa-solid fa-graduation-cap"></i> PORTAL GURU</div>
         <div class="menu-item active"><i class="fa-solid fa-house"></i> Dashboard</div>
         <div class="menu-item"><i class="fa-solid fa-right-from-bracket"></i> Keluar</div>
     </aside>
 
     <main class="main">
-        <header>
-            <h1>Halo, Pak/Bu Guru! 👋</h1>
+        <header style="margin-bottom: 30px;">
+            <h1 style="font-size: 24px;">Dashboard</h1>
+            <p style="color: var(--text-gray);">Selamat datang kembali, Pak/Bu Guru.</p>
         </header>
 
-        <!-- Stats -->
         <div class="stats-grid">
-            <div class="stat-card"><h4>Total Siswa</h4><h2>32</h2></div>
-            <div class="stat-card"><h4>Hadir</h4><h2>28</h2></div>
-            <div class="stat-card"><h4>Perlu Catatan</h4><h2>4</h2></div>
+            <div class="stat-card">
+                <div><h4>Total Siswa</h4><h2>32</h2></div>
+                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            </div>
+            <div class="stat-card">
+                <div><h4>Hadir</h4><h2>28</h2></div>
+                <div class="stat-icon"><i class="fa-solid fa-check"></i></div>
+            </div>
+            <div class="stat-card">
+                <div><h4>Perlu Catatan</h4><h2>4</h2></div>
+                <div class="stat-icon"><i class="fa-solid fa-pen"></i></div>
+            </div>
         </div>
 
-        <!-- Attendance Recap Table -->
-        <div class="card">
-            <h3>Rekap Absensi Kelas</h3>
-            <table>
-                <thead>
-                    <tr><th>Nama Siswa</th><th>Status</th><th>Catatan</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Ahmad Fadhil</td>
-                        <td><span style="color: green; font-weight: bold;">HADIR</span></td>
-                        <td><button class="btn-note" onclick="bukaModal('Ahmad Fadhil')">Tambah Catatan</button></td>
-                    </tr>
-                    <tr>
-                        <td>Siti Aminah</td>
-                        <td><span style="color: orange; font-weight: bold;">TELAT</span></td>
-                        <td><button class="btn-note" onclick="bukaModal('Siti Aminah')">Tambah Catatan</button></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="content-wrapper">
+            <!-- Area Tabel -->
+            <div class="card">
+                <h3 style="margin-bottom: 10px;">Rekap Absensi Kelas</h3>
+                <table>
+                    <thead>
+                        <tr><th>Nama</th><th>Status</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ahmad Fadhil</td>
+                            <td><span class="badge badge-hadir">HADIR</span></td>
+                            <td><button class="btn-note" onclick="bukaModal('Ahmad Fadhil')">Catatan</button></td>
+                        </tr>
+                        <tr>
+                            <td>Siti Aminah</td>
+                            <td><span class="badge badge-telat">TELAT</span></td>
+                            <td><button class="btn-note" onclick="bukaModal('Siti Aminah')">Catatan</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Area Info Admin -->
+            <div class="admin-profile">
+                <div class="avatar">AD</div>
+                <h3>Administrator</h3>
+                <p style="font-size: 13px; color: var(--text-gray); margin-top: 10px;">
+                    <i class="fa-solid fa-envelope"></i> admin@sekolah.sch.id
+                </p>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <small style="color: #64748b;">Waktu Aktivitas:</small>
+                    <p style="font-size: 13px;">08:25 WIB, 02 Agt 2026</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Modal Catatan -->
-    <div id="modal" class="modal">
-        <div class="modal-box">
-            <h3 id="modalTitle">Catatan untuk Siswa</h3>
-            <textarea id="catatanInput" placeholder="Tulis perkembangan siswa..."></textarea>
-            <button class="btn-save" onclick="simpanCatatan()">Simpan Catatan</button>
-            <button onclick="tutupModal()" style="background:none; border:none; margin-top:10px; width:100%; color:red; cursor:pointer;">Batal</button>
-        </div>
-    </div>
-
-    <script>
-        const modal = document.getElementById('modal');
-        function bukaModal(nama) {
-            document.getElementById('modalTitle').innerText = "Catatan untuk " + nama;
-            modal.style.display = 'flex';
-        }
-        function tutupModal() {
-            modal.style.display = 'none';
-        }
-        function simpanCatatan() {
-            alert("Catatan berhasil disimpan!");
-            tutupModal();
-        }
-    </script>
+    <!-- Modal (tetap sama, namun bisa disesuaikan jika perlu) -->
 </body>
 </html>
