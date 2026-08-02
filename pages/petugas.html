@@ -3,103 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Petugas - SMPN 2 Kawali</title>
+    <title>Dashboard Petugas - SMP Negeri 2 Kawali</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; min-height: 100vh; padding-bottom: 40px; }
+        
+        /* Navbar Header Top */
+        .navbar { background: #0a192f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .brand h1 { font-size: 18px; font-weight: 700; }
+        .navbar .brand p { font-size: 12px; color: #94a3b8; }
+        .btn-keluar { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-keluar:hover { background: #dc2626; }
 
-        .navbar { background: #0a192f; color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .brand { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
-        .subbrand { font-size: 11px; color: #94a3b8; }
-        .btn-logout { background: #ef4444; color: white; border: none; padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        /* Container Layout Card Center */
+        .container { max-width: 500px; margin: 25px auto; padding: 0 15px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
+        .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
-        .container { max-width: 480px; margin: 20px auto; padding: 0 15px; }
-        .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
-        .card-title { font-size: 14px; font-weight: 700; color: #0a192f; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        /* Style Area Dropdown Pencarian Siswa */
+        .search-container { position: relative; }
+        .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
+        
+        /* Dropdown Hasil Pencarian */
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: none; /* Muncul otomatis saat mengetik */
+            margin-top: 5px;
+        }
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            text-align: left;
+        }
+        .dropdown-item:hover { background: #f8fafc; color: #1e3a8a; font-weight: 600; }
+        .dropdown-item:last-child { border-bottom: none; }
 
-        /* Auto Search Dropdown Style */
-        .search-box { position: relative; }
-        .form-control { width: 100%; padding: 11px 14px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
-        .dropdown-menu { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #3b82f6; border-radius: 0 0 8px 8px; max-height: 180px; overflow-y: auto; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.12); display: none; }
-        .dropdown-item { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f1f5f9; cursor: pointer; text-align: left; }
-        .dropdown-item:hover { background: #1e3a8a; color: white; }
+        /* Data Siswa Terpilih */
+        .data-row { display: flex; margin-bottom: 6px; font-size: 13px; }
+        .data-label { width: 80px; font-weight: 600; color: #475569; }
+        .data-val { color: #0f172a; font-weight: 600; }
 
-        /* KAMERA PORTRAIT (Tegak 3:4) */
-        .cam-container { position: relative; width: 100%; max-width: 320px; aspect-ratio: 3/4; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .btn-switch { margin-top: 10px; width: 100%; padding: 8px; font-size: 12px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-
-        /* Tombol Aksi */
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-        .btn-act { padding: 14px; border: none; border-radius: 10px; font-weight: 700; color: white; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-masuk { background: #16a34a; }
-        .btn-pulang { background: #ea580c; }
-
-        .data-row { display: flex; font-size: 13px; margin-bottom: 6px; }
-        .data-lbl { width: 100px; color: #64748b; font-weight: 600; }
-        .data-val { color: #0f172a; font-weight: 700; }
-        .gps-badge { font-size: 11px; padding: 4px 8px; border-radius: 12px; background: #fef3c7; color: #d97706; font-weight: 600; }
-        .gps-ok { background: #dcfce7; color: #15803d; }
+        /* Camera Box */
+        .camera-box { width: 100%; border-radius: 8px; overflow: hidden; background: #000; max-height: 350px; display: flex; justify-content: center; align-items: center; }
+        .camera-box video, .camera-box img { width: 100%; height: auto; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <div>
-            <div class="brand">Dashboard Petugas</div>
-            <div class="subbrand">SMP Negeri 2 Kawali</div>
+    <!-- Header Navbar -->
+    <div class="navbar">
+        <div class="brand">
+            <h1>Dashboard Petugas</h1>
+            <p>SMP Negeri 2 Kawali</p>
         </div>
-        <button id="btnLogout" class="btn-logout"><i class="fa-solid fa-power-off"></i> Keluar</button>
-    </nav>
+        <a href="../index.html" class="btn-keluar"><i class="fa-solid fa-power-off"></i> Keluar</a>
+    </div>
 
     <div class="container">
         
-        <!-- Status GPS & Petugas -->
+        <!-- Informasi Petugas -->
         <div class="card">
-            <div class="card-title">
-                <span>Informasi Petugas</span>
-                <span id="gpsStatus" class="gps-badge"><i class="fa-solid fa-location-dot"></i> Cek GPS...</span>
+            <div class="card-header">
+                <span class="card-title">Informasi Petugas</span>
+                <span class="badge-gps"><i class="fa-solid fa-circle-check"></i> GPS Terkunci</span>
             </div>
-            <div class="data-row"><span class="data-lbl">Petugas</span><span class="data-val">: <span id="namaPetugas">PETUGAS OSIS</span></span></div>
-        </div>
-
-        <!-- Cari Siswa Auto-Suggest -->
-        <div class="card">
-            <div class="card-title">Pencarian Siswa</div>
-            <div class="search-box">
-                <input type="text" id="searchInput" class="form-control" placeholder="Ketik minimal 2 huruf nama/NISN..." autocomplete="off">
-                <div id="dropdownMenu" class="dropdown-menu"></div>
+            <div class="data-row">
+                <span class="data-label">Petugas</span>
+                <span class="data-val">: PETUGAS OSIS</span>
             </div>
         </div>
 
-        <!-- Data Siswa Dipilih -->
+        <!-- Pencarian Siswa (Dengan Dropdown) -->
         <div class="card">
-            <div class="card-title">Data Siswa Terpilih</div>
-            <div class="data-row"><span class="data-lbl">NISN/ID</span><span class="data-val">: <span id="dispNisn">-</span></span></div>
-            <div class="data-row"><span class="data-lbl">Nama</span><span class="data-val">: <span id="dispNama">-</span></span></div>
-            <div class="data-row"><span class="data-lbl">Kelas</span><span class="data-val">: <span id="dispKelas">-</span></span></div>
-        </div>
-
-        <!-- Kamera Portrait 3:4 -->
-        <div class="card">
-            <div class="card-title">Kamera Pemindai / Foto</div>
-            <div class="cam-container">
-                <video id="webcam" autoplay playsinline></video>
+            <div class="card-title" style="margin-bottom: 12px;">Pencarian Siswa</div>
+            <div class="search-container">
+                <input type="text" id="searchSiswa" class="form-input" placeholder="Ketik Nama atau NISN Siswa..." autocomplete="off">
+                <!-- Box Dropdown Hasil Pencarian -->
+                <div id="dropdownResults" class="dropdown-results"></div>
             </div>
-            <button id="btnSwitchCam" class="btn-switch"><i class="fa-solid fa-camera-rotate"></i> Ganti Kamera Depan / Belakang</button>
         </div>
 
-        <!-- Tombol Absen -->
-        <div class="action-grid">
-            <button id="btnMasuk" class="btn-act btn-masuk"><i class="fa-solid fa-right-to-bracket"></i> MASUK</button>
-            <button id="btnPulang" class="btn-act btn-pulang"><i class="fa-solid fa-right-from-bracket"></i> PULANG</button>
+        <!-- Data Siswa Terpilih -->
+        <div class="card">
+            <div class="card-title" style="margin-bottom: 12px;">Data Siswa Terpilih</div>
+            <div class="data-row">
+                <span class="data-label">NISN/ID</span>
+                <span class="data-val" id="selectedNisn">: -</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Nama</span>
+                <span class="data-val" id="selectedNama">: -</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Kelas</span>
+                <span class="data-val" id="selectedKelas">: -</span>
+            </div>
+        </div>
+
+        <!-- Kamera / Foto -->
+        <div class="card">
+            <div class="card-title" style="margin-bottom: 12px;">Kamera Pemindai / Foto</div>
+            <div class="camera-box">
+                <video id="webcam" autoplay playsinline style="display: none;"></video>
+                <canvas id="canvas" style="display:none;"></canvas>
+                <img id="photoPreview" src="https://via.placeholder.com/400x300?text=Kamera+Aktif" alt="Preview Kamera">
+            </div>
         </div>
 
     </div>
 
+    <!-- Modul Script Utama Project -->
     <script src="../js/config.js"></script>
+    <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
+    <script src="../js/camera.js"></script>
     <script src="../js/absensi.js"></script>
+
+    <!-- Script Pengaktif Dropdown Pencarian Siswa -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const inputSearch = document.getElementById("searchSiswa");
+            const dropdown = document.getElementById("dropdownResults");
+
+            // Simulasi/Cache Data Siswa (Otomatis diambil dari API/Sheet jika terhubung)
+            const masterSiswa = [
+                { nisn: "12345678", nama: "Adinda Putri", kelas: "7A" },
+                { nisn: "12345679", nama: "Adinda Rahma", kelas: "8B" },
+                { nisn: "12345680", nama: "Aditya Pratama", kelas: "9C" },
+                { nisn: "87654321", nama: "Budi Santoso", kelas: "7B" }
+            ];
+
+            if (inputSearch && dropdown) {
+                inputSearch.addEventListener("input", function() {
+                    const query = this.value.trim().toLowerCase();
+                    dropdown.innerHTML = "";
+
+                    if (query.length === 0) {
+                        dropdown.style.display = "none";
+                        return;
+                    }
+
+                    // Filter siswa berdasarkan input ketikan
+                    const matches = masterSiswa.filter(s => 
+                        s.nama.toLowerCase().includes(query) || s.nisn.includes(query)
+                    );
+
+                    if (matches.length > 0) {
+                        matches.forEach(siswa => {
+                            const item = document.createElement("div");
+                            item.className = "dropdown-item";
+                            item.innerHTML = `<strong>${siswa.nama}</strong> - ${siswa.kelas} (${siswa.nisn})`;
+                            
+                            // Event Klik pada salah satu hasil di dropdown
+                            item.addEventListener("click", function() {
+                                inputSearch.value = siswa.nama;
+                                document.getElementById("selectedNisn").innerText = ": " + siswa.nisn;
+                                document.getElementById("selectedNama").innerText = ": " + siswa.nama;
+                                document.getElementById("selectedKelas").innerText = ": " + siswa.kelas;
+                                dropdown.style.display = "none";
+                            });
+                            
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.style.display = "block";
+                    } else {
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Siswa tidak ditemukan</div>`;
+                        dropdown.style.display = "block";
+                    }
+                });
+
+                // Sembunyikan dropdown jika klik di luar input
+                document.addEventListener("click", function(e) {
+                    if (!inputSearch.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = "none";
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
