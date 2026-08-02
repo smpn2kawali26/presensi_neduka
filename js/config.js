@@ -3,7 +3,7 @@
  * File: js/config.js
  *****************************************************************/
 
-const SCRIPT_URL_REAL = "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec";
+const SCRIPT_URL_REAL = "https://docs.google.com/spreadsheets/d/1Tz3y8tOx1wNm6Cgq_J-noCBjB7TXpC2kpb6H-_RkPKo/edit?usp=drive_link";
 
 const CONFIG = {
     APP_NAME: "Portal Absensi Digital",
