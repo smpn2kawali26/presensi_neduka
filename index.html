@@ -10,8 +10,13 @@
         body { background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         
         .login-card { background: #ffffff; width: 100%; max-width: 400px; padding: 35px 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
-        .login-card h2 { color: #0a192f; font-size: 22px; font-weight: 700; margin-bottom: 5px; }
-        .login-card p { color: #64748b; font-size: 13px; margin-bottom: 25px; }
+        
+        /* Logo Sekolah */
+        .logo-container { margin-bottom: 15px; }
+        .logo-container img { width: 85px; height: auto; object-fit: contain; }
+        
+        .login-card h2 { color: #0a192f; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .login-card p { color: #64748b; font-size: 12px; margin-bottom: 25px; font-weight: 600; }
         
         .input-group { margin-bottom: 18px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
@@ -26,40 +31,63 @@
 <body>
 
     <div class="login-card">
+        <!-- Logo Sekolah -->
+        <div class="logo-container">
+            <img src="assets/img/logo.png" alt="Logo Sekolah" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png'; this.onerror=null;">
+        </div>
+
         <h2>PORTAL ABSENSI</h2>
         <p>SMP NEGERI 2 KAWALI</p>
 
-        <div class="input-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" class="form-control" placeholder="Masukkan username" autocomplete="off">
-        </div>
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" class="form-control" placeholder="Masukkan password">
-        </div>
-        
-        <button type="button" id="btnLogin" class="btn-login"><i class="fa-solid fa-right-to-bracket"></i> MASUK</button>
+        <!-- Form Login yang Kompatibel dengan JS Awal -->
+        <form id="loginForm" onsubmit="return false;">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" id="btnLogin" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket"></i> MASUK
+            </button>
+        </form>
         
         <div id="loginStatus" class="status-msg"></div>
     </div>
 
-    <!-- MENGGUNAKAN SKRIP ASLI ANDA TANPA MERUBAH LOGIKA LOGIN SEBELUMNYA -->
+    <!-- Script Utama -->
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script>
-        // Memastikan tombol login memanggil fungsi login dari api.js/skrip asli Anda
-        document.getElementById('btnLogin').addEventListener('click', function() {
-            if (typeof doLogin === 'function') {
-                doLogin();
-            } else if (typeof handleLogin === 'function') {
-                handleLogin();
-            }
-        });
+        // Penanganan fallback jika event listener di api.js terlewat
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("loginForm");
+            const btn = document.getElementById("btnLogin");
 
-        // Dukungan tekan Enter untuk Login
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('btnLogin').click();
+            function eksekusiLogin() {
+                if (typeof handleLogin === "function") {
+                    handleLogin();
+                } else if (typeof doLogin === "function") {
+                    doLogin();
+                } else if (typeof login === "function") {
+                    login();
+                }
+            }
+
+            if (form) {
+                form.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    eksekusiLogin();
+                });
+            }
+
+            if (btn) {
+                btn.addEventListener("click", function(e) {
+                    eksekusiLogin();
+                });
             }
         });
     </script>
