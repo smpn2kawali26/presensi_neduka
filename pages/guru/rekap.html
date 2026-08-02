@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Rekap Absen - Guru</title>
+    <!-- Gunakan link CSS yang sama dengan guru.html -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Tambahkan CSS style dari guru.html di sini atau buat file CSS terpisah */
+        body { display: flex; min-height: 100vh; background-color: #f1f5f9; }
+        .sidebar { width: 250px; background: #0a192f; color: white; }
+        .nav-links { list-style: none; padding: 20px 0; }
+        .nav-links li { padding: 12px 25px; }
+        .nav-links li a { color: #cbd5e1; text-decoration: none; }
+        .nav-links li.active { background: #3b82f6; }
+        .main-content { flex: 1; padding: 30px; }
+        table { width: 100%; background: white; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; border-bottom: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <ul class="nav-links">
+            <li><a href="guru.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+            <li class="active"><a href="rekap.html"><i class="fa-solid fa-chart-line"></i> Rekap Absen</a></li>
+            <li><a href="catatan.html"><i class="fa-solid fa-note-sticky"></i> Catatan Siswa</a></li>
+        </ul>
+        <div style="padding:20px;"><a href="../../index.html" style="color:red; text-decoration:none;">Keluar</a></div>
+    </div>
+    <div class="main-content">
+        <h2>Rekap Absensi Kelas</h2>
+        <table>
+            <thead><tr><th>Tanggal</th><th>Kelas</th><th>Total Hadir</th><th>Aksi</th></tr></thead>
+            <tbody>
+                <tr><td>02/08/2026</td><td>VII-A</td><td>30</td><td><button>Download</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
