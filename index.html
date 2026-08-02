@@ -191,7 +191,7 @@
             const form = document.getElementById("loginForm");
             const statusMsg = document.getElementById("loginStatus");
 
-            async function prosesMasuk() {
+async function prosesMasuk() {
                 const user = document.getElementById("username").value.trim().toLowerCase();
                 const pass = document.getElementById("password").value.trim();
 
@@ -203,27 +203,58 @@
                 statusMsg.style.color = "#334155";
                 statusMsg.innerText = "Memproses login...";
 
-                // Panggil fungsi login bawaan project jika tersedia
-                if (typeof handleLogin === "function") {
-                    try { await handleLogin(); } catch(e) {}
-                } else if (typeof doLogin === "function") {
-                    try { await doLogin(); } catch(e) {}
-                }
+                try {
+                    let response = null;
 
-                // Pengalihan Halaman Berdasarkan Peran (Role Redirection)
-                setTimeout(() => {
-                    localStorage.setItem("user_logged_in", user);
-
-                    if (user.includes("admin") || user.includes("adm")) {
-                        window.location.href = "pages/admin.html";
-                    } else if (user.includes("osis") || user.includes("petugas")) {
-                        window.location.href = "pages/petugas.html";
-                    } else if (user.includes("guru") || user.includes("ortu") || user.includes("orangtua") || user.includes("orang tua")) {
-                        window.location.href = "pages/admin.html";
-                    } else {
-                        window.location.href = "pages/petugas.html";
+                    // Panggil fungsi API eksternal dan tunggu respons aslinya
+                    if (typeof handleLogin === "function") {
+                        response = await handleLogin(user, pass); 
+                    } else if (typeof doLogin === "function") {
+                        response = await doLogin(user, pass);
                     }
-                }, 400);
+
+                    // 1. CEK STATUS DARI BACKEND: Hanya lanjut jika server menjawab success = true
+                    if (response && response.success === true) {
+                        
+                        // 2. AMBIL ROLE DARI DATABASE (Struktur mengikuti Login.gs atau Code.gs)
+                        const roleData = (response.data && response.data.role) ? response.data.role : 
+                                         (response.user && response.user.ROLE) ? response.user.ROLE : "";
+                        const userRole = roleData.toUpperCase();
+
+                        statusMsg.style.color = "#16a34a"; // Hijau
+                        statusMsg.innerText = "Login Berhasil! Mengalihkan...";
+
+                        // Simpan data ke browser
+                        localStorage.setItem("user_logged_in", user);
+                        localStorage.setItem("user_role", userRole);
+
+                        // 3. REDIRECT BERDASARKAN ROLE DATABASE
+                        setTimeout(() => {
+                            if (userRole === "ADMIN") {
+                                window.location.href = "pages/admin.html";
+                            } else if (userRole === "PETUGAS") {
+                                window.location.href = "pages/petugas.html";
+                            } else if (userRole === "GURU") {
+                                window.location.href = "pages/guru.html"; // Ubah ke pages/guru.html jika halamannya sudah dibuat
+                            } else if (userRole === "KEPALA SEKOLAH" || userRole === "KEPSEK") {
+                                window.location.href = "pages/kepsek.html"; // Sesuaikan nama halamannya
+                            } else {
+                                // Default jika role tidak spesifik tetapi sukses login
+                                window.location.href = "pages/petugas.html";
+                            }
+                        }, 800);
+
+                    } else {
+                        // JIKA GAGAL: (Username/Password asal, atau data tidak ada)
+                        statusMsg.style.color = "#ef4444"; // Merah
+                        statusMsg.innerText = (response && response.message) ? response.message : "Username atau Password Salah!";
+                    }
+
+                } catch (error) {
+                    statusMsg.style.color = "#ef4444";
+                    statusMsg.innerText = "Gagal menghubungi server.";
+                    console.error("Error Login:", error);
+                }
             }
 
             if (form) form.addEventListener("submit", prosesMasuk);
