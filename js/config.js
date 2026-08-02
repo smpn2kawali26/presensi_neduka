@@ -5,13 +5,13 @@
 
 const CONFIG = {
     // 1. NAMA APLIKASI & SEKOLAH
-    APP_NAME: "Portal Absensi Digital",
-    SCHOOL_NAME: "SMP Negeri 2 Kawali",
+    APP_NAME: "PORTAL ABSENSI DIGITAL",
+    SCHOOL_NAME: "SMP NEGERI 2 KAWALI",
     
     // 2. URL GOOGLE APPS SCRIPT (BACKEND)
     // Pastikan mengganti URL di bawah ini dengan URL Web App (berakhiran /exec)
     // yang didapatkan dari menu: Deploy > New deployment > Web App di Google Apps Script Anda.
-    BASE_URL: "https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID_HERE/exec",
+    BASE_URL: "https://script.google.com/macros/s/AKfycby7pHe8aLXClm8HewELDE4CBMlLGMJHcSnFoXZOoYAEZ1-Vw9NLsLC1rs1YZsZvJfXf/exec",
 
     // 3. PENGATURAN LOGO & ASSETS
     LOGO_URL: "logo.png", // Mengambil langsung dari direktori root GitHub Anda
