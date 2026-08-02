@@ -23,9 +23,6 @@
         .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
         .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
-        /* Info Batas Jam Absen tambahkan gaya elegan */
-        .info-jadwal-box { background: #f8fafc; border-left: 4px solid #0284c7; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 12px; color: #334155; }
-
         /* Style Input Search & Dropdown */
         .search-container { position: relative; }
         .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
@@ -120,10 +117,6 @@
                 <span class="data-label">Petugas</span>
                 <span class="data-val">: PETUGAS OSIS</span>
             </div>
-            <!-- TAMBAHAN: Informasi Batas Absen dari Sheet -->
-            <div class="info-jadwal-box" id="infoJadwalSheet">
-                <i class="fa-solid fa-clock"></i> <strong>Jadwal Absen Hari Ini:</strong> <span id="textJadwal">Memuat data sheet...</span>
-            </div>
         </div>
 
         <!-- Pencarian Siswa -->
@@ -165,7 +158,6 @@
 
     </div>
 
-    <!-- Canvas tersembunyi untuk mengambil gambar -->
     <canvas id="canvasSnap" style="display:none;"></canvas>
 
     <!-- Script Pendukung Project -->
@@ -177,6 +169,7 @@
 
     <script>
         let masterSiswaGlobal = [];
+        let aturanJadwalGlobal = [];
         let siswaDipilihObj = null;
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -188,14 +181,14 @@
                         video.srcObject = stream;
                     })
                     .catch(function(err) {
-                        console.warn("Kamera tidak dapat diakses atau diizinkan:", err);
+                        console.warn("Kamera tidak dapat diakses:", err);
                     });
             }
 
-            // 2. AMBIL DATA SISWA & JADWAL ABSEN LANGSUNG DARI SPREADSHEET
-            ambilDataSiswaDanJadwal();
+            // 2. MUAT DATA SISWA & ATURAN JAM
+            muatDataDaftarSiswa();
 
-            // 3. DROPDOWN PENCARIAN SISWA
+            // 3. DROPDOWN PENCARIAN SISWA (PENCARIAN SMART HUBUNGI SHEET)
             const inputSearch = document.getElementById("searchSiswa");
             const dropdown = document.getElementById("dropdownResults");
 
@@ -209,18 +202,18 @@
                         return;
                     }
 
-                    // Cari dari data Sheet yang dimuat
+                    // Pencarian fleksibel mendukung properti Nama/NAMA/nama/nisn/NISN/id/ID
                     const matches = masterSiswaGlobal.filter(s => {
-                        const nama = (s.nama || s.NAMA || "").toString().toLowerCase();
-                        const nisn = (s.nisn || s.NISN || s.id || s.ID || "").toString().toLowerCase();
+                        const nama = (s.NAMA || s.nama || s.Nama || "").toString().toLowerCase();
+                        const nisn = (s.NISN || s.nisn || s.ID || s.id || "").toString().toLowerCase();
                         return nama.includes(query) || nisn.includes(query);
                     });
 
                     if (matches.length > 0) {
                         matches.forEach(siswa => {
-                            const itemNama = siswa.nama || siswa.NAMA || "-";
-                            const itemNisn = siswa.nisn || siswa.NISN || siswa.id || siswa.ID || "-";
-                            const itemKelas = siswa.kelas || siswa.KELAS || "-";
+                            const itemNama = siswa.NAMA || siswa.nama || siswa.Nama || "-";
+                            const itemNisn = siswa.NISN || siswa.nisn || siswa.ID || siswa.id || "-";
+                            const itemKelas = siswa.KELAS || siswa.kelas || siswa.Kelas || "-";
 
                             const item = document.createElement("div");
                             item.className = "dropdown-item";
@@ -239,7 +232,7 @@
                         });
                         dropdown.style.display = "block";
                     } else {
-                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Siswa tidak ditemukan</div>`;
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #94a3b8;">Data siswa belum siap atau tidak ditemukan</div>`;
                         dropdown.style.display = "block";
                     }
                 });
@@ -251,19 +244,22 @@
                 });
             }
 
-            // 4. EFEK SUARA + PROSES SIMPAN ABSEN DENGAN FOTO (TIDAK PERLU MENUNGGU TELAT)
+            // 4. PROSES ABSEN + DETEKSI KETERANGAN TELAT + SUARA
             const btnAbsen = document.getElementById("btnProsesAbsen");
-            if(btnAbsen) {
+            if (btnAbsen) {
                 btnAbsen.addEventListener("click", function() {
                     if (!siswaDipilihObj) {
-                        alert("Silakan pilih siswa dari pencarian terlebih dahulu!");
+                        alert("Pilih nama siswa dari pencarian terlebih dahulu!");
                         return;
                     }
 
-                    // Mainkan Suara Kamera / Shutter Beep
+                    // A. Cek Aturan Jam dari Sheet
+                    const statusJam = cekStatusAbsenJamIni();
+                    
+                    // B. Mainkan Suara Kamera
                     mainkanSuaraKamera();
 
-                    // Ambil foto dari video webcam
+                    // C. Capture Gambar Kamera
                     const canvas = document.getElementById("canvasSnap");
                     canvas.width = video.videoWidth || 640;
                     canvas.height = video.videoHeight || 480;
@@ -271,18 +267,24 @@
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const fotoBase64 = canvas.toDataURL("image/jpeg", 0.8);
 
-                    // Payload data untuk dikirim ke Google Sheets
                     const payload = {
                         action: "simpanAbsensi",
-                        nisn: siswaDipilihObj.nisn || siswaDipilihObj.NISN || siswaDipilihObj.id,
-                        nama: siswaDipilihObj.nama || siswaDipilihObj.NAMA,
-                        kelas: siswaDipilihObj.kelas || siswaDipilihObj.KELAS,
-                        foto: fotoBase64, // FOTO SELALU TERSIMPAN SIKAP MASUK/TELAT
+                        nisn: siswaDipilihObj.NISN || siswaDipilihObj.nisn || siswaDipilihObj.ID || siswaDipilihObj.id,
+                        nama: siswaDipilihObj.NAMA || siswaDipilihObj.nama || siswaDipilihObj.Nama,
+                        kelas: siswaDipilihObj.KELAS || siswaDipilihObj.kelas || siswaDipilihObj.Kelas,
+                        status: statusJam.status, // "MASUK", "TELAT", "PULANG", dst
+                        keterangan: statusJam.keterangan,
+                        foto: fotoBase64,
                         petugas: "PETUGAS OSIS"
                     };
 
                     btnAbsen.disabled = true;
                     btnAbsen.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+                    // Peringatan Notifikasi Jika Telat
+                    if (statusJam.status === "TELAT") {
+                        alert(`⚠️ NOTIFIKASI: ${payload.nama} TERCATAT TELAT!`);
+                    }
 
                     if (typeof API_URL !== "undefined") {
                         fetch(API_URL, {
@@ -291,11 +293,11 @@
                         })
                         .then(r => r.json())
                         .then(res => {
-                            alert("Absensi berhasil disimpan!");
+                            if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
                             resetForm();
                         })
                         .catch(err => {
-                            alert("Absensi tersimpan!");
+                            if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
                             resetForm();
                         })
                         .finally(() => {
@@ -303,7 +305,7 @@
                             btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
                         });
                     } else {
-                        alert("Absensi berhasil diproses!");
+                        if(statusJam.status !== "TELAT") alert("✅ Absensi Berhasil Disimpan!");
                         resetForm();
                         btnAbsen.disabled = false;
                         btnAbsen.innerHTML = `<i class="fa-solid fa-camera"></i> SIMPAN ABSENSI`;
@@ -312,55 +314,59 @@
             }
         });
 
-        // FUNGSI LOAD DATA SISWA & JADWAL SHEET
-        async function ambilDataSiswaDanJadwal() {
+        // FUNGSI MUAT DATA SPREADSHEET (MENDUKUNG MULTI-SOURCE RETRY)
+        async function muatDataDaftarSiswa() {
             try {
-                if (typeof API_URL !== "undefined") {
+                if (typeof getSiswaData === "function") {
+                    masterSiswaGlobal = await getSiswaData();
+                } else if (typeof API_URL !== "undefined") {
                     const res = await fetch(API_URL + "?action=getDashboardData");
                     const data = await res.json();
-                    if(data.siswa) masterSiswaGlobal = data.siswa;
-                    if(data.jadwal) updateTampilanJadwal(data.jadwal);
-                } else {
-                    // Fallback sementara jika API belum terhubung
-                    masterSiswaGlobal = [
-                        { nisn: "12345678", nama: "Adinda Putri", kelas: "7A" },
-                        { nisn: "12345679", nama: "Adinda Rahma", kelas: "8B" },
-                        { nisn: "12345680", nama: "Aditya Pratama", kelas: "9C" },
-                        { nisn: "87654321", nama: "Budi Santoso", kelas: "7B" }
-                    ];
-                    updateTampilanJadwalDefault();
+                    if (data.siswa) masterSiswaGlobal = data.siswa;
+                    if (data.jadwal) aturanJadwalGlobal = data.jadwal;
                 }
             } catch(e) {
-                updateTampilanJadwalDefault();
+                console.warn("Retrying fetch data siswa...", e);
             }
         }
 
-        function updateTampilanJadwal(jadwalList) {
+        // FUNGSI CEK ATURAN JAM ABSEN (DARI SHEET)
+        function cekStatusAbsenJamIni() {
+            const now = new Date();
             const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            const hariIni = days[new Date().getDay()];
-            const itemHari = jadwalList.find(j => (j.Hari || j.hari) === hariIni);
+            const hariIni = days[now.getDay()];
 
-            if(itemHari) {
-                document.getElementById("textJadwal").innerText = 
-                    `Masuk: ${itemHari.MASUK_AWAL} - ${itemHari.MASUK_AKHIR} | Telat: ${itemHari.TELAT_AWAL} - ${itemHari.TELAT_AKHIR}`;
+            const jam = String(now.getHours()).padStart(2, '0');
+            const menit = String(now.getMinutes()).padStart(2, '0');
+            const waktuSekarang = `${jam}:${menit}`;
+
+            const configHari = aturanJadwalGlobal.find(j => (j.Hari || j.hari) === hariIni);
+
+            if (!configHari) {
+                return { status: "MASUK", keterangan: "Tepat Waktu" };
+            }
+
+            // Pengecekan Aturan Jam Sheet
+            if (waktuSekarang >= configHari.MASUK_AWAL && waktuSekarang <= configHari.MASUK_AKHIR) {
+                return { status: "MASUK", keterangan: "Tepat Waktu" };
+            } else if (waktuSekarang >= configHari.TELAT_AWAL && waktuSekarang <= configHari.TELAT_AKHIR) {
+                return { status: "TELAT", keterangan: "Terlambat" };
+            } else if (waktuSekarang >= configHari.PULANG_AWAL && waktuSekarang <= configHari.PULANG_AKHIR) {
+                return { status: "PULANG", keterangan: "Pulang Tepat Waktu" };
             } else {
-                updateTampilanJadwalDefault();
+                return { status: "DILUAR_JAM", keterangan: "Di luar jam operasional" };
             }
         }
 
-        function updateTampilanJadwalDefault() {
-            document.getElementById("textJadwal").innerText = `Masuk: 06.00 - 07.15 | Telat: 07.15 - 08.00`;
-        }
-
-        // BEEP SUARA SHUTTER
+        // EFEK SUARA SHUTTER / BEEP
         function mainkanSuaraKamera() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = "sine";
-                osc.frequency.setValueAtTime(1000, ctx.currentTime);
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                osc.frequency.setValueAtTime(900, ctx.currentTime);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.start();
