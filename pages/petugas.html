@@ -1,60 +1,228 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Petugas - SMP Negeri 2 Kawali</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f1f5f9; min-height: 100vh; padding-bottom: 40px; }
-        
-        .navbar { background: #0a192f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .navbar .brand h1 { font-size: 18px; font-weight: 700; }
-        .navbar .brand p { font-size: 12px; color: #94a3b8; }
-        .btn-keluar { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-keluar:hover { background: #dc2626; }
-
-        .container { max-width: 500px; margin: 25px auto; padding: 0 15px; }
-        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-        .card-title { font-weight: 700; color: #0f172a; font-size: 15px; }
-        .badge-gps { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-
-        .search-container { position: relative; }
-        .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
-        .form-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
-        
-        .dropdown-results {
-            position: absolute; top: 100%; left: 0; right: 0;
-            background: white; border: 1px solid #cbd5e1; border-radius: 8px;
-            max-height: 220px; overflow-y: auto; z-index: 1000;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; margin-top: 5px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .dropdown-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 13px; text-align: left; color: #334155; }
-        .dropdown-item:hover { background: #f8fafc; color: #1e3a8a; font-weight: 600; }
 
-        .data-row { display: flex; margin-bottom: 6px; font-size: 13px; }
-        .data-label { width: 80px; font-weight: 600; color: #475569; }
-        .data-val { color: #0f172a; font-weight: 600; }
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
 
-        .camera-box { width: 100%; border-radius: 10px; overflow: hidden; background: #1e293b; min-height: 240px; display: flex; justify-content: center; align-items: center; }
-        .camera-box video { width: 100%; height: auto; max-height: 300px; object-fit: cover; display: block; }
+        .navbar {
+            background: #0a192f;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        /* Style Dua Tombol Masuk & Pulang */
-        .btn-group-absen { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-absen {
-            flex: 1; padding: 13px; color: white; border: none;
-            border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+        .navbar .brand h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .navbar .brand p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .btn-keluar {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-keluar:hover {
+            background: #dc2626;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .badge-gps {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
             transition: 0.2s;
         }
-        .btn-masuk { background: #16a34a; }
-        .btn-masuk:hover { background: #15803d; }
-        .btn-pulang { background: #2563eb; }
-        .btn-pulang:hover { background: #1d4ed8; }
+
+        .form-input:focus {
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: none;
+            margin-top: 5px;
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            text-align: left;
+            color: #334155;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+
+        .data-row {
+            display: flex;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .data-label {
+            width: 80px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .data-val {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .camera-box {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #1e293b;
+            min-height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .camera-box video {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Style Dua Tombol Masuk & Pulang */
+        .btn-group-absen {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-absen {
+            flex: 1;
+            padding: 13px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-masuk {
+            background: #16a34a;
+        }
+
+        .btn-masuk:hover {
+            background: #15803d;
+        }
+
+        .btn-pulang {
+            background: #2563eb;
+        }
+
+        .btn-pulang:hover {
+            background: #1d4ed8;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="navbar">
@@ -66,7 +234,7 @@
     </div>
 
     <div class="container">
-        
+
         <!-- Informasi Petugas -->
         <div class="card">
             <div class="card-header">
@@ -111,7 +279,7 @@
             <div class="camera-box">
                 <video id="webcam" autoplay playsinline muted></video>
             </div>
-            
+
             <!-- Dua Tombol Masuk & Pulang -->
             <div class="btn-group-absen">
                 <button type="button" id="btnAbsenMasuk" class="btn-absen btn-masuk">
@@ -130,7 +298,7 @@
         let masterSiswaGlobal = [];
         let siswaDipilihObj = null;
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Check Session Login
             const loggedUser = JSON.parse(localStorage.getItem("userLoggedIn") || "{}");
             if (loggedUser.NAMA) {
@@ -141,8 +309,8 @@
             const video = document.getElementById("webcam");
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-                    .then(function(stream) { video.srcObject = stream; })
-                    .catch(function(err) { console.warn("Kamera tidak aktif:", err); });
+                    .then(function (stream) { video.srcObject = stream; })
+                    .catch(function (err) { console.warn("Kamera tidak aktif:", err); });
             }
 
             // Tarik Data Siswa via JSONP
@@ -153,7 +321,7 @@
             const dropdown = document.getElementById("dropdownResults");
 
             if (inputSearch && dropdown) {
-                inputSearch.addEventListener("input", function() {
+                inputSearch.addEventListener("input", function () {
                     const query = this.value.trim().toLowerCase();
                     dropdown.innerHTML = "";
 
@@ -162,23 +330,30 @@
                         return;
                     }
 
+                    // Pengecekan jika data siswa belum berhasil dimuat dari server
+                    if (!masterSiswaGlobal || masterSiswaGlobal.length === 0) {
+                        dropdown.innerHTML = `<div class="dropdown-item" style="color: #ef4444;">Memuat data siswa... silakan coba beberapa detik lagi</div>`;
+                        dropdown.style.display = "block";
+                        return;
+                    }
+
                     const matches = masterSiswaGlobal.filter(s => {
-                        const nama = getVal(s, ['NAMA', 'nama', 'Nama']);
-                        const nisn = getVal(s, ['NISN', 'nisn', 'ID', 'id']);
-                        return nama.toLowerCase().includes(query) || nisn.toLowerCase().includes(query);
+                        const nama = String(s.Nama || s.NAMA || s.nama || s['Nama Lengkap'] || '').toLowerCase();
+                        const nisn = String(s.NISN || s.nisn || s['ID SISWA'] || s.ID || '').toLowerCase();
+                        return nama.includes(query) || nisn.includes(query);
                     });
 
                     if (matches.length > 0) {
                         matches.forEach(siswa => {
-                            const itemNama = getVal(siswa, ['NAMA', 'nama', 'Nama']);
-                            const itemNisn = getVal(siswa, ['NISN', 'nisn', 'ID', 'id']);
-                            const itemKelas = getVal(siswa, ['KELAS', 'kelas', 'Kelas']);
+                            const itemNama = siswa.Nama || siswa.NAMA || siswa.nama || "-";
+                            const itemNisn = siswa.NISN || siswa.nisn || siswa['ID SISWA'] || "-";
+                            const itemKelas = siswa.Kelas || siswa.KELAS || siswa.kelas || "-";
 
                             const item = document.createElement("div");
                             item.className = "dropdown-item";
                             item.innerHTML = `<strong>${itemNama}</strong> - Kelas ${itemKelas} (${itemNisn})`;
-                            
-                            item.addEventListener("click", function() {
+
+                            item.addEventListener("click", function () {
                                 siswaDipilihObj = siswa;
                                 inputSearch.value = itemNama;
                                 document.getElementById("selectedNisn").innerText = ": " + itemNisn;
@@ -186,7 +361,7 @@
                                 document.getElementById("selectedKelas").innerText = ": " + itemKelas;
                                 dropdown.style.display = "none";
                             });
-                            
+
                             dropdown.appendChild(item);
                         });
                         dropdown.style.display = "block";
@@ -196,7 +371,7 @@
                     }
                 });
 
-                document.addEventListener("click", function(e) {
+                document.addEventListener("click", function (e) {
                     if (!inputSearch.contains(e.target) && !dropdown.contains(e.target)) {
                         dropdown.style.display = "none";
                     }
@@ -204,11 +379,11 @@
             }
 
             // Listener Tombol Masuk & Pulang
-            document.getElementById("btnAbsenMasuk").addEventListener("click", function() {
+            document.getElementById("btnAbsenMasuk").addEventListener("click", function () {
                 eksekusiAbsensi("MASUK");
             });
 
-            document.getElementById("btnAbsenPulang").addEventListener("click", function() {
+            document.getElementById("btnAbsenPulang").addEventListener("click", function () {
                 eksekusiAbsensi("PULANG");
             });
         });
@@ -237,9 +412,9 @@
             // Bunyi Beep Nyaring
             bunyiBeepKamera();
 
-            const namaSiswa = getVal(siswaDipilihObj, ['NAMA', 'nama']);
-            const nisnSiswa = getVal(siswaDipilihObj, ['NISN', 'nisn', 'ID']);
-            const kelasSiswa = getVal(siswaDipilihObj, ['KELAS', 'kelas']);
+            const namaSiswa = getVal(siswaDipilihObj, ['Nama', 'NAMA', 'nama']);
+            const nisnSiswa = getVal(siswaDipilihObj, ['NISN', 'nisn', 'ID_SISWA', 'ID']);
+            const kelasSiswa = getVal(siswaDipilihObj, ['Kelas', 'KELAS', 'kelas']);
             const loggedUser = JSON.parse(localStorage.getItem("userLoggedIn") || "{}");
 
             // Cek Keterangan Jam
@@ -314,4 +489,5 @@
         }
     </script>
 </body>
+
 </html>
