@@ -1,409 +1,95 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Petugas</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>Dashboard Petugas - SMP Negeri 2 Kawali</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS Dropdown Autocomplete */
-        .search-box-wrapper {
-            position: relative;
-            width: 100%;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f8; min-height: 100vh; padding-bottom: 40px; }
+        
+        /* Header Nav */
+        .navbar { background: #0d6efd; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .navbar .brand { font-size: 18px; font-weight: bold; }
+        .navbar .subbrand { font-size: 12px; opacity: 0.9; }
+        .btn-logout { background: white; color: #0d6efd; border: none; padding: 8px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: #e2e8f0; }
 
-        .dropdown-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            border: 2px solid #0056b3;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 220px;
-            overflow-y: auto;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-        }
+        /* Container */
+        .container { max-width: 800px; margin: 25px auto; padding: 0 15px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card-title { color: #0d6efd; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
 
-        .dropdown-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Form Search & Dropdown */
+        .search-container { position: relative; }
+        .form-control { width: 100%; padding: 12px 15px; font-size: 15px; border: 1px solid #ced4da; border-radius: 8px; outline: none; }
+        .form-control:focus { border-color: #0d6efd; }
+        
+        .dropdown-list {
+            position: absolute; top: 100%; left: 0; right: 0; background: white;
+            border: 1px solid #0d6efd; border-radius: 0 0 8px 8px; max-height: 200px;
+            overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
         }
+        .dropdown-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; text-align: left; }
+        .dropdown-item:hover { background-color: #0d6efd; color: white; }
 
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
+        .btn-primary { width: 100%; padding: 12px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary:hover { background: #0b5ed7; }
 
-        .dropdown-item:hover {
-            background-color: #eef6ff;
-            color: #0056b3;
-        }
-
-        .dropdown-item .siswa-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .dropdown-item .siswa-kelas {
-            font-size: 12px;
-            background: #28a745;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
-
-        /* Kamera Compact dengan Efek Scanner Perusahaan */
-        .camera-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            background: #000;
-        }
-
-        #camera {
-            width: 100%;
-            max-height: 240px;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* Garis Scanner Bergerak ala Perusahaan */
-        .scanner-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: #00ff66;
-            box-shadow: 0 0 8px #00ff66;
-            animation: scanning 2s infinite ease-in-out;
-            z-index: 10;
-        }
-
-        @keyframes scanning {
-            0% { top: 0%; }
-            50% { top: 95%; }
-            100% { top: 0%; }
-        }
+        /* Data Display */
+        .data-row { display: flex; margin-bottom: 8px; font-size: 14px; }
+        .data-label { width: 120px; font-weight: 600; color: #495057; }
+        .data-val { font-weight: bold; color: #212529; }
+        .status-msg { margin-top: 8px; font-size: 13px; color: #6c757d; font-style: italic; }
     </style>
 </head>
-
 <body>
 
-    <!-- HEADER -->
-    <header class="topbar">
+    <nav class="navbar">
         <div>
-            <h2>Dashboard Petugas</h2>
-            <p>ABSENSI MPLS - SMP Negeri 2 Kawali</p>
+            <div class="brand">Dashboard Petugas</div>
+            <div class="subbrand">ABSENSI MPLS - SMP Negeri 2 Kawali</div>
         </div>
-        <button id="btnLogout" onclick="doLogout()">Logout</button>
-    </header>
+        <button id="btnLogout" class="btn-logout">Logout</button>
+    </nav>
 
-    <!-- KONTEN -->
-    <main class="container">
-
-        <!-- PETUGAS -->
-        <section class="card">
-            <h3>Petugas</h3>
-            <p>
-                Nama : <strong id="namaUser">PETUGAS OSIS</strong>
-            </p>
-        </section>
-
-        <!-- CARI SISWA -->
-        <section class="card">
-            <h3>Cari Siswa</h3>
-            <div class="search-box-wrapper">
-                <input 
-                    type="text" 
-                    id="keyword" 
-                    placeholder="Ketik nama siswa (misal: Ali, Fairuz)..." 
-                    autocomplete="off">
-                <div id="dropdownResults" class="dropdown-results"></div>
+    <div class="container">
+        
+        <!-- Info Petugas -->
+        <div class="card">
+            <div class="card-title">Petugas</div>
+            <div class="data-row">
+                <span class="data-label">Nama</span>
+                <span class="data-val">: <span id="namaPetugas">PETUGAS OSIS</span></span>
             </div>
-            <button id="btnCari" style="margin-top: 10px; width: 100%;">Cari</button>
-            <small id="searchStatus" style="display:block; margin-top:8px; color:#666; font-style:italic;"></small>
-        </section>
+        </div>
 
-        <!-- DATA SISWA -->
-        <section class="card">
-            <h3>Data Siswa</h3>
-            <table width="100%">
-                <tr>
-                    <td width="120">ID / NISN</td>
-                    <td>: <span id="idSiswa">-</span></td>
-                </tr>
-                <tr>
-                    <td>Nama</td>
-                    <td>: <span id="namaSiswa">-</span></td>
-                </tr>
-                <tr>
-                    <td>Kelas</td>
-                    <td>: <span id="kelasSiswa">-</span></td>
-                </tr>
-                <tr>
-                    <td>Status</td>
-                    <td>: <span id="statusSiswa">-</span></td>
-                </tr>
-            </table>
-        </section>
-
-        <!-- KAMERA & SCANNER -->
-        <section class="card">
-            <h3>Kamera Pemindai</h3>
-            <div class="camera-container">
-                <div class="scanner-line"></div>
-                <video id="camera" autoplay playsinline muted></video>
-                <canvas id="canvas" style="display:none;"></canvas>
+        <!-- Cari Siswa -->
+        <div class="card">
+            <div class="card-title">Cari Siswa</div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="form-control" placeholder="Ketik minimal 2 huruf nama / NISN..." autocomplete="off">
+                <div id="dropdownList" class="dropdown-list"></div>
             </div>
-            <br>
-            <button id="btnSwitchCamera" style="width: 100%;">Ganti Kamera</button>
-        </section>
+            <button id="btnSearch" class="btn-primary">Cari</button>
+            <div id="searchStatus" class="status-msg">Ketikan nama atau NISN siswa di atas.</div>
+        </div>
 
-        <!-- TOMBOL ABSENSI -->
-        <section class="card">
-            <button id="btnMasuk" class="btn-primary" style="width: 100%; margin-bottom: 10px; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">ABSEN MASUK</button>
-            <button id="btnPulang" class="btn-secondary" style="width: 100%; background: #dc3545; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">ABSEN PULANG</button>
-        </section>
+        <!-- Data Siswa Hasil Pencarian -->
+        <div class="card">
+            <div class="card-title">Data Siswa</div>
+            <div class="data-row"><span class="data-label">ID / NISN</span><span class="data-val">: <span id="dispNisn">-</span></span></div>
+            <div class="data-row"><span class="data-label">Nama</span><span class="data-val">: <span id="dispNama">-</span></span></div>
+            <div class="data-row"><span class="data-label">Kelas</span><span class="data-val">: <span id="dispKelas">-</span></span></div>
+            <div class="data-row"><span class="data-label">Status</span><span class="data-val">: <span id="dispStatus">-</span></span></div>
+        </div>
 
-    </main>
+    </div>
 
-    <!-- LOAD EXTERNAL JS -->
+    <!-- Script External -->
     <script src="../js/config.js"></script>
-    <script src="../js/helper.js"></script>
     <script src="../js/api.js"></script>
-    <script src="../js/dashboard.js"></script>
-
-    <!-- LOGIKA UTAMA -->
-    <script>
-        let currentStream = null;
-        let currentFacingMode = "user";
-
-        // Efek Suara Beep Otomatis
-        function playBeep() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = "sine";
-                oscillator.frequency.value = 800; // Frekuensi suara
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15); // Durasi 0.15 detik
-            } catch (e) {
-                console.log("Audio tidak didukung browser:", e);
-            }
-        }
-
-        // Inisialisasi Kamera
-        async function initCamera() {
-            const video = document.getElementById("camera");
-            if (!video) return;
-
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
-
-            try {
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    },
-                    audio: false
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                currentStream = stream;
-                video.srcObject = stream;
-                await video.play();
-            } catch (err) {
-                try {
-                    const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    currentStream = fallbackStream;
-                    video.srcObject = fallbackStream;
-                    await video.play();
-                } catch (fbErr) {
-                    alert("Akses kamera ditolak / tidak tersedia.");
-                }
-            }
-        }
-
-        // Kompres Foto jadi Sangat Kecil (Hemat Drive 15GB)
-        function captureAndCompressImage() {
-            const video = document.getElementById("camera");
-            const canvas = document.getElementById("canvas");
-            if (!video || video.videoWidth === 0) return null;
-
-            canvas.width = 320; // Resolusi diperkecil agar file ringan (kilobyte)
-            canvas.height = 240;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Kompres ke format JPEG dengan kualitas 0.6 (60%) supaya ukuran file kecil
-            return canvas.toDataURL("image/jpeg", 0.6);
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            initCamera();
-
-            const btnSwitch = document.getElementById("btnSwitchCamera");
-            if (btnSwitch) {
-                btnSwitch.addEventListener("click", function() {
-                    currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
-                    initCamera();
-                });
-            }
-
-            const inputKeyword = document.getElementById("keyword");
-            const btnCari = document.getElementById("btnCari");
-            const dropdownResults = document.getElementById("dropdownResults");
-            const searchStatus = document.getElementById("searchStatus");
-            let debounceTimer;
-
-            async function eksekusiPencarian() {
-                const query = inputKeyword.value.trim();
-                if (!query) {
-                    sembunyikanDropdown();
-                    resetDataSiswa();
-                    return;
-                }
-                if (searchStatus) searchStatus.innerText = "Mencari data...";
-                try {
-                    let res = (typeof apiSearchSiswa === "function") ? await apiSearchSiswa(query) : await callAPI("searchSiswa", { keyword: query });
-                    if (res && res.success && res.data && res.data.length > 0) {
-                        tampilkanDropdown(res.data);
-                        if (searchStatus) searchStatus.innerText = `Ditemukan ${res.data.length} siswa. Klik salah satu:`;
-                    } else {
-                        sembunyikanDropdown();
-                        resetDataSiswa();
-                        if (searchStatus) searchStatus.innerText = "Siswa tidak ditemukan.";
-                    }
-                } catch (err) {
-                    sembunyikanDropdown();
-                    if (searchStatus) searchStatus.innerText = "Gagal terhubung ke server.";
-                }
-            }
-
-            function tampilkanDropdown(listSiswa) {
-                dropdownResults.innerHTML = "";
-                listSiswa.forEach(siswa => {
-                    const item = document.createElement("div");
-                    item.className = "dropdown-item";
-                    item.innerHTML = `<span class="siswa-name">${siswa.nama || siswa.NAMA}</span><span class="siswa-kelas">${siswa.kelas || siswa.KELAS}</span>`;
-                    item.addEventListener("click", () => pilihSiswa(siswa));
-                    dropdownResults.appendChild(item);
-                });
-                dropdownResults.style.display = "block";
-            }
-
-            function sembunyikanDropdown() {
-                if (dropdownResults) dropdownResults.style.display = "none";
-            }
-
-            function pilihSiswa(siswa) {
-                document.getElementById("idSiswa").innerText = siswa.idSiswa || siswa.ID_SISWA || siswa.nisn || "-";
-                document.getElementById("namaSiswa").innerText = siswa.nama || siswa.NAMA || "-";
-                document.getElementById("kelasSiswa").innerText = siswa.kelas || siswa.KELAS || "-";
-                document.getElementById("statusSiswa").innerText = siswa.status || siswa.STATUS || "AKTIF";
-                inputKeyword.value = siswa.nama || siswa.NAMA;
-                sembunyikanDropdown();
-                if (searchStatus) searchStatus.innerText = "Siswa dipilih!";
-            }
-
-            function resetDataSiswa() {
-                document.getElementById("idSiswa").innerText = "-";
-                document.getElementById("namaSiswa").innerText = "-";
-                document.getElementById("kelasSiswa").innerText = "-";
-                document.getElementById("statusSiswa").innerText = "-";
-            }
-
-            inputKeyword.addEventListener("input", function () {
-                clearTimeout(debounceTimer);
-                if (this.value.trim().length >= 2) {
-                    debounceTimer = setTimeout(eksekusiPencarian, 300);
-                } else {
-                    sembunyikanDropdown();
-                    resetDataSiswa();
-                }
-            });
-
-            btnCari.addEventListener("click", (e) => { e.preventDefault(); eksekusiPencarian(); });
-
-            // --- EKSEKUSI ABSEN (MASUK / PULANG) ---
-            async function kirimAbsen(tipeAbsen) {
-                const idSiswa = document.getElementById("idSiswa").innerText;
-                const namaSiswa = document.getElementById("namaSiswa").innerText;
-
-                if (!idSiswa || idSiswa === "-") {
-                    alert("Silakan cari dan pilih siswa terlebih dahulu!");
-                    return;
-                }
-
-                // Cek apakah telat (Misal lewat jam 07:30 dianggap telat, sesuaikan jika ada aturan jam)
-                const now = new Date();
-                const jam = now.getHours();
-                const menit = now.getMinutes();
-                const isTelat = (jam > 7 || (jam === 7 && menit > 30)); 
-
-                let photoData = null;
-                // Hanya ambil foto jika statusnya TELAT (sesuai permintaan: "Walaupun kamera menyimpan gambar cuma yang absen telat")
-                if (isTelat && tipeAbsen === "MASUK") {
-                    photoData = captureAndCompressImage();
-                    alert("Siswa tercatat TERLAMBAT. Foto diambil & dikompres untuk disimpan.");
-                }
-
-                // Payload data ke Google Sheets (lewat api.js / callAPI)
-                const payload = {
-                    idSiswa: idSiswa,
-                    nama: namaSiswa,
-                    tipe: tipeAbsen, // "MASUK" atau "PULANG"
-                    statusAbsen: isTelat ? "TERLAMBAT" : "HADIR",
-                    image: photoData // Kirim string base64 yang sudah diperkecil
-                };
-
-                try {
-                    let response;
-                    // Sesuaikan fungsi API kamu di api.js jika namanya berbeda (misal apiAbsen)
-                    if (typeof apiAbsen === "function") {
-                        response = await apiAbsen(payload);
-                    } else {
-                        response = await callAPI("absen", payload);
-                    }
-
-                    if (response && (response.success || response.status === "success")) {
-                        playBeep(); // Bunyi BEEP sukses
-                        alert(`Absen ${tipeAbsen} berhasil disimpan ke Sheet!`);
-                        // Reset form
-                        inputKeyword.value = "";
-                        resetDataSiswa();
-                    } else {
-                        alert("Gagal menyimpan absen: " + (response.message || "Kesalahan server"));
-                    }
-                } catch (err) {
-                    console.error("Error kirim absen:", err);
-                    alert("Terjadi kesalahan koneksi saat mengirim data absen.");
-                }
-            }
-
-            document.getElementById("btnMasuk").addEventListener("click", () => kirimAbsen("MASUK"));
-            document.getElementById("btnPulang").addEventListener("click", () => kirimAbsen("PULANG"));
-        });
-    </script>
+    <script src="../js/absensi.js"></script>
 </body>
-
 </html>
