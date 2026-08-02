@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Orang Tua - Monitoring Siswa</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at center, #1b3a70 0%, #0d1e3f 100%);
+      --card-bg: #ffffff;
+      --primary-blue: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      /* Status Colors */
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-dark);
+      /* Hilangkan padding body agar top bar mentok ke tepi layar */
+      padding: 0; 
+    }
+
+    /* Top Bar / Navbar Mentok Atas, Kiri, Kanan */
+    .top-bar {
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: 0 0 16px 16px;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      /* Jarak ke konten di bawahnya */
+      margin-bottom: 32px; 
+      gap: 16px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background-color: #eff6ff;
+      color: var(--primary-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .student-details h2 {
+      font-size: 1.15rem;
+      color: var(--text-dark);
+      line-height: 1.2;
+    }
+
+    .student-details p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ef4444;
+      color: white;
+      text-decoration: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover {
+      background: #dc2626;
+    }
+
+    /* Container Konten Utama */
+    .main-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px 32px 20px; /* Padding samping dan bawah untuk isi halaman */
+    }
+
+    /* Grid Layout Dashboard */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* Standard Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 12px;
+    }
+
+    .card-header i {
+      color: var(--primary-blue);
+      font-size: 1.2rem;
+    }
+
+    .card-header h3 {
+      font-size: 1.1rem;
+      color: var(--text-dark);
+    }
+
+    /* Rekap Harian */
+    .daily-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .badge-success { background: #d1fae5; color: #065f46; }
+
+    .timeline {
+      list-style: none;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 5px;
+      bottom: 5px;
+      width: 2px;
+      background: var(--border-color);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -19px;
+      top: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-blue);
+    }
+
+    /* Rekap Bulanan Grid */
+    .monthly-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-box .number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .stat-hadir .number { color: var(--success); }
+    .stat-izin .number { color: var(--warning); }
+    .stat-sakit .number { color: var(--info); }
+    .stat-alpa .number { color: var(--danger); }
+
+    .stat-box span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Catatan Guru Section */
+    .note-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .note-item {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary-blue);
+      border-radius: 0 12px 12px 0;
+      padding: 16px;
+    }
+
+    .note-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .teacher-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .note-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .note-content {
+      font-size: 0.9rem;
+      color: #334155;
+      line-height: 1.5;
+    }
+
+    /* Responsive Layar HP */
+    @media (max-width: 768px) {
+      .top-bar {
+        padding: 16px 20px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .top-bar-right {
+        justify-content: space-between;
+        border-top: 1px solid var(--border-color);
+        padding-top: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar / Navbar Full Width Mentok Atas-Kiri-Kanan -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="avatar">
+        <i class="fa-solid fa-user-graduate"></i>
+      </div>
+      <div class="student-details">
+        <h2>Ahmad Rizky</h2>
+        <p>Kelas: VIII - B &nbsp;|&nbsp; NIS: 222310123 &nbsp;|&nbsp; NISN: 0071234567</p>
+      </div>
+    </div>
+
+    <div class="top-bar-right">
+      <a href="../index.html" class="btn-logout">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <div class="main-content">
+
+    <!-- Dashboard Content Grid -->
+    <div class="dashboard-grid">
+
+      <!-- 1. FITUR REKAP HARIAN -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fa-solid fa-calendar-day"></i>
+          <h3>Rekap Presensi Harian</h3>
+        </div>
+        
+        <div class="daily-status">
+          <div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Status Kehadiran</div>
+            <strong style="font-size: 1rem;">Hadir Tepat Waktu</strong>
+          </div>
+          <span class="badge badge-success">06:45 WIB</span>
+        </div>
+
+        <ul class="timeline">
+          <li class="timeline-item">
+            <strong>06:45 WIB</strong> - Tap Masuk Gerbang Utama
+          </li>
+          <li class="timeline-item">
+            <strong>07:00 WIB</strong> - Presensi Kelas Dimulai
+          </li>
+          <li class="timeline-item">
+            <strong>13:30 WIB</strong> - Tap Pulang
+          </li>
+        </ul>
+      </div>
+
+      <!-- 2. FITUR REKAP BULANAN -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fa-solid fa-chart-pie"></i>
+          <h3>Rekapitulasi Bulanan (Agustus)</h3>
+        </div>
+
+        <div class="monthly-stats">
+          <div class="stat-box stat-hadir">
+            <span>Hadir</span>
+            <div class="number">18</div>
+            <span>Hari</span>
+          </div>
+          <div class="stat-box stat-izin">
+            <span>Izin</span>
+            <div class="number">1</div>
+            <span>Hari</span>
+          </div>
+          <div class="stat-box stat-sakit">
+            <span>Sakit</span>
+            <div class="number">1</div>
+            <span>Hari</span>
+          </div>
+          <div class="stat-box stat-alpa">
+            <span>Alpa</span>
+            <div class="number">0</div>
+            <span>Hari</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. FITUR CATATAN GURU -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa-solid fa-comment-dots"></i>
+        <h3>Catatan & Perhatian Guru</h3>
+      </div>
+
+      <div class="note-list">
+        <div class="note-item">
+          <div class="note-header">
+            <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Bp. Budi Santoso, S.Pd (Wali Kelas)</span>
+            <span class="note-date">1 Agustus 2026</span>
+          </div>
+          <p class="note-content">
+            Ahmad aktif dalam diskusi kelompok matematika hari ini. Tingkatkan terus semangat belajarnya!
+          </p>
+        </div>
+
+        <div class="note-item" style="border-left-color: var(--warning);">
+          <div class="note-header">
+            <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Ibu Siti Aminah, M.Pd (Guru Bahasa Indonesia)</span>
+            <span class="note-date">28 Juli 2026</span>
+          </div>
+          <p class="note-content">
+            Tugas merangkum bab 2 belum dikumpulkan. Mohon diingatkan agar segera diselesaikan sebelum pertemuan berikutnya.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
