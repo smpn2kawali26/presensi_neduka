@@ -1,105 +1,32 @@
 /*****************************************************************
- * ===============================================================
- * ABSENSI SISWA v3.0
- * SMP Negeri 2 Kawali
- * config.js
- * ===============================================================
- * Seluruh konfigurasi Frontend disimpan di sini.
+ * ABSENSI SMP NEGERI 2 KAWALI - CONFIGURATION
+ * File: js/config.js
  *****************************************************************/
 
-/*===============================================================
-=            KONFIGURASI APLIKASI
-===============================================================*/
-
 const CONFIG = {
-    APP_NAME: "PORTAL ABSENSI",
-    VERSION: "3.0",
-    SEKOLAH: "SMP Negeri 2 Kawali"
+    // 1. NAMA APLIKASI & SEKOLAH
+    APP_NAME: "Portal Absensi Digital",
+    SCHOOL_NAME: "SMP Negeri 2 Kawali",
+    
+    // 2. URL GOOGLE APPS SCRIPT (BACKEND)
+    // Pastikan mengganti URL di bawah ini dengan URL Web App (berakhiran /exec)
+    // yang didapatkan dari menu: Deploy > New deployment > Web App di Google Apps Script Anda.
+    BASE_URL: "https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID_HERE/exec",
+
+    // 3. PENGATURAN LOGO & ASSETS
+    LOGO_URL: "logo.png", // Mengambil langsung dari direktori root GitHub Anda
+
+    // 4. TIMEOUT & RETRY SETTINGS
+    TIMEOUT_MS: 15000, // Timeout koneksi 15 detik
+
+    // 5. HELPER FUNGSI MENDAPATKAN URL API
+    getApiUrl: function (action = "") {
+        if (!this.BASE_URL || this.BASE_URL.includes("YOUR_DEPLOYMENT_ID_HERE")) {
+            console.warn("CONFIG WARNING: URL Apps Script belum dikonfigurasi dengan benar di js/config.js!");
+        }
+        return action ? `${this.BASE_URL}?action=${action}` : this.BASE_URL;
+    }
 };
 
-/*===============================================================
-=            URL WEB APP APPS SCRIPT (URL BARU REVISI)
-===============================================================*/
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxO-AJKNfdSDQVhMxrQpZ83Z0TeK5_V-16akMwTVHPDi2mqJt6K_br_6wevLnhPiSw6/exec";
-
-// TAMBAHKAN DUA BARIS DI BAWAH INI UNTUK MENCEGAH MISMATCH DENGAN API.JS
-const API_URL = WEB_APP_URL;
-CONFIG.API_URL = WEB_APP_URL;
-
-/*===============================================================
-=            STORAGE
-===============================================================*/
-
-const STORAGE = {
-    USER: "ABSENSI_USER",
-    TOKEN: "ABSENSI_TOKEN",
-    PROFILE: "ABSENSI_PROFILE"
-};
-
-/*===============================================================
-=            ROLE
-===============================================================*/
-
-const ROLE = {
-    ADMIN: "ADMIN",
-    PETUGAS: "PETUGAS",
-    GURU: "GURU",
-    KEPALA: "KEPALA",
-    ORANGTUA: "ORANGTUA"
-};
-
-/*===============================================================
-=            STATUS ABSENSI
-===============================================================*/
-
-const STATUS = {
-    HADIR: "HADIR",
-    TELAT: "TELAT",
-    IZIN: "IZIN",
-    SAKIT: "SAKIT",
-    ALFA: "ALFA",
-    PULANG: "PULANG",
-    PULANG_TELAT: "PULANG TELAT"
-};
-
-/*===============================================================
-=            GPS
-===============================================================*/
-
-const GPS = {
-    ENABLE: true,
-    HIGH_ACCURACY: true,
-    TIMEOUT: 10000,
-    MAXIMUM_AGE: 0
-};
-
-/*===============================================================
-=            CAMERA
-===============================================================*/
-
-const CAMERA = {
-    WIDTH: 1280,
-    HEIGHT: 720,
-    FACING_MODE: "environment",
-    IMAGE_TYPE: "image/jpeg",
-    QUALITY: 0.90
-};
-
-/*===============================================================
-=            DEFAULT MESSAGE
-===============================================================*/
-
-const MESSAGE = {
-    LOADING: "Memuat...",
-    LOGIN: "Sedang login...",
-    GPS: "Mengambil lokasi...",
-    CAMERA: "Mengaktifkan kamera...",
-    ABSEN: "Menyimpan absensi..."
-};
-
-/*===============================================================
-=            DEBUG MODE
-===============================================================*/
-
-const DEBUG = true;
+// Freeze object agar konfigurasi tidak sengaja tertimpa oleh script lain
+Object.freeze(CONFIG);
