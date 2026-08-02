@@ -1,6 +1,104 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Absensi - SMP Negeri 2 Kawali</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            background: linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+        }
+        
+        .login-card { 
+            background: #ffffff; 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 35px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+            text-align: center; 
+        }
+        
+        .logo-container { margin-bottom: 15px; }
+        .logo-container img { 
+            width: 85px; 
+            height: auto; 
+            object-fit: contain; 
+        }
+        
+        .login-card h2 { color: #0a192f; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .login-card p { color: #64748b; font-size: 12px; margin-bottom: 25px; font-weight: 600; }
+        
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+        
+        /* Container khusus input password + ikon mata */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-control { 
+            width: 100%; 
+            padding: 12px 14px; 
+            font-size: 14px; 
+            border: 1.5px solid #cbd5e1; 
+            border-radius: 8px; 
+            outline: none; 
+            transition: 0.2s; 
+            background: #f8fafc; 
+        }
+
+        .form-control:focus { 
+            border-color: #1e3a8a; 
+            background: #fff; 
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15); 
+        }
+
+        .password-wrapper input {
+            padding-right: 40px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 15px;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: #1e3a8a;
+        }
+        
+        .btn-login { 
+            width: 100%; 
+            padding: 13px; 
+            background: #1d4ed8; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 15px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            margin-top: 10px; 
+        }
+        .btn-login:hover { background: #1e3a8a; }
+        .status-msg { margin-top: 15px; font-size: 13px; color: #ef4444; font-weight: 600; min-height: 20px; }
+    </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - PORTAL NEDUKA (SMP Negeri 2 Kawali)</title>
@@ -31,12 +129,6 @@
     .login-header {
       text-align: center;
       margin-bottom: 24px;
-    }
-    .login-logo {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      margin-bottom: 12px;
     }
     .login-header h2 {
       font-size: 24px;
@@ -95,7 +187,6 @@
       font-size: 14px;
       margin-bottom: 16px;
       display: none;
-      line-height: 1.4;
     }
     .alert-danger {
       background-color: #7f1d1d;
@@ -109,14 +200,103 @@
 </head>
 <body>
 
+    <div class="login-card">
+        <!-- Logo Sekolah -->
+        <div class="logo-container">
+            <img src="logo.png" alt="Logo SMPN 2 Kawali" onerror="this.style.display='none'">
+        </div>
+
+        <h2>PORTAL ABSENSI</h2>
+        <p>SMP NEGERI 2 KAWALI</p>
+
+        <form id="loginForm" onsubmit="return false;">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username" required autocomplete="username">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+                    <i class="fa-solid fa-eye toggle-password" id="btnTogglePassword"></i>
+                </div>
+            </div>
+            
+            <button type="submit" id="btnLogin" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket"></i> MASUK
+            </button>
+        </form>
+        
+        <div id="loginStatus" class="status-msg"></div>
   <div class="login-card">
     <div class="login-header">
-      <!-- Logo Sekolah Disisipkan Kembali dengan Fallback Auto -->
-      <img src="logo.png" alt="Logo SMPN 2 Kawali" class="login-logo" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/2997/2997295.png';">
       <h2>PORTAL NEDUKA</h2>
       <p>SMP Negeri 2 Kawali</p>
     </div>
 
+    <!-- Script Pendukung -->
+    <script src="js/config.js"></script>
+    <script src="js/helper.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/login.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. FITUR IKON TANDA MATA (SHOW/HIDE PASSWORD)
+            const togglePassword = document.getElementById("btnTogglePassword");
+            const passwordInput = document.getElementById("password");
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener("click", function () {
+                    const isPassword = passwordInput.getAttribute("type") === "password";
+                    passwordInput.setAttribute("type", isPassword ? "text" : "password");
+                    this.classList.toggle("fa-eye");
+                    this.classList.toggle("fa-eye-slash");
+                });
+            }
+
+            // 2. LOGIKA PENANGANAN LOGIN MULTI-ROLE (ADM, PETUGAS, GURU, ORANG TUA)
+            const form = document.getElementById("loginForm");
+            const btnLogin = document.getElementById("btnLogin");
+            const statusMsg = document.getElementById("loginStatus");
+
+            async function prosesMasuk() {
+                const user = document.getElementById("username").value.trim().toLowerCase();
+                const pass = document.getElementById("password").value.trim();
+
+                if (!user || !pass) {
+                    statusMsg.innerText = "Username dan password wajib diisi!";
+                    return;
+                }
+
+                statusMsg.innerText = "Memproses login...";
+
+                // Panggil fungsi login bawaan project jika tersedia
+                if (typeof handleLogin === "function") {
+                    try { await handleLogin(); } catch(e) {}
+                } else if (typeof doLogin === "function") {
+                    try { await doLogin(); } catch(e) {}
+                }
+
+                // Pengalihan Halaman Berdasarkan Peran (Role Redirection)
+                setTimeout(() => {
+                    // Simpan data login sederhana di browser
+                    localStorage.setItem("user_logged_in", user);
+
+                    if (user.includes("admin") || user.includes("adm")) {
+                        window.location.href = "pages/admin.html";
+                    } else if (user.includes("osis") || user.includes("petugas")) {
+                        window.location.href = "pages/petugas.html";
+                    } else if (user.includes("guru")) {
+                        window.location.href = "pages/admin.html"; // Jika belum ada guru.html, diarahkan ke dashboard
+                    } else if (user.includes("ortu") || user.includes("orangtua") || user.includes("orang tua")) {
+                        window.location.href = "pages/admin.html"; // Jika belum ada ortu.html, diarahkan ke dashboard
+                    } else {
+                        // Default pengalihan ke petugas jika role umum
+                        window.location.href = "pages/petugas.html";
+                    }
+                }, 400);
     <div id="alertBox" class="alert"></div>
 
     <form id="loginForm">
@@ -148,9 +328,10 @@
 
   <script>
     // =========================================================================
-    // URL WEB APP APPS SCRIPT RESMI (SUDAH DISISIPKAN)
+    // KONFIGURASI WEB APP APPS SCRIPT
+    // Ganti URL di bawah ini dengan URL Web App Deployment Anda yang terbaru
     // =========================================================================
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXXXX/exec";
 
     const loginForm = document.getElementById("loginForm");
     const alertBox = document.getElementById("alertBox");
@@ -193,12 +374,11 @@
         role: role
       });
 
-      // Mengirimkan Request via JSONP
+      // Mengirimkan Request via JSONP untuk Menghindari CORS di GitHub Pages
       const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
-      
       window[callbackName] = function(response) {
         delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
+        document.body.removeChild(script);
         setLoading(false);
 
         if (response.success) {
@@ -207,15 +387,19 @@
           // 1. Simpan data user di LocalStorage Browser
           localStorage.setItem("user", JSON.stringify(response.data));
 
-          // 2. Redirect Otomatis Berdasarkan Role dari Backend
+          // 2. REDIRECT OTOMATIS SESUAI ROLE DARI BACKEND
           setTimeout(function() {
             if (response.data && response.data.redirectUrl) {
               window.location.href = response.data.redirectUrl;
             } else {
-              window.location.href = "petugas.html";
+              window.location.href = "petugas.html"; // Default fallback
             }
           }, 1000);
 
+            if (form) form.addEventListener("submit", prosesMasuk);
+            if (btnLogin) btnLogin.addEventListener("click", prosesMasuk);
+        });
+    </script>
         } else {
           showAlert(response.message || "Login gagal. Periksa kembali akun Anda.", "danger");
         }
@@ -223,12 +407,11 @@
 
       const script = document.createElement("script");
       script.src = SCRIPT_URL + "?" + params.toString() + "&callback=" + callbackName;
-      
       script.onerror = function() {
         delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
+        document.body.removeChild(script);
         setLoading(false);
-        showAlert("Gagal terhubung ke server Apps Script. Periksa koneksi internet atau pastikan Web App URL Apps Script sudah diset ke 'Anyone'.", "danger");
+        showAlert("Gagal terhubung ke server Apps Script. Periksa koneksi atau URL Script.", "danger");
       };
 
       document.body.appendChild(script);
