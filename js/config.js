@@ -23,6 +23,10 @@ const CONFIG = {
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwulMYZnhqGvxpxg_BHSKlpD4tM8tiqgUDRWmRTYhlft_nyPmOmd6Doq1uo6_yTVPCl/exec";
 
+// TAMBAHKAN DUA BARIS DI BAWAH INI UNTUK MENCEGAH MISMATCH DENGAN API.JS
+const API_URL = WEB_APP_URL;
+CONFIG.API_URL = WEB_APP_URL;
+
 /*===============================================================
 =            STORAGE
 ===============================================================*/
