@@ -9,7 +9,7 @@ const CONFIG = {
     SCHOOL_NAME: "SMP Negeri 2 Kawali",
     
     // 2. URL GOOGLE APPS SCRIPT (BACKEND REAL ANDA)
-    BASE_URL: "https://script.google.com/macros/s/AKfycby7pHe8aLXClm8HewELDE4CBMlLGMJHcSnFoXZOoYAEZ1-Vw9NLsLC1rs1YZsZvJfXf/exec",
+    BASE_URL: "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec",
 
     // 3. PENGATURAN LOGO & ASSETS
     LOGO_URL: "logo.png", // Mengambil langsung dari direktori root GitHub Anda
