@@ -1,68 +1,50 @@
 /*****************************************************************
- * API HELPER - CONNECTOR TO GOOGLE APPS SCRIPT
+ * ABSENSI SMP NEGERI 2 KAWALI - API HANDLER
+ * File: js/api.js
  *****************************************************************/
 
-async function callAPI(action, payloadData = {}) {
-    // Ambil URL dari config (Mendukung WEB_APP_URL maupun CONFIG.API_URL)
-    const url = typeof WEB_APP_URL !== "undefined" ? WEB_APP_URL : (typeof CONFIG !== "undefined" ? CONFIG.API_URL : "");
+const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyR5J64U2HYHtUDaVuCAUH73KMcKrnVhavhgIrJbTViflsql7pcqNf2gD6DHxOAdNn-/exec";
 
-    if (!url) {
-        alert("URL Apps Script belum diatur di config.js!");
-        return { success: false, message: "URL Apps Script belum diisi." };
-    }
-
-    // Susun payload agar dikenali backend
-    const bodyData = {
-        action: action,
-        data: payloadData,
-        ...payloadData // fallback untuk compatibility
-    };
-
+// Fungsi Login ke Apps Script Backend
+async function apiLogin(username, password, role) {
     try {
-        // Penting: Menggunakan text/plain agar tidak memicu isu CORS Preflight di Apps Script
-        const response = await fetch(url, {
+        const response = await fetch(API_ENDPOINT, {
             method: "POST",
             mode: "cors",
-            redirect: "follow",
             headers: {
-                "Content-Type": "text/plain;charset=utf-8",
+                "Content-Type": "text/plain;charset=utf-8"
             },
-            body: JSON.stringify(bodyData)
+            body: JSON.stringify({
+                action: "login",
+                username: username,
+                password: password,
+                role: role
+            })
         });
 
-        if (!response.ok) {
-            throw new Error("HTTP Status: " + response.status);
-        }
-
-        const jsonResult = await response.json();
-        return jsonResult;
-
+        return await response.json();
     } catch (error) {
-        console.error("API Error (" + action + "):", error);
-        return {
-            success: false,
-            message: "Tidak dapat terhubung ke server. " + error.message
-        };
+        console.error("API Error:", error);
+        return { success: false, message: "Gagal terhubung ke server. Periksa koneksi internet." };
     }
 }
 
-// Fungsi Khusus Login
-async function apiLogin(username, password, role) {
-    return await callAPI("login", {
-        username: username,
-        password: password,
-        role: role
-    });
-}
+// Fungsi Umum Panggilan API
+async function callAPI(action, payload = {}) {
+    try {
+        payload.action = action;
+        const response = await fetch(API_ENDPOINT, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify(payload)
+        });
 
-// Fungsi Khusus Cari Siswa
-async function apiSearchSiswa(keyword) {
-    return await callAPI("searchSiswa", {
-        keyword: keyword
-    });
-}
-
-// Fungsi Khusus Absen
-async function apiAbsen(dataAbsen) {
-    return await callAPI("absen", dataAbsen);
+        return await response.json();
+    } catch (error) {
+        console.error("API Call Error:", error);
+        return { success: false, message: "Gagal terhubung ke server." };
+    }
 }
