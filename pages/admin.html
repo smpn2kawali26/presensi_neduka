@@ -2,22 +2,196 @@
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin</title>
-
+    
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
 
+    <style>
+        :root {
+            --topbar-bg: #0f172a;        /* Dark Slate / Navy dari Header Petugas */
+            --body-bg: #f1f5f9;          /* Light Ice Blue Background */
+            --card-bg: #ffffff;          /* Card Putih Bersih */
+            --text-dark: #0f172a;        /* Teks Utama Tanda */
+            --text-muted: #64748b;       /* Teks Deskripsi / Subtitle */
+            --btn-red: #ef4444;          /* Merah Tombol Logout */
+            --btn-red-hover: #dc2626;    /* Merah Hover */
+            --accent-blue: #1e3a8a;     /* Biru Aksen Utama */
+            --border-color: #e2e8f0;    /* Garis Batas Halus */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            min-height: 100vh;
+            color: var(--text-dark);
+            padding: 0;
+        }
+
+        /* Topbar / Header Mentok Atas-Kiri-Kanan */
+        .topbar {
+            width: 100%;
+            background-color: var(--topbar-bg);
+            color: #ffffff;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 24px;
+        }
+
+        .topbar h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #ffffff;
+        }
+
+        .topbar p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Tombol Logout Merah Presisi Foto */
+        #btnLogout {
+            background-color: var(--btn-red);
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #btnLogout:hover {
+            background-color: var(--btn-red-hover);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px 32px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Kartu / Card Style */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f8fafc;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .card p strong {
+            color: var(--text-dark);
+        }
+
+        /* Grid Statistik */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .info-box {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-box h4 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .info-box h2 {
+            font-size: 2rem;
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        /* Grid Menu Admin */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .menu-button {
+            background-color: var(--topbar-bg);
+            color: var(--text-dark);
+            border: 1px solid var(--topbar-bg);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .menu-button:hover {
+            background-color: var(--topbar-bg);
+            color: #ffffff;
+            border-color: var(--topbar-bg);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Layar HP */
+        @media (max-width: 600px) {
+            .topbar {
+                padding: 16px 20px;
+            }
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 
 <body>
 
     <!-- =======================================================
-         HEADER
+         HEADER / TOPBAR
     ======================================================== -->
 
     <header class="topbar">
@@ -25,32 +199,24 @@
         <div>
 
             <h2>
-
                 Dashboard Admin
-
             </h2>
 
             <p>
-
                 ABSENSI MPLS - SMP Negeri 2 Kawali
-
             </p>
 
         </div>
 
-        <button
-            id="btnLogout"
-            onclick="doLogout()">
-
-            Logout
-
+        <button id="btnLogout" onclick="doLogout()">
+            <i class="fa-solid fa-power-off"></i> Logout
         </button>
 
     </header>
 
 
     <!-- =======================================================
-         DASHBOARD
+         DASHBOARD MAIN
     ======================================================== -->
 
     <main class="container">
@@ -60,33 +226,21 @@
         <section class="card">
 
             <h3>
-
                 Selamat Datang
-
             </h3>
 
             <p>
-
                 Nama :
-
                 <strong id="namaUser">
-
                     -
-
                 </strong>
-
             </p>
 
             <p>
-
                 Role :
-
                 <strong id="roleUser">
-
                     ADMIN
-
                 </strong>
-
             </p>
 
         </section>
@@ -97,9 +251,7 @@
         <section class="card">
 
             <h3>
-
                 Statistik Hari Ini
-
             </h3>
 
             <div class="dashboard-grid">
@@ -107,15 +259,11 @@
                 <div class="info-box">
 
                     <h4>
-
                         Total Siswa
-
                     </h4>
 
                     <h2 id="totalSiswa">
-
                         0
-
                     </h2>
 
                 </div>
@@ -123,15 +271,11 @@
                 <div class="info-box">
 
                     <h4>
-
                         Hadir Hari Ini
-
                     </h4>
 
                     <h2 id="hadirHariIni">
-
                         0
-
                     </h2>
 
                 </div>
@@ -146,59 +290,41 @@
         <section class="card">
 
             <h3>
-
                 Menu Admin
-
             </h3>
 
             <div class="menu-grid">
 
                 <button class="menu-button">
-
                     Data Siswa
-
                 </button>
 
                 <button class="menu-button">
-
                     Data Guru
-
                 </button>
 
                 <button class="menu-button">
-
                     Data User
-
                 </button>
 
                 <button class="menu-button">
-
                     Data Kelas
-
                 </button>
 
                 <button class="menu-button">
-
                     Absensi
-
                 </button>
 
                 <button class="menu-button">
-
                     Rekap
-
                 </button>
 
                 <button class="menu-button">
-
                     Pengaturan
-
                 </button>
 
                 <button class="menu-button">
-
                     Log Aktivitas
-
                 </button>
 
             </div>
