@@ -9,12 +9,11 @@
     <style>
         body { background: linear-gradient(135deg, #001f3f 0%, #004080 60%, #ffffff 100%); min-height: 100vh; background-attachment: fixed; font-family: 'Segoe UI', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,255,255,0.2); padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); color: white; }
-        .table-container { background: white; color: #333; border-radius: 10px; padding: 15px; margin-top: 15px; overflow-x: auto; font-size: 0.9rem; }
-        .nav-pills .nav-link { color: white; margin: 2px; }
-        .nav-pills .nav-link.active { background-color: #ffc107; color: #001f3f; fw-bold; }
-        .btn-action { padding: 2px 8px; font-size: 0.8rem; }
-        #clock { font-size: 2.5rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .logo { width: 80px; filter: drop-shadow(0 0 5px white); }
+        .table-container { background: white; color: #333; border-radius: 10px; padding: 15px; margin-top: 15px; overflow-x: auto; font-size: 0.85rem; }
+        .nav-pills .nav-link { color: white; margin: 2px; cursor: pointer; }
+        .nav-pills .nav-link.active { background-color: #ffc107; color: #001f3f; font-weight: bold; }
+        #clock { font-size: 2.5rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); color: white; }
+        .logo { width: 70px; filter: drop-shadow(0 0 5px white); }
     </style>
 </head>
 <body>
@@ -23,25 +22,25 @@
     <div class="text-center mb-4">
         <img src="logo.png" class="logo" alt="Logo">
         <h4 class="text-white fw-bold mt-2">PORTAL ABSENSI SMP N 2 KAWALI</h4>
-        <div id="clock">00:00:00</div>
+        <div id="clock">00.00.00</div>
     </div>
 
     <!-- LOGIN AREA -->
     <div id="loginSection" class="row justify-content-center">
         <div class="col-md-4 glass text-center">
             <h5 class="mb-4">Silakan Login</h5>
-            <select id="role" class="form-select mb-3">
+            <select id="role" class="form-select mb-3 shadow-sm">
                 <option value="admin">User 1 (Admin)</option>
                 <option value="teacher">User 2 (Teacher)</option>
                 <option value="officer">User 3 (Petugas)</option>
                 <option value="parent">User 4 (Orang Tua)</option>
             </select>
-            <input type="text" id="user" class="form-control mb-3" placeholder="Username/NISN">
-            <div class="input-group mb-3">
+            <input type="text" id="user" class="form-control mb-3 shadow-sm" placeholder="Username/NISN">
+            <div class="input-group mb-3 shadow-sm">
                 <input type="password" id="pass" class="form-control" placeholder="Password">
                 <button class="btn btn-light" type="button" onclick="togglePass()"><i id="eyeIcon" class="bi bi-eye"></i></button>
             </div>
-            <button onclick="login()" id="btnLogin" class="btn btn-warning w-100 fw-bold">MASUK</button>
+            <button onclick="login()" id="btnLogin" class="btn btn-warning w-100 fw-bold shadow">MASUK</button>
         </div>
     </div>
 
@@ -49,28 +48,27 @@
     <div id="adminDash" class="d-none">
         <div class="glass">
             <div class="d-flex justify-content-between mb-3">
-                <h5>Admin Panel</h5>
+                <h5 class="fw-bold"><i class="bi bi-speedometer2"></i> Admin Panel</h5>
                 <button onclick="location.reload()" class="btn btn-danger btn-sm">Logout</button>
             </div>
             <ul class="nav nav-pills justify-content-center" id="adminTabs">
-                <li class="nav-item"><button class="nav-link active" onclick="renderTab('siswa')">Siswa</button></li>
-                <li class="nav-item"><button class="nav-link" onclick="renderTab('guru')">Guru</button></li>
-                <li class="nav-item"><button class="nav-link" onclick="renderTab('jadwal')">Jadwal</button></li>
-                <li class="nav-item"><button class="nav-link" onclick="renderTab('rekap')">Rekap</button></li>
-                <li class="nav-item"><button class="nav-link" onclick="renderTab('catatan')">Catatan</button></li>
-                <li class="nav-item"><button class="nav-link" onclick="renderTab('settings')">Settings</button></li>
+                <li class="nav-item"><a class="nav-link active" onclick="renderTab('siswa')">Siswa</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="renderTab('guru')">Guru</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="renderTab('jadwal')">Jadwal</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="renderTab('rekap')">Rekap</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="renderTab('catatan')">Catatan</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="renderTab('settings')">Settings</a></li>
             </ul>
-
-            <div id="adminContent" class="table-container"></div>
+            <div id="adminContent" class="table-container shadow-lg"></div>
         </div>
     </div>
 </div>
 
-<!-- MODAL BOX -->
+<!-- MODAL FORM -->
 <div class="modal fade" id="dataModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog text-dark">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="modalTitle">Form Data</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Form Data</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
@@ -79,7 +77,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbx3VQ8YOJVpH-hdrhsFN_2v-sZbN2kHz4x1oGjGybF9AjBNKnMrNBmlYKSf-BiLRiA/exec";
-    let MASTER_DATA = {}; // Cache data agar cepat
+    let MASTER_DATA = {};
 
     function togglePass() {
         const p = document.getElementById('pass');
@@ -88,147 +86,105 @@
         i.className = p.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
     }
 
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
+    setInterval(() => { 
+        const d = new Date();
+        document.getElementById('clock').innerText = d.getHours().toString().padStart(2,'0') + "." + d.getMinutes().toString().padStart(2,'0') + "." + d.getSeconds().toString().padStart(2,'0');
+    }, 1000);
 
     async function login() {
         const btn = document.getElementById('btnLogin');
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        
-        const payload = {
-            action: "login",
-            role: document.getElementById('role').value,
-            user: document.getElementById('user').value,
-            pass: document.getElementById('pass').value
-        };
-
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+        const payload = { action: "login", role: document.getElementById('role').value, user: document.getElementById('user').value, pass: document.getElementById('pass').value };
         try {
             const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
             const data = await res.json();
             if(data.status === "success") {
-                // Tarik semua data sekaligus biar cepat
                 const dataRes = await fetch(API_URL, { method: "POST", body: JSON.stringify({action: "getAdminData"}) });
                 MASTER_DATA = await dataRes.json();
-                
                 document.getElementById('loginSection').classList.add('d-none');
                 document.getElementById('adminDash').classList.remove('d-none');
                 renderTab('siswa');
-            } else { alert("Gagal Login!"); }
-        } catch(e) { alert("Error: "+e); }
+            } else { alert("Login Gagal!"); }
+        } catch(e) { alert("Error koneksi!"); }
         btn.innerText = "MASUK";
     }
 
     function renderTab(tab) {
-        document.querySelectorAll('#adminTabs .nav-link').forEach(el => el.classList.remove('active'));
-        event?.target.classList.add('active');
         const cont = document.getElementById('adminContent');
-        
+        document.querySelectorAll('#adminTabs .nav-link').forEach(el => el.classList.remove('active'));
+        if(event) event.target.classList.add('active');
+
         if(tab === 'siswa') {
-            let h = `<h6>Data Siswa <button onclick="formSiswa()" class="btn btn-primary btn-sm float-end">+ Siswa</button></h6>
-            <table class="table table-sm table-hover mt-3"><thead><tr><th>NISN</th><th>Nama</th><th>Kelas</th><th>Ortu</th><th>HP Ortu</th><th>Aksi</th></tr></thead><tbody>`;
+            let h = `<h6 class="fw-bold">Data Siswa <button onclick="formSiswa()" class="btn btn-primary btn-sm float-end">+ Siswa</button></h6>
+            <table class="table table-sm mt-3"><thead><tr><th>NISN</th><th>Nama</th><th>Kelas</th><th>Ortu</th><th>No HP</th><th>Aksi</th></tr></thead><tbody>`;
             MASTER_DATA.siswa.forEach(s => {
                 h += `<tr><td>${s.NISN}</td><td>${s.Nama}</td><td>${s.Kelas}</td><td>${s.NamaOrtu}</td><td>${s.NoHPOrtu}</td>
-                <td>
-                    <button class="btn btn-warning btn-action" onclick="formSiswa('${s.NISN}')">Edit</button>
-                    <button class="btn btn-danger btn-action" onclick="hapusData('siswa','${s.NISN}')">Hapus</button>
-                </td></tr>`;
+                <td><button class="btn btn-warning btn-sm" onclick="formSiswa('${s.NISN}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="hapusData('siswa','${s.NISN}')">Hapus</button></td></tr>`;
             });
             cont.innerHTML = h + "</tbody></table>";
         }
 
         if(tab === 'guru') {
-            let h = `<h6>Data Guru <button onclick="formGuru()" class="btn btn-primary btn-sm float-end">+ Guru</button></h6>
-            <table class="table table-sm table-hover mt-3"><thead><tr><th>NIP</th><th>Nama</th><th>Mapel</th><th>Aksi</th></tr></thead><tbody>`;
+            let h = `<h6 class="fw-bold">Data Guru <button onclick="formGuru()" class="btn btn-primary btn-sm float-end">+ Guru</button></h6>
+            <table class="table table-sm mt-3"><thead><tr><th>NIP</th><th>Nama</th><th>Mapel</th><th>Tugas</th><th>Status</th><th>Aksi</th></tr></thead><tbody>`;
             MASTER_DATA.guru.forEach(g => {
-                h += `<tr><td>${g.NIP}</td><td>${g.NamaGuru}</td><td>${g.Mapel}</td>
-                <td>
-                    <button class="btn btn-warning btn-action" onclick="formGuru('${g.NIP}')">Edit</button>
-                    <button class="btn btn-danger btn-action" onclick="hapusData('guru','${g.NIP}')">Hapus</button>
-                </td></tr>`;
+                h += `<tr><td>${g.NIP}</td><td>${g.NamaGuru}</td><td>${g.Mapel}</td><td>${g.TugasTambahan}</td><td>${g.Status}</td>
+                <td><button class="btn btn-warning btn-sm" onclick="formGuru('${g.NIP}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="hapusData('guru','${g.NIP}')">Hapus</button></td></tr>`;
+            });
+            cont.innerHTML = h + "</tbody></table>";
+        }
+
+        if(tab === 'jadwal') {
+            let h = `<h6 class="fw-bold">Jadwal Pelajaran <button onclick="formJadwal()" class="btn btn-primary btn-sm float-end">+ Jadwal</button></h6>
+            <table class="table table-sm mt-3"><thead><tr><th>Hari</th><th>Jam</th><th>Mapel</th><th>Kelas</th><th>Guru</th><th>Aksi</th></tr></thead><tbody>`;
+            MASTER_DATA.jadwal.forEach(j => {
+                h += `<tr><td>${j.Hari}</td><td>${j.Jam}</td><td>${j.Mapel}</td><td>${j.Kelas}</td><td>${j.Guru}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="hapusData('jadwal','${j.ID}')">Hapus</button></td></tr>`;
             });
             cont.innerHTML = h + "</tbody></table>";
         }
 
         if(tab === 'settings') {
-            const s = {};
-            MASTER_DATA.settings.forEach(x => s[x.Key] = x.Value);
-            cont.innerHTML = `<h6>Settings Waktu & Lokasi</h6>
-            <div class="row g-2 mt-2">
-                <div class="col-md-4">Batas Masuk: <input type="time" id="s_masuk" class="form-control" value="${s.BatasMasuk||''}"></div>
-                <div class="col-md-4">Batas Telat: <input type="time" id="s_telat" class="form-control" value="${s.BatasTelat||''}"></div>
-                <div class="col-md-4">Batas Pulang: <input type="time" id="s_pulang" class="form-control" value="${s.BatasPulang||''}"></div>
-                <div class="col-md-6">Radius (Meter): <input type="number" id="s_radius" class="form-control" value="${s.Radius||''}"></div>
-                <div class="col-md-6">Lat/Long Sekolah: <input type="text" id="s_gps" class="form-control" placeholder="-7.xxx, 108.xxx" value="${s.LatSekolah||''}"></div>
-                <button class="btn btn-success mt-3" onclick="saveSet()">Simpan Pengaturan</button>
-            </div>`;
+            const s = {}; MASTER_DATA.settings.forEach(x => s[x.Key] = x.Value);
+            cont.innerHTML = `<h6 class="fw-bold">Pengaturan Sistem</h6><div class="row g-2 p-2 text-dark">
+            <div class="col-6">Batas Masuk: <input type="time" id="s_in" class="form-control" value="${s.BatasMasuk||''}"></div>
+            <div class="col-6">Batas Telat: <input type="time" id="s_late" class="form-control" value="${s.BatasTelat||''}"></div>
+            <div class="col-6">Radius (Meter): <input type="number" id="s_rad" class="form-control" value="${s.Radius||''}"></div>
+            <div class="col-6">GPS Sekolah: <input type="text" id="s_gps" class="form-control" placeholder="Lat,Long" value="${s.LatSekolah||''}"></div>
+            <button onclick="saveSet()" class="btn btn-success mt-3 w-100">SIMPAN SETTING</button></div>`;
         }
-        
+
         if(tab === 'rekap') {
-            cont.innerHTML = `<h6>Rekap Absensi <button onclick="window.print()" class="btn btn-info btn-sm float-end">PDF / Print</button></h6>
-            <table class="table table-sm mt-2"><thead><tr><th>Tgl</th><th>Nama</th><th>Status</th><th>Jam</th></tr></thead>
-            <tbody>${MASTER_DATA.absensi.map(a => `<tr><td>${a.Tanggal}</td><td>${a.Nama}</td><td>${a.Status}</td><td>${a.Jam}</td></tr>`).join('')}</tbody></table>`;
-        }
-
-        if(tab === 'catatan') {
-            cont.innerHTML = `<h6>Catatan Guru & Ortu</h6>
-            <table class="table table-sm mt-2"><thead><tr><th>Dari</th><th>Pesan</th><th>Tgl</th></tr></thead>
-            <tbody>${MASTER_DATA.catatan.map(c => `<tr><td>${c.Tipe}</td><td>${c.Pesan}</td><td>${c.Tanggal}</td></tr>`).join('')}</tbody></table>`;
+            cont.innerHTML = `<h6 class="fw-bold">Rekap Absensi Harian <button onclick="window.print()" class="btn btn-secondary btn-sm float-end">Download PDF</button></h6>
+            <table class="table table-sm mt-3"><thead><tr><th>Tgl</th><th>Nama</th><th>Kelas</th><th>Jam</th><th>Status</th></tr></thead>
+            <tbody>${MASTER_DATA.absensi.map(a => `<tr><td>${a.Tanggal}</td><td>${a.Nama}</td><td>${a.Kelas}</td><td>${a.Jam}</td><td>${a.Status}</td></tr>`).join('')}</tbody></table>`;
         }
     }
 
-    // FUNGSI CRUD FRONTEND
-    async function hapusData(tipe, id) {
-        if(!confirm("Yakin hapus?")) return;
-        const action = tipe === 'siswa' ? 'crudSiswa' : 'crudGuru';
-        const key = tipe === 'siswa' ? 'nisn' : 'nip';
-        await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: action, type: "delete", [key]: id }) });
-        login(); // Refresh data
-    }
-
-    async function saveSet() {
-        const settings = {
-            BatasMasuk: document.getElementById('s_masuk').value,
-            BatasTelat: document.getElementById('s_telat').value,
-            BatasPulang: document.getElementById('s_pulang').value,
-            Radius: document.getElementById('s_radius').value,
-            LatSekolah: document.getElementById('s_gps').value
-        };
-        await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveSettings", settings: settings }) });
-        alert("Tersimpan!");
-        login();
-    }
-
-    function formSiswa(nisn = null) {
-        const s = nisn ? MASTER_DATA.siswa.find(x => x.NISN == nisn) : {};
-        const title = nisn ? "Edit Siswa" : "Tambah Siswa";
-        document.getElementById('modalTitle').innerText = title;
+    // FUNGSI FORM MODAL
+    function formJadwal() {
+        document.getElementById('modalTitle').innerText = "Tambah Jadwal";
         document.getElementById('modalBody').innerHTML = `
-            <input type="hidden" id="oldNisn" value="${s.NISN||''}">
-            NISN: <input type="text" id="m_nisn" class="form-control mb-2" value="${s.NISN||''}">
-            Nama: <input type="text" id="m_nama" class="form-control mb-2" value="${s.Nama||''}">
-            Kelas: <input type="text" id="m_kelas" class="form-control mb-2" value="${s.Kelas||''}">
-            Ortu: <input type="text" id="m_ortu" class="form-control mb-2" value="${s.NamaOrtu||''}">
-            HP Ortu: <input type="text" id="m_hp" class="form-control mb-2" value="${s.NoHPOrtu||''}">
-            Tahun: <input type="text" id="m_tahun" class="form-control mb-2" value="${s.TahunMasuk||''}">
-            Wali: <input type="text" id="m_wali" class="form-control mb-2" value="${s.WaliKelas||''}">
-            <button class="btn btn-primary w-100" onclick="saveSiswa()">Simpan</button>`;
+            Hari: <select id="j_hari" class="form-select mb-2"><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option></select>
+            Jam: <input type="text" id="j_jam" class="form-control mb-2" placeholder="08.00 - 09.00">
+            Mapel: <input type="text" id="j_mapel" class="form-control mb-2">
+            Kelas: <input type="text" id="j_kelas" class="form-control mb-2">
+            Guru: <input type="text" id="j_guru" class="form-control mb-2">
+            <button class="btn btn-primary w-100" onclick="saveJadwal()">SIMPAN</button>`;
         new bootstrap.Modal('#dataModal').show();
     }
 
-    async function saveSiswa() {
-        const payload = {
-            action: "crudSiswa",
-            type: document.getElementById('oldNisn').value ? "edit" : "add",
-            nisnOld: document.getElementById('oldNisn').value,
-            nisn: document.getElementById('m_nisn').value,
-            nama: document.getElementById('m_nama').value,
-            kelas: document.getElementById('m_kelas').value,
-            ortu: document.getElementById('m_ortu').value,
-            hp: document.getElementById('m_hp').value,
-            tahun: document.getElementById('m_tahun').value,
-            wali: document.getElementById('m_wali').value
-        };
-        await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-        bootstrap.Modal.getInstance('#dataModal').hide();
+    async function saveJadwal() {
+        const p = { action: "crudJadwal", type: "add", hari: document.getElementById('j_hari').value, jam: document.getElementById('j_jam').value, mapel: document.getElementById('j_mapel').value, kelas: document.getElementById('j_kelas').value, guru: document.getElementById('j_guru').value };
+        await fetch(API_URL, { method: "POST", body: JSON.stringify(p) });
+        bootstrap.Modal.getInstance('#dataModal').hide(); login();
+    }
+
+    async function hapusData(tipe, id) {
+        if(!confirm("Yakin hapus?")) return;
+        const act = tipe === 'siswa' ? 'crudSiswa' : (tipe === 'guru' ? 'crudGuru' : 'crudJadwal');
+        const key = tipe === 'siswa' ? 'nisn' : (tipe === 'guru' ? 'nip' : 'id');
+        await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: act, type: "delete", [key]: id }) });
         login();
     }
 </script>
