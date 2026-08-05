@@ -6,181 +6,134 @@
     <title>Portal Absensi SMP N 2 Kawali</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { 
-            background: linear-gradient(180deg, #001f3f 0%, #004080 50%, #ffffff 100%); 
-            color: white; min-height: 100vh; font-family: 'Segoe UI', sans-serif;
-            background-attachment: fixed;
-        }
-        .glass { 
-            background: rgba(255, 255, 255, 0.15); 
-            backdrop-filter: blur(15px); 
-            border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 30px; color: #fff; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .btn-absen { height: 100px; font-size: 1.5rem; font-weight: bold; }
-        .logo { width: 100px; margin-bottom: 10px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); }
-        #camera-container { width: 100%; max-width: 400px; margin: auto; border: 3px solid #fff; border-radius: 10px; overflow: hidden; display: none; }
-        video { width: 100%; transform: scaleX(-1); }
-        .text-dark-custom { color: #001f3f; }
-        #jam { font-size: 2.5rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        body { background: linear-gradient(135deg, #001f3f 0%, #004080 60%, #ffffff 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; background-attachment: fixed; }
+        .glass { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .logo { width: 80px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+        #clock { font-size: 2.5rem; font-weight: bold; color: white; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .nav-pills .nav-link { color: white; margin: 2px; }
+        .nav-pills .nav-link.active { background-color: #ffc107; color: #001f3f; font-weight: bold; }
+        .table-container { background: white; color: black; border-radius: 10px; padding: 15px; overflow-x: auto; }
     </style>
 </head>
 <body>
 
 <div class="container py-4">
+    <!-- Header -->
     <div class="text-center mb-4">
-        <!-- Perbaikan Link Logo -->
-        <img src="logo.png" class="logo" alt="Logo SMP N 2 Kawali">
-        <h4 class="fw-bold">PORTAL ABSENSI SMP N 2 KAWALI</h4>
-        <div id="jam">00:00:00</div>
+        <img src="logo.png" class="logo" alt="Logo">
+        <h3 class="text-white fw-bold mt-2">PORTAL ABSENSI SMP N 2 KAWALI</h3>
+        <div id="clock">00:00:00</div>
     </div>
 
-    <!-- BOX LOGIN -->
-    <div id="loginBox" class="row justify-content-center">
+    <!-- Login Area -->
+    <div id="loginSection" class="row justify-content-center">
         <div class="col-md-5 glass text-center">
-            <h4 class="mb-4">Silakan Login</h4>
-            <select id="role" class="form-select mb-3 shadow-sm">
+            <h4 class="text-white mb-4">Silakan Login</h4>
+            <select id="role" class="form-select mb-3">
                 <option value="admin">User 1 (Admin)</option>
                 <option value="teacher">User 2 (Teacher)</option>
-                <option value="officer">User 3 (Petugas Absen)</option>
+                <option value="officer">User 3 (Petugas)</option>
                 <option value="parent">User 4 (Orang Tua)</option>
             </select>
-            <input type="text" id="user" class="form-control mb-3 shadow-sm" placeholder="Username / NISN">
-            <input type="password" id="pass" class="form-control mb-3 shadow-sm" placeholder="Password">
-            <button onclick="prosesLogin()" id="btnLogin" class="btn btn-warning w-100 fw-bold shadow">MASUK</button>
+            <input type="text" id="user" class="form-control mb-3" placeholder="Username / NISN">
+            <input type="password" id="pass" class="form-control mb-3" placeholder="Password">
+            <button onclick="login()" id="btnLogin" class="btn btn-warning w-100 fw-bold">MASUK</button>
         </div>
     </div>
 
-    <!-- DASHBOARD PETUGAS (USER 3) -->
-    <div id="dash-officer" class="d-none">
-        <div class="glass text-center text-dark-custom">
-            <h5 class="text-white">Panel Petugas: <span id="namaPetugas"></span></h5>
-            <div id="gps-status" class="badge bg-info mb-3">Mengecek Lokasi...</div>
-            
-            <div class="bg-white p-3 rounded shadow-sm mb-3">
-                <input type="text" id="cariSiswa" class="form-control mb-2" placeholder="Ketik 3 huruf nama siswa..." onkeyup="filterSiswa(this.value)">
-                <select id="selectSiswa" class="form-select mb-3">
-                    <option value="">-- Pilih Siswa --</option>
-                </select>
-
-                <div id="camera-container" class="mb-3">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="canvas" class="d-none"></canvas>
-                </div>
-
-                <div class="row g-2">
-                    <div class="col-6">
-                        <button onclick="absenKlik('Masuk')" class="btn btn-success btn-absen w-100">MASUK</button>
-                    </div>
-                    <div class="col-6">
-                        <button onclick="absenKlik('Pulang')" class="btn btn-danger btn-absen w-100">PULANG</button>
-                    </div>
-                </div>
+    <!-- Admin Dashboard -->
+    <div id="adminDash" class="d-none">
+        <div class="glass">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="text-white">Admin Dashboard</h4>
+                <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>
             </div>
-            <button onclick="location.reload()" class="btn btn-light btn-sm">Logout</button>
+            
+            <ul class="nav nav-pills mb-3 justify-content-center" id="adminTabs">
+                <li class="nav-item"><button class="nav-link active" onclick="showTab('siswa')">Siswa</button></li>
+                <li class="nav-item"><button class="nav-link" onclick="showTab('guru')">Guru</button></li>
+                <li class="nav-item"><button class="nav-link" onclick="showTab('rekap')">Rekap</button></li>
+                <li class="nav-item"><button class="nav-link" onclick="showTab('setting')">Settings</button></li>
+                <li class="nav-item"><button class="nav-link" onclick="showTab('jadwal')">Jadwal</button></li>
+            </ul>
+
+            <div id="adminContent" class="table-container">
+                <!-- Content via JS -->
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTESzIk0ZXUqY_-BlmF3qXANYzwVnKe_BwpxlU68wg3NvYm2JxfWVJrf9NYA9aWKLI/exec"; // GANTI DENGAN URL ANDA
-    let dataSiswa = [];
-    let userAktif = {};
-    let lat, lng;
+    const API_URL = "https://script.google.com/macros/s/AKfycbzTESzIk0ZXUqY_-BlmF3qXANYzwVnKe_BwpxlU68wg3NvYm2JxfWVJrf9NYA9aWKLI/exec";
 
-    // Jam Realtime
-    setInterval(() => {
-        document.getElementById('jam').innerHTML = new Date().toLocaleTimeString('id-ID');
-    }, 1000);
+    function updateClock() {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('id-ID');
+    }
+    setInterval(updateClock, 1000);
 
-    // Get GPS
-    navigator.geolocation.getCurrentPosition(p => {
-        lat = p.coords.latitude;
-        lng = p.coords.longitude;
-        document.getElementById('gps-status').innerHTML = "📍 GPS Aktif";
-        document.getElementById('gps-status').className = "badge bg-success";
-    });
+    async function login() {
+        const btn = document.getElementById('btnLogin');
+        btn.innerText = "Loading...";
+        const payload = {
+            action: "login",
+            role: document.getElementById('role').value,
+            user: document.getElementById('user').value,
+            pass: document.getElementById('pass').value
+        };
 
-    async function prosesLogin() {
-        const role = document.getElementById('role').value;
-        const user = document.getElementById('user').value;
-        const pass = document.getElementById('pass').value;
-        
-        document.getElementById('btnLogin').innerText = "Loading...";
-        
-        try {
-            const res = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "login", role: role, username: user, password: pass })
-            });
-            const data = await res.json();
-            
-            if(data.status === "success") {
-                userAktif = data.user;
-                document.getElementById('loginBox').classList.add('d-none');
-                if(role === 'officer') initOfficer();
-            } else {
-                alert("Login Gagal!");
+        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const data = await res.json();
+
+        if(data.status === "success") {
+            document.getElementById('loginSection').classList.add('d-none');
+            if(payload.role === 'admin') {
+                document.getElementById('adminDash').classList.remove('d-none');
+                showTab('siswa');
             }
-        } catch (e) { alert("Error: " + e.message); }
-        document.getElementById('btnLogin').innerText = "MASUK";
+        } else {
+            alert("Login Gagal!");
+        }
+        btn.innerText = "MASUK";
     }
 
-    async function initOfficer() {
-        document.getElementById('dash-officer').classList.remove('d-none');
-        document.getElementById('namaPetugas').innerText = userAktif.nama;
-        startCamera();
+    async function showTab(tab) {
+        const content = document.getElementById('adminContent');
+        content.innerHTML = "Memuat data...";
         
-        // Ambil data siswa untuk dropdown
-        const res = await fetch(SCRIPT_URL + "?action=getSiswa");
-        dataSiswa = await res.json();
-    }
+        // Update active class
+        document.querySelectorAll('#adminTabs .nav-link').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
 
-    function filterSiswa(val) {
-        if(val.length < 3) return;
-        const select = document.getElementById('selectSiswa');
-        select.innerHTML = '<option value="">-- Pilih Siswa --</option>';
-        dataSiswa.filter(s => s.Nama.toLowerCase().includes(val.toLowerCase()))
-                 .forEach(s => {
-                     select.innerHTML += `<option value="${s.NISN}">${s.Nama} (${s.Kelas})</option>`;
-                 });
-    }
-
-    function startCamera() {
-        document.getElementById('camera-container').style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { document.getElementById('video').srcObject = stream; });
-    }
-
-    async function absenKlik(tipe) {
-        const nisn = document.getElementById('selectSiswa').value;
-        if(!nisn) return alert("Pilih Siswa dulu!");
+        if(tab === 'siswa') {
+            const data = await fetch(API_URL + "?action=getData&sheet=Siswa").then(r => r.json());
+            let html = `<h5>Data Siswa</h5><button class="btn btn-primary btn-sm mb-2" onclick="addSiswa()">Tambah</button>
+                        <table class="table table-bordered table-striped"><thead><tr><th>NISN</th><th>Nama</th><th>Kelas</th><th>Aksi</th></tr></thead><tbody>`;
+            data.forEach(s => {
+                html += `<tr><td>${s.NISN}</td><td>${s.Nama}</td><td>${s.Kelas}</td><td><button class="btn btn-danger btn-sm" onclick="hapusSiswa('${s.NISN}')">Hapus</button></td></tr>`;
+            });
+            content.innerHTML = html + "</tbody></table>";
+        }
         
-        // Ambil Foto
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        canvas.width = 320;
-        canvas.height = 240;
-        canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
-        const photo = canvas.toDataURL('image/jpeg', 0.5); // Kompresi 50%
-
-        const loading = confirm(`Konfirmasi Absen ${tipe} untuk NISN: ${nisn}?`);
-        if(!loading) return;
-
-        const res = await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ 
-                action: "submitAbsen", 
-                nisn: nisn, 
-                tipe: tipe, 
-                photo: photo, 
-                lat: lat, 
-                lng: lng 
-            })
-        });
-        const result = await res.json();
-        if(result.status === "success") alert("Absen Berhasil!");
+        if(tab === 'setting') {
+            content.innerHTML = `
+                <h5>Setting Waktu & Lokasi</h5>
+                <div class="row g-2">
+                    <div class="col-6">Batas Masuk: <input type="time" id="s1" class="form-control"></div>
+                    <div class="col-6">Batas Telat: <input type="time" id="s2" class="form-control"></div>
+                    <div class="col-6">Radius (Meter): <input type="number" id="s3" class="form-control"></div>
+                    <div class="col-12"><button onclick="saveSet()" class="btn btn-success mt-2">Simpan</button></div>
+                </div>`;
+        }
     }
+
+    async function hapusSiswa(nisn) {
+        if(!confirm("Hapus siswa ini?")) return;
+        await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "manageSiswa", type: "delete", nisn: nisn }) });
+        showTab('siswa');
+    }
+
+    function logout() { location.reload(); }
 </script>
 </body>
 </html>
