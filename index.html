@@ -3,105 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi SMP N 2 Kawali</title>
+    <title>Portal Absensi SMP N 2 Kawali</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { 
-            background: linear-gradient(135deg, #001f3f 0%, #0074D9 100%); 
-            color: white; min-height: 100vh; 
+            background: linear-gradient(180deg, #001f3f 0%, #004080 50%, #ffffff 100%); 
+            color: white; min-height: 100vh; font-family: 'Segoe UI', sans-serif;
+            background-attachment: fixed;
         }
         .glass { 
             background: rgba(255, 255, 255, 0.15); 
-            backdrop-filter: blur(10px); 
+            backdrop-filter: blur(15px); 
             border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); 
-            padding: 30px; 
+            padding: 30px; color: #fff; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
-        .logo { width: 80px; margin-bottom: 15px; }
+        .btn-absen { height: 100px; font-size: 1.5rem; font-weight: bold; }
+        .logo { width: 100px; margin-bottom: 10px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5)); }
+        #camera-container { width: 100%; max-width: 400px; margin: auto; border: 3px solid #fff; border-radius: 10px; overflow: hidden; display: none; }
+        video { width: 100%; transform: scaleX(-1); }
+        .text-dark-custom { color: #001f3f; }
+        #jam { font-size: 2.5rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
-    <div class="text-center">
-        <img src="https://drive.google.com/uc?export=view&id=1NCxcqcyFdvdfgsHW5pztphG0jNPmwqC9" class="logo">
-        <h3>PORTAL ABSENSI SMP N 2 KAWALI</h3>
-        <h2 id="jam" class="mb-4">00:00:00</h2>
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <!-- Perbaikan Link Logo -->
+        <img src="logo.png" class="logo" alt="Logo SMP N 2 Kawali">
+        <h4 class="fw-bold">PORTAL ABSENSI SMP N 2 KAWALI</h4>
+        <div id="jam">00:00:00</div>
     </div>
 
     <!-- BOX LOGIN -->
     <div id="loginBox" class="row justify-content-center">
         <div class="col-md-5 glass text-center">
-            <h4>Silakan Login</h4>
-            <select id="role" class="form-select mb-3">
+            <h4 class="mb-4">Silakan Login</h4>
+            <select id="role" class="form-select mb-3 shadow-sm">
                 <option value="admin">User 1 (Admin)</option>
                 <option value="teacher">User 2 (Teacher)</option>
-                <option value="officer">User 3 (Petugas)</option>
+                <option value="officer">User 3 (Petugas Absen)</option>
                 <option value="parent">User 4 (Orang Tua)</option>
             </select>
-            <input type="text" id="user" class="form-control mb-3" placeholder="NISN / Username">
-            <input type="password" id="pass" class="form-control mb-3" placeholder="Password">
-            <button onclick="prosesLogin()" class="btn btn-warning w-100">MASUK</button>
+            <input type="text" id="user" class="form-control mb-3 shadow-sm" placeholder="Username / NISN">
+            <input type="password" id="pass" class="form-control mb-3 shadow-sm" placeholder="Password">
+            <button onclick="prosesLogin()" id="btnLogin" class="btn btn-warning w-100 fw-bold shadow">MASUK</button>
         </div>
     </div>
 
-    <!-- TEMPAT DASHBOARD BERGANTI-GANTI -->
-    <div id="dashboard" class="mt-4 d-none">
-        <div class="glass">
-            <h4 id="welcomeMsg">Selamat Datang</h4>
-            <hr>
-            <div id="contentUI"></div>
+    <!-- DASHBOARD PETUGAS (USER 3) -->
+    <div id="dash-officer" class="d-none">
+        <div class="glass text-center text-dark-custom">
+            <h5 class="text-white">Panel Petugas: <span id="namaPetugas"></span></h5>
+            <div id="gps-status" class="badge bg-info mb-3">Mengecek Lokasi...</div>
+            
+            <div class="bg-white p-3 rounded shadow-sm mb-3">
+                <input type="text" id="cariSiswa" class="form-control mb-2" placeholder="Ketik 3 huruf nama siswa..." onkeyup="filterSiswa(this.value)">
+                <select id="selectSiswa" class="form-select mb-3">
+                    <option value="">-- Pilih Siswa --</option>
+                </select>
+
+                <div id="camera-container" class="mb-3">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" class="d-none"></canvas>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button onclick="absenKlik('Masuk')" class="btn btn-success btn-absen w-100">MASUK</button>
+                    </div>
+                    <div class="col-6">
+                        <button onclick="absenKlik('Pulang')" class="btn btn-danger btn-absen w-100">PULANG</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="btn btn-light btn-sm">Logout</button>
         </div>
     </div>
 </div>
 
 <script>
-    // GANTI URL INI DENGAN URL WEB APP DARI TAHAP 2
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTESzIk0ZXUqY_-BlmF3qXANYzwVnKe_BwpxlU68wg3NvYm2JxfWVJrf9NYA9aWKLI/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTESzIk0ZXUqY_-BlmF3qXANYzwVnKe_BwpxlU68wg3NvYm2JxfWVJrf9NYA9aWKLI/exec"; // GANTI DENGAN URL ANDA
+    let dataSiswa = [];
+    let userAktif = {};
+    let lat, lng;
 
-    // Update Jam Realtime
+    // Jam Realtime
     setInterval(() => {
-        document.getElementById('jam').innerHTML = new Date().toLocaleTimeString();
+        document.getElementById('jam').innerHTML = new Date().toLocaleTimeString('id-ID');
     }, 1000);
+
+    // Get GPS
+    navigator.geolocation.getCurrentPosition(p => {
+        lat = p.coords.latitude;
+        lng = p.coords.longitude;
+        document.getElementById('gps-status').innerHTML = "📍 GPS Aktif";
+        document.getElementById('gps-status').className = "badge bg-success";
+    });
 
     async function prosesLogin() {
         const role = document.getElementById('role').value;
         const user = document.getElementById('user').value;
         const pass = document.getElementById('pass').value;
+        
+        document.getElementById('btnLogin').innerText = "Loading...";
+        
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", role: role, username: user, password: pass })
+            });
+            const data = await res.json();
+            
+            if(data.status === "success") {
+                userAktif = data.user;
+                document.getElementById('loginBox').classList.add('d-none');
+                if(role === 'officer') initOfficer();
+            } else {
+                alert("Login Gagal!");
+            }
+        } catch (e) { alert("Error: " + e.message); }
+        document.getElementById('btnLogin').innerText = "MASUK";
+    }
+
+    async function initOfficer() {
+        document.getElementById('dash-officer').classList.remove('d-none');
+        document.getElementById('namaPetugas').innerText = userAktif.nama;
+        startCamera();
+        
+        // Ambil data siswa untuk dropdown
+        const res = await fetch(SCRIPT_URL + "?action=getSiswa");
+        dataSiswa = await res.json();
+    }
+
+    function filterSiswa(val) {
+        if(val.length < 3) return;
+        const select = document.getElementById('selectSiswa');
+        select.innerHTML = '<option value="">-- Pilih Siswa --</option>';
+        dataSiswa.filter(s => s.Nama.toLowerCase().includes(val.toLowerCase()))
+                 .forEach(s => {
+                     select.innerHTML += `<option value="${s.NISN}">${s.Nama} (${s.Kelas})</option>`;
+                 });
+    }
+
+    function startCamera() {
+        document.getElementById('camera-container').style.display = 'block';
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => { document.getElementById('video').srcObject = stream; });
+    }
+
+    async function absenKlik(tipe) {
+        const nisn = document.getElementById('selectSiswa').value;
+        if(!nisn) return alert("Pilih Siswa dulu!");
+        
+        // Ambil Foto
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        canvas.width = 320;
+        canvas.height = 240;
+        canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+        const photo = canvas.toDataURL('image/jpeg', 0.5); // Kompresi 50%
+
+        const loading = confirm(`Konfirmasi Absen ${tipe} untuk NISN: ${nisn}?`);
+        if(!loading) return;
 
         const res = await fetch(SCRIPT_URL, {
             method: "POST",
-            body: JSON.stringify({ action: "login", role: role, username: user, password: pass })
+            body: JSON.stringify({ 
+                action: "submitAbsen", 
+                nisn: nisn, 
+                tipe: tipe, 
+                photo: photo, 
+                lat: lat, 
+                lng: lng 
+            })
         });
-        
-        const data = await res.json();
-        if(data.status === "success") {
-            alert("Login Berhasil!");
-            bukaDashboard(data.user);
-        } else {
-            alert("Login Gagal! Periksa Username/Password");
-        }
-    }
-
-    function bukaDashboard(userData) {
-        document.getElementById('loginBox').classList.add('d-none');
-        document.getElementById('dashboard').classList.remove('d-none');
-        document.getElementById('welcomeMsg').innerText = "Halo, " + userData.nama + " (" + userData.role + ")";
-        
-        // Di sini nanti kita masukkan UI masing-masing Role
-        if(userData.role === "admin") UI_Admin();
-        if(userData.role === "officer") UI_Petugas();
-    }
-    
-    function UI_Petugas() {
-        let html = `
-            <h5>Menu Petugas Absen</h5>
-            <video id="video" width="100%" autoplay class="rounded mb-2"></video>
-            <button class="btn btn-info w-100" onclick="startCamera()">Aktifkan Kamera</button>
-            <input type="text" list="listSiswa" class="form-control mt-3" placeholder="Ketik Nama/NISN Siswa...">
-            <datalist id="listSiswa"></datalist>
-            <button class="btn btn-success mt-3 w-100">Kirim Absen</button>
-        `;
-        document.getElementById('contentUI').innerHTML = html;
+        const result = await res.json();
+        if(result.status === "success") alert("Absen Berhasil!");
     }
 </script>
 </body>
