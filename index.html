@@ -121,13 +121,12 @@ Loading...
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxb18mhtoaG840RA1JzqbJEGmaMrj1dG2FLw_FggWA7Hkun-rNXwvgS5S8-Rl5inQAy/exec";
+<script>
 
-/* ================= LOGIN ================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxb18mhtoaG840RA1JzqbJEGmaMrj1dG2FLw_FggWA7Hkun-rNXwvgS5S8-Rl5inQAy/exec";
 
 function login(){
 
-let role=document.getElementById("role").value;
 let username=document.getElementById("username").value;
 let password=document.getElementById("password").value;
 
@@ -151,23 +150,24 @@ document.getElementById("loading").style.display="none";
 
 if(res.status){
 
-// Simpan session sederhana
+let role = res.role.toString().toLowerCase().trim();
+
+// simpan session
 localStorage.setItem("loginStatus","true");
 localStorage.setItem("nama",res.nama);
-localStorage.setItem("role",res.role);
+localStorage.setItem("role",role);
 
-// Redirect sesuai role dari database
-if(res.role=="admin"){
+if(role === "admin"){
 window.location.href="admin.html";
 }
-else if(res.role=="petugas"){
+else if(role === "petugas"){
 window.location.href="petugas.html";
 }
-else if(res.role=="teacher"){
+else if(role === "teacher"){
 window.location.href="teacher.html";
 }
 else{
-alert("Role tidak dikenali");
+alert("Role di database tidak sesuai. Cek kolom Role di Sheet USERS.");
 }
 
 }else{
@@ -183,6 +183,3 @@ alert("Server error");
 }
 
 </script>
-
-</body>
-</html>
