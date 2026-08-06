@@ -11,27 +11,15 @@
 
 <style>
 
-:root{
---primary:#0d6efd;
---secondary:#4dabf7;
---glass:rgba(255,255,255,0.2);
---text:white;
-}
-
 body{
 margin:0;
 font-family:'Segoe UI',sans-serif;
 display:flex;
 justify-content:center;
 align-items:center;
-background:linear-gradient(135deg,var(--primary),var(--secondary));
+background:linear-gradient(135deg,#0d6efd,#4dabf7);
 height:100vh;
 overflow:hidden;
-transition:0.5s;
-}
-
-.dark{
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 }
 
 .app{
@@ -42,6 +30,7 @@ position:relative;
 border-radius:30px;
 overflow:hidden;
 box-shadow:0 20px 60px rgba(0,0,0,0.4);
+background:linear-gradient(160deg,#0d6efd,#74c0fc);
 }
 
 .content{
@@ -52,20 +41,18 @@ padding-bottom:90px;
 overflow-y:auto;
 }
 
-.glass{
-background:var(--glass);
-backdrop-filter:blur(15px);
-border-radius:25px;
-padding:20px;
-box-shadow:0 15px 40px rgba(0,0,0,0.3);
-border:1px solid rgba(255,255,255,0.3);
-color:var(--text);
+.logo{
+width:85px;
+display:block;
+margin:0 auto 10px auto;
+filter:drop-shadow(0 10px 20px rgba(0,0,0,0.4));
 }
 
 .title{
 text-align:center;
 color:white;
 font-weight:700;
+font-size:16px;
 margin-bottom:10px;
 }
 
@@ -73,6 +60,18 @@ margin-bottom:10px;
 text-align:center;
 color:white;
 margin-bottom:15px;
+font-size:18px;
+font-weight:600;
+}
+
+.glass{
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(15px);
+border-radius:25px;
+padding:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.3);
+border:1px solid rgba(255,255,255,0.3);
+color:white;
 }
 
 .bottom-nav{
@@ -90,38 +89,24 @@ backdrop-filter:blur(15px);
 
 .bottom-nav i{
 color:white;
-font-size:22px;
+font-size:24px;
+cursor:pointer;
+transition:0.3s;
 }
+
+.bottom-nav i:hover{
+transform:scale(1.2);
+}
+
+.hidden{display:none;}
 
 #video{
 width:100%;
 border-radius:20px;
 }
 
-.hidden{display:none;}
-
-.toast-modern{
-position:absolute;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-background:white;
-color:black;
-padding:10px 20px;
-border-radius:20px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-display:none;
-z-index:20;
-}
-
-.loading{
-position:absolute;
-inset:0;
-background:rgba(0,0,0,0.5);
-display:none;
-justify-content:center;
-align-items:center;
-z-index:30;
+.active{
+color:#ffd43b !important;
 }
 
 </style>
@@ -131,21 +116,19 @@ z-index:30;
 
 <div class="app">
 
-<div class="toast-modern" id="toast"></div>
-
-<div class="loading" id="loading">
-<div class="spinner-border text-light"></div>
-</div>
-
 <div class="content">
 
-<div class="title">PORTAL ABSENSI SMP N 2 KAWALI</div>
-<div class="clock" id="clock"></div>
+<!-- LOGO -->
+<img src="logo.png" class="logo">
 
-<div class="glass mb-3" id="gpsStatus">
-<i class="bi bi-geo-alt-fill"></i> Mendeteksi GPS...
+<div class="title">
+PORTAL ABSENSI<br>
+SMP N 2 KAWALI
 </div>
 
+<div class="clock" id="clock"></div>
+
+<!-- LOGIN -->
 <div class="glass" id="loginArea">
 
 <select id="role" class="form-select mb-3">
@@ -161,13 +144,21 @@ z-index:30;
 
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
-<div class="glass mb-3 text-center">
+<div class="glass text-center mb-3">
 <h6 id="welcome"></h6>
 </div>
 
-<div id="petugasPanel" class="hidden">
+<!-- HOME PANEL -->
+<div id="homePanel" class="glass mb-3">
+<h6>Selamat Datang di Sistem Absensi Digital</h6>
+<p>Aplikasi Presensi Modern SMP N 2 Kawali</p>
+</div>
+
+<!-- CAMERA PANEL -->
+<div id="cameraPanel" class="hidden">
 
 <div class="glass mb-3">
 <input type="text" id="searchSiswa" class="form-control mb-2"
@@ -179,12 +170,18 @@ placeholder="Cari siswa..." onkeyup="cari()">
 <video id="video" autoplay playsinline></video>
 </div>
 
-<button class="btn btn-success w-100 mb-2" onclick="absen('Masuk')">ABSEN MASUK</button>
-<button class="btn btn-danger w-100" onclick="absen('Pulang')">ABSEN PULANG</button>
+<button class="btn btn-success w-100 mb-2" onclick="absen('Masuk')">
+ABSEN MASUK
+</button>
+
+<button class="btn btn-danger w-100" onclick="absen('Pulang')">
+ABSEN PULANG
+</button>
 
 </div>
 
-<div class="glass mt-3">
+<!-- STAT PANEL -->
+<div id="statPanel" class="glass hidden">
 <canvas id="chart"></canvas>
 </div>
 
@@ -192,10 +189,11 @@ placeholder="Cari siswa..." onkeyup="cari()">
 
 </div>
 
-<div class="bottom-nav">
-<i class="bi bi-house-fill"></i>
-<i class="bi bi-camera-fill"></i>
-<i class="bi bi-bar-chart-fill"></i>
+<!-- BOTTOM NAV -->
+<div class="bottom-nav hidden" id="bottomNav">
+<i class="bi bi-house-fill active" onclick="showHome()" id="navHome"></i>
+<i class="bi bi-camera-fill" onclick="showCamera()" id="navCamera"></i>
+<i class="bi bi-bar-chart-fill" onclick="showStat()" id="navStat"></i>
 </div>
 
 </div>
@@ -205,40 +203,13 @@ placeholder="Cari siswa..." onkeyup="cari()">
 const API_URL="PASTE_URL_WEB_APP_ANDA";
 let currentUser="";
 
-/* ===== DARK MODE AUTO ===== */
-let hour=new Date().getHours();
-if(hour>=18 || hour<=6){
-document.body.classList.add("dark");
-}
-
-/* ===== CLOCK ===== */
+/* CLOCK */
 setInterval(()=>{
 clock.innerHTML=new Date().toLocaleTimeString();
 },1000);
 
-/* ===== GPS ===== */
-navigator.geolocation.getCurrentPosition(pos=>{
-gpsStatus.innerHTML='<i class="bi bi-geo-alt-fill"></i> GPS Aktif';
-},()=>{
-gpsStatus.innerHTML='<i class="bi bi-x-circle-fill"></i> GPS Tidak Aktif';
-});
-
-/* ===== TOAST ===== */
-function showToast(msg){
-toast.innerHTML=msg;
-toast.style.display="block";
-setTimeout(()=>{toast.style.display="none";},2000);
-}
-
-/* ===== LOADING ===== */
-function showLoading(x){
-loading.style.display=x?"flex":"none";
-}
-
-/* ===== LOGIN ===== */
+/* LOGIN */
 function login(){
-
-showLoading(true);
 
 let form=new FormData();
 form.append("action","login");
@@ -248,29 +219,54 @@ form.append("password",password.value);
 fetch(API_URL,{method:"POST",body:form})
 .then(r=>r.json())
 .then(res=>{
-showLoading(false);
-
 if(res.status){
+
 currentUser=res.nama;
 loginArea.classList.add("hidden");
 dashboard.classList.remove("hidden");
+bottomNav.classList.remove("hidden");
 welcome.innerHTML="Selamat Datang, "+res.nama;
 
 if(res.role=="petugas"){
-petugasPanel.classList.remove("hidden");
 initCamera();
 }
 
-loadChart();
-showToast("Login Berhasil ✅");
-
 }else{
-showToast("Login Gagal ❌");
+alert("Login Gagal");
 }
 });
 }
 
-/* ===== CAMERA ===== */
+/* NAVIGATION */
+function resetNav(){
+navHome.classList.remove("active");
+navCamera.classList.remove("active");
+navStat.classList.remove("active");
+homePanel.classList.add("hidden");
+cameraPanel.classList.add("hidden");
+statPanel.classList.add("hidden");
+}
+
+function showHome(){
+resetNav();
+navHome.classList.add("active");
+homePanel.classList.remove("hidden");
+}
+
+function showCamera(){
+resetNav();
+navCamera.classList.add("active");
+cameraPanel.classList.remove("hidden");
+}
+
+function showStat(){
+resetNav();
+navStat.classList.add("active");
+statPanel.classList.remove("hidden");
+loadChart();
+}
+
+/* CAMERA */
 function initCamera(){
 navigator.mediaDevices.getUserMedia({video:true})
 .then(stream=>{video.srcObject=stream;});
@@ -285,43 +281,7 @@ return canvas.toDataURL("image/jpeg",0.6)
 .replace("data:image/jpeg;base64,","");
 }
 
-/* ===== ABSEN ===== */
-function absen(jenis){
-
-if(!hasilSiswa.value){
-showToast("Pilih siswa dulu");
-return;
-}
-
-let siswa=JSON.parse(hasilSiswa.value);
-
-let form=new FormData();
-form.append("action","absen");
-form.append("nisn",siswa.nisn);
-form.append("nama",siswa.nama);
-form.append("kelas",siswa.kelas);
-form.append("status",jenis);
-form.append("petugas",currentUser);
-
-if(jenis=="Masuk"){
-form.append("photo",ambilFoto());
-}
-
-showLoading(true);
-
-fetch(API_URL,{method:"POST",body:form})
-.then(r=>r.json())
-.then(res=>{
-showLoading(false);
-if(res.status){
-showToast("Absensi Berhasil ✅");
-}else{
-showToast("Gagal ❌");
-}
-});
-}
-
-/* ===== CARI SISWA ===== */
+/* CARI SISWA */
 function cari(){
 if(searchSiswa.value.length<3)return;
 
@@ -342,15 +302,47 @@ hasilSiswa.appendChild(opt);
 });
 }
 
-/* ===== CHART DEMO ===== */
+/* ABSEN */
+function absen(jenis){
+
+if(!hasilSiswa.value){
+alert("Pilih siswa dulu");
+return;
+}
+
+let siswa=JSON.parse(hasilSiswa.value);
+
+let form=new FormData();
+form.append("action","absen");
+form.append("nisn",siswa.nisn);
+form.append("nama",siswa.nama);
+form.append("kelas",siswa.kelas);
+form.append("status",jenis);
+form.append("petugas",currentUser);
+
+if(jenis=="Masuk"){
+form.append("photo",ambilFoto());
+}
+
+fetch(API_URL,{method:"POST",body:form})
+.then(r=>r.json())
+.then(res=>{
+if(res.status){
+alert("Absensi Berhasil ✅");
+}else{
+alert("Gagal ❌");
+}
+});
+}
+
+/* CHART */
 function loadChart(){
 new Chart(document.getElementById("chart"),{
 type:"bar",
 data:{
 labels:["Hadir","Terlambat"],
 datasets:[{
-label:"Statistik Hari Ini",
-data:[12,3],
+data:[10,2],
 backgroundColor:["#198754","#dc3545"]
 }]
 }
