@@ -1,116 +1,260 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PORTAL ABSENSI SMP N 2 KAWALI</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
 <style>
+
+/* ================= GLOBAL ================= */
 body{
-background: linear-gradient(to bottom right,#1e90ff,#ffffff);
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#0d6efd,#4dabf7);
 min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
 }
-.card{
-border-radius:20px;
+
+/* ================= APP CONTAINER ================= */
+.app{
+width:100%;
+max-width:420px;
+height:100vh;
+position:relative;
+overflow:hidden;
+background:linear-gradient(160deg,#0d6efd,#74c0fc);
+border-radius:30px;
+box-shadow:0 20px 50px rgba(0,0,0,0.4);
 }
+
+/* ================= SPLASH ================= */
+#splash{
+position:absolute;
+inset:0;
+background:linear-gradient(160deg,#0d6efd,#4dabf7);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:10;
+color:white;
+animation:fadeOut 1s ease 2.5s forwards;
+}
+
+@keyframes fadeOut{
+to{opacity:0;visibility:hidden;}
+}
+
+#splash img{
+width:100px;
+margin-bottom:15px;
+filter:drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+}
+
+/* ================= CONTENT ================= */
+.content{
+position:absolute;
+inset:0;
+padding:25px 20px 90px 20px;
+overflow-y:auto;
+}
+
+/* ================= GLASS CARD ================= */
+.glass{
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(15px);
+border-radius:25px;
+padding:20px;
+box-shadow:0 15px 35px rgba(0,0,0,0.3);
+border:1px solid rgba(255,255,255,0.3);
+}
+
+/* ================= TITLE ================= */
+.title{
+text-align:center;
+color:white;
+font-weight:700;
+font-size:18px;
+margin-bottom:15px;
+letter-spacing:1px;
+}
+
+/* ================= CLOCK ================= */
+.clock{
+color:white;
+text-align:center;
+font-size:18px;
+font-weight:600;
+margin-bottom:15px;
+}
+
+/* ================= INPUT ================= */
+.form-control,.form-select{
+border-radius:15px;
+padding:12px;
+}
+
+/* ================= BUTTON ================= */
+.btn-modern{
+border-radius:15px;
+padding:12px;
+font-weight:600;
+background:linear-gradient(45deg,#0d6efd,#228be6);
+border:none;
+box-shadow:0 8px 20px rgba(0,0,0,0.3);
+color:white;
+transition:0.3s;
+}
+
+.btn-modern:hover{
+transform:translateY(-2px);
+}
+
+/* ================= VIDEO ================= */
 #video{
 width:100%;
-border-radius:15px;
+border-radius:20px;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
 }
+
+/* ================= BOTTOM NAV ================= */
+.bottom-nav{
+position:absolute;
+bottom:0;
+left:0;
+right:0;
+height:70px;
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(15px);
+display:flex;
+justify-content:space-around;
+align-items:center;
+border-top:1px solid rgba(255,255,255,0.3);
+}
+
+.bottom-nav i{
+font-size:22px;
+color:white;
+}
+
+.hidden{display:none;}
+
 </style>
 </head>
 
 <body>
 
-<div class="container mt-5">
+<div class="app">
 
-<h2 class="text-center text-primary fw-bold">
-PORTAL ABSENSI SMP N 2 KAWALI
-</h2>
+<!-- SPLASH -->
+<div id="splash">
+<img src="logo.png">
+<h5>PORTAL ABSENSI</h5>
+<small>SMP N 2 KAWALI</small>
+</div>
 
-<div class="card p-4 shadow mt-4">
+<!-- MAIN CONTENT -->
+<div class="content">
 
-<div id="loginArea">
+<div class="title">PORTAL ABSENSI SISWA</div>
+<div class="clock" id="clock"></div>
 
-<select id="role" class="form-select mb-2">
+<div class="glass" id="loginArea">
+
+<select id="role" class="form-select mb-3">
 <option value="admin">Admin</option>
 <option value="teacher">Teacher</option>
 <option value="petugas">Petugas</option>
 </select>
 
-<input type="text" id="username" class="form-control mb-2" placeholder="Username">
-<input type="password" id="password" class="form-control mb-2" placeholder="Password">
+<input type="text" id="username" class="form-control mb-3" placeholder="Username">
+<input type="password" id="password" class="form-control mb-3" placeholder="Password">
 
-<button class="btn btn-primary w-100" onclick="login()">LOGIN</button>
-
-</div>
-
-<div id="dashboard" style="display:none;">
-
-<h5 id="welcome"></h5>
-<h3 id="clock" class="text-primary"></h3>
-
-<hr>
-
-<div id="petugasPanel" style="display:none;">
-
-<input type="text" id="searchSiswa" class="form-control mb-2" placeholder="Cari siswa min 3 huruf" onkeyup="cari()">
-
-<select id="hasilSiswa" class="form-select mb-3"></select>
-
-<video id="video" autoplay></video>
-
-<div class="mt-3">
-<button class="btn btn-success w-100 mb-2" onclick="absen('Masuk')">ABSEN MASUK</button>
-<button class="btn btn-danger w-100" onclick="absen('Pulang')">ABSEN PULANG</button>
-</div>
+<button class="btn btn-modern w-100" onclick="login()">LOGIN</button>
 
 </div>
 
+<div id="dashboard" class="hidden">
+
+<div class="glass mb-3 text-white text-center">
+<h6 id="welcome"></h6>
+</div>
+
+<div id="petugasPanel" class="hidden">
+
+<div class="glass mb-3">
+<input type="text" id="searchSiswa" class="form-control mb-2"
+placeholder="Cari siswa (min 3 huruf)" onkeyup="cari()">
+<select id="hasilSiswa" class="form-select"></select>
+</div>
+
+<div class="glass mb-3">
+<video id="video" autoplay playsinline></video>
+</div>
+
+<button class="btn btn-success w-100 mb-2" onclick="absen('Masuk')">
+ABSEN MASUK
+</button>
+
+<button class="btn btn-danger w-100" onclick="absen('Pulang')">
+ABSEN PULANG
+</button>
+
 </div>
 
 </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+<i class="bi bi-house-fill"></i>
+<i class="bi bi-camera-fill"></i>
+<i class="bi bi-person-fill"></i>
+</div>
+
 </div>
 
 <script>
 
-const API_URL = "PASTE_URL_WEB_APP_ANDA";
+const API_URL="PASTE_URL_WEB_APP_ANDA";
+let currentUser="";
 
-let currentUser = "";
-
-function startClock(){
+/* ===== CLOCK ===== */
 setInterval(()=>{
-const now = new Date();
-document.getElementById("clock").innerHTML = now.toLocaleTimeString();
+document.getElementById("clock").innerHTML=
+new Date().toLocaleTimeString();
 },1000);
-}
 
-startClock();
-
-/* ================= LOGIN ================= */
-
+/* ===== LOGIN ===== */
 function login(){
 
-const form = new FormData();
+const form=new FormData();
 form.append("action","login");
-form.append("username",document.getElementById("username").value);
-form.append("password",document.getElementById("password").value);
+form.append("username",username.value);
+form.append("password",password.value);
 
-fetch(API_URL,{
-method:"POST",
-body:form
-})
-.then(res=>res.json())
+fetch(API_URL,{method:"POST",body:form})
+.then(r=>r.json())
 .then(res=>{
 
 if(res.status){
-currentUser = res.nama;
 
-document.getElementById("loginArea").style.display="none";
-document.getElementById("dashboard").style.display="block";
-document.getElementById("welcome").innerHTML="Selamat Datang, "+res.nama;
+currentUser=res.nama;
+
+loginArea.classList.add("hidden");
+dashboard.classList.remove("hidden");
+welcome.innerHTML="Selamat Datang, "+res.nama;
 
 if(res.role=="petugas"){
-document.getElementById("petugasPanel").style.display="block";
+petugasPanel.classList.remove("hidden");
 initCamera();
 }
 
@@ -121,54 +265,55 @@ alert("Login Gagal");
 });
 }
 
-/* ================= CAMERA ================= */
-
+/* ===== CAMERA ===== */
 function initCamera(){
 navigator.mediaDevices.getUserMedia({video:true})
 .then(stream=>{
-document.getElementById("video").srcObject=stream;
+video.srcObject=stream;
 });
 }
 
 function ambilFoto(){
 const canvas=document.createElement("canvas");
-const video=document.getElementById("video");
 canvas.width=400;
 canvas.height=300;
-const ctx=canvas.getContext("2d");
-ctx.drawImage(video,0,0,400,300);
-return canvas.toDataURL("image/jpeg",0.6).replace("data:image/jpeg;base64,","");
+canvas.getContext("2d").drawImage(video,0,0,400,300);
+return canvas.toDataURL("image/jpeg",0.6)
+.replace("data:image/jpeg;base64,","");
 }
 
-/* ================= CARI SISWA ================= */
-
+/* ===== CARI SISWA ===== */
 function cari(){
-let key=document.getElementById("searchSiswa").value;
+
+let key=searchSiswa.value;
 if(key.length<3) return;
 
-const form=new FormData();
+let form=new FormData();
 form.append("action","cariSiswa");
 form.append("keyword",key);
 
 fetch(API_URL,{method:"POST",body:form})
-.then(res=>res.json())
+.then(r=>r.json())
 .then(data=>{
-let select=document.getElementById("hasilSiswa");
-select.innerHTML="";
+hasilSiswa.innerHTML="";
 data.forEach(s=>{
 let opt=document.createElement("option");
 opt.value=JSON.stringify(s);
 opt.text=s.nama+" - "+s.kelas;
-select.appendChild(opt);
+hasilSiswa.appendChild(opt);
 });
 });
 }
 
-/* ================= ABSEN ================= */
-
+/* ===== ABSEN ===== */
 function absen(jenis){
 
-let siswa=JSON.parse(document.getElementById("hasilSiswa").value);
+if(!hasilSiswa.value){
+alert("Pilih siswa dulu");
+return;
+}
+
+let siswa=JSON.parse(hasilSiswa.value);
 
 let form=new FormData();
 form.append("action","absen");
@@ -183,15 +328,14 @@ form.append("photo",ambilFoto());
 }
 
 fetch(API_URL,{method:"POST",body:form})
-.then(res=>res.json())
+.then(r=>r.json())
 .then(res=>{
 if(res.status){
-alert("Absensi Berhasil");
+alert("Absensi Berhasil ✅");
 }else{
-alert("Gagal");
+alert("Gagal ❌");
 }
 });
-
 }
 
 </script>
