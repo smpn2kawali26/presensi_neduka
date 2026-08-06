@@ -1,433 +1,200 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Absensi SMP N 2 Kawali</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #ffffff 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        .login-card, .dashboard-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-        }
-        .school-logo {
-            width: 80px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-        .clock-display {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: #0d1b2a;
-            background: #e0e1dd;
-            padding: 10px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #0d1b2a;
-        }
-        .nav-pills .nav-link {
-            color: #0d1b2a;
-        }
-        #camera-feed {
-            width: 100%;
-            border-radius: 10px;
-            background: #000;
-        }
-        .hidden { display: none; }
-    </style>
+<meta charset="UTF-8">
+<title>PORTAL ABSENSI SMP N 2 KAWALI</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{
+background: linear-gradient(to bottom right,#1e90ff,#ffffff);
+min-height:100vh;
+}
+.card{
+border-radius:20px;
+}
+#video{
+width:100%;
+border-radius:15px;
+}
+</style>
 </head>
+
 <body>
 
-    <!-- LOGIN SECTION -->
-    <div class="container d-flex justify-content-center align-items-center min-vh-100" id="loginSection">
-        <div class="login-card p-5 text-center" style="max-width: 450px; width: 100%;">
-            <img src="https://drive.google.com/uc?export=view&id=1NCxcqcyFdvdfgsHW5pztphG0jNPmwqC9" alt="Logo Sekolah" class="school-logo">
-            <h4 class="mb-3 fw-bold">PORTAL ABSENSI<br>SMP N 2 KAWALI</h4>
-            
-            <div id="clock" class="clock-display">00:00:00</div>
-            
-            <form id="loginForm">
-                <div class="mb-3 text-start">
-                    <label class="form-label">Pilih Akses</label>
-                    <select class="form-select" id="userRole" required>
-                        <option value="" disabled selected>-- Pilih Login --</option>
-                        <option value="Admin">Administrator</option>
-                        <option value="Teacher">Guru / Wali Kelas</option>
-                        <option value="Petugas">Petugas Absensi</option>
-                        <option value="Ortu">Orang Tua Siswa</option>
-                    </select>
-                </div>
-                <div class="mb-3 text-start">
-                    <input type="text" class="form-control" id="username" placeholder="Username / NISN" required>
-                </div>
-                <div class="mb-3 text-start">
-                    <input type="password" class="form-control" id="password" placeholder="Password" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">MASUK PORTAL</button>
-            </form>
-            <div id="loginMsg" class="mt-3 text-danger"></div>
-        </div>
-    </div>
+<div class="container mt-5">
 
-    <!-- DASHBOARD SECTION -->
-    <div class="container py-4 hidden" id="dashboardSection">
-        <div class="dashboard-card p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <div class="d-flex align-items-center">
-                    <img src="https://drive.google.com/uc?export=view&id=1NCxcqcyFdvdfgsHW5pztphG0jNPmwqC9" alt="Logo" class="school-logo me-3" style="width: 50px;">
-                    <div>
-                        <h5 class="mb-0 fw-bold">SMP N 2 KAWALI</h5>
-                        <small id="userDisplay" class="text-muted">User</small>
-                    </div>
-                </div>
-                <div class="text-end">
-                    <div id="dashClock" class="clock-display" style="font-size: 1rem; padding: 5px;">00:00</div>
-                    <button onclick="logout()" class="btn btn-sm btn-danger">Keluar</button>
-                </div>
-            </div>
+<h2 class="text-center text-primary fw-bold">
+PORTAL ABSENSI SMP N 2 KAWALI
+</h2>
 
-            <!-- NAVIGATION TABS -->
-            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                <!-- Tabs will be injected by JS based on Role -->
-            </ul>
+<div class="card p-4 shadow mt-4">
 
-            <!-- CONTENT AREA -->
-            <div class="tab-content" id="pills-tabContent">
-                
-                <!-- PETUGAS ABSENSI VIEW -->
-                <div class="tab-pane fade show active" id="viewPetugas">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Absensi Siswa</h5>
-                            <div class="mb-3">
-                                <input type="text" class="form-control" id="searchSiswa" placeholder="Cari Nama/NISN (Min 3 Huruf)...">
-                                <div id="searchResult" class="list-group"></div>
-                            </div>
-                            <div class="card p-2 mb-3 bg-light">
-                                <p class="mb-1"><strong>Nama:</strong> <span id="absenNama">-</span></p>
-                                <p class="mb-1"><strong>Kelas:</strong> <span id="absenKelas">-</span></p>
-                                <p class="mb-0"><strong>NISN:</strong> <span id="absenNISN">-</span></p>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-success" onclick="kirimAbsen('Masuk')"><i class="fas fa-sign-in-alt"></i> ABSEN MASUK</button>
-                                <button class="btn btn-warning" onclick="kirimAbsen('Pulang')"><i class="fas fa-sign-out-alt"></i> ABSEN PULANG</button>
-                            </div>
-                        </div>
-                        <div class="col-md-6 text-center">
-                            <h5>Verifikasi Wajah</h5>
-                            <video id="camera-feed" autoplay playsinline></video>
-                            <canvas id="camera-canvas" class="hidden"></canvas>
-                            <div class="mt-2">
-                                <button class="btn btn-secondary btn-sm" onclick="switchCamera()"><i class="fas fa-sync"></i> Ganti Kamera</button>
-                                <div id="gpsStatus" class="badge bg-info mt-2">Mencari GPS...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div id="loginArea">
 
-                <!-- ADMIN VIEW (Placeholder) -->
-                <div class="tab-pane fade" id="viewAdmin">
-                    <h3>Dashboard Admin</h3>
-                    <div class="row">
-                        <div class="col-md-4"><div class="card p-3 mb-2">Data Siswa</div></div>
-                        <div class="col-md-4"><div class="card p-3 mb-2">Data Guru</div></div>
-                        <div class="col-md-4"><div class="card p-3 mb-2">Rekap Absensi</div></div>
-                        <div class="col-md-4"><div class="card p-3 mb-2">Setting Lokasi</div></div>
-                        <div class="col-md-4"><div class="card p-3 mb-2">Jadwal Pelajaran</div></div>
-                        <div class="col-md-4"><div class="card p-3 mb-2">Download Laporan PDF</div></div>
-                    </div>
-                </div>
-                
-                <!-- TEACHER VIEW (Placeholder) -->
-                <div class="tab-pane fade" id="viewTeacher">
-                    <h3>Dashboard Guru</h3>
-                    <div class="alert alert-info">Selamat Datang, Bapak/Ibu Guru.</div>
-                    <div class="row">
-                         <div class="col-md-6">
-                            <div class="card p-3 mb-3">
-                                <h5>Input Catatan Siswa</h5>
-                                <textarea class="form-control mb-2" placeholder="Catatan perilaku/prestasi..."></textarea>
-                                <button class="btn btn-primary btn-sm">Kirim Catatan</button>
-                            </div>
-                         </div>
-                         <div class="col-md-6">
-                            <div class="card p-3 mb-3">
-                                <h5>Link Upload</h5>
-                                <a href="https://forms.gle/AbAhR7g9aaWyfDdZ9" target="_blank" class="btn btn-outline-dark w-100 mb-2">Upload ADM Guru</a>
-                                <a href="https://forms.gle/o6qEswxqMf8bRHsH9" target="_blank" class="btn btn-outline-dark w-100 mb-2">Upload Supervisi</a>
-                                <a href="https://forms.gle/TNjw3PQePPdPMkBS8" target="_blank" class="btn btn-outline-dark w-100">Upload Naskah Asesmen</a>
-                            </div>
-                         </div>
-                    </div>
-                </div>
+<select id="role" class="form-select mb-2">
+<option value="admin">Admin</option>
+<option value="teacher">Teacher</option>
+<option value="petugas">Petugas</option>
+</select>
 
-                <!-- ORTU VIEW (Placeholder) -->
-                <div class="tab-pane fade" id="viewOrtu">
-                    <h3>Dashboard Orang Tua</h3>
-                    <div class="card p-3 mb-3">
-                        <h5>Lapor Izin/Sakit</h5>
-                        <textarea class="form-control mb-2" id="ortuPesan" placeholder="Keterangan sakit/izin..."></textarea>
-                        <input type="file" class="form-control mb-2" id="ortuFoto" accept="image/*">
-                        <button class="btn btn-primary" onclick="kirimCatatanOrtu()">Kirim Laporan</button>
-                    </div>
-                    <div id="rekapOrtu">
-                        <!-- Rekap absen anak akan muncul disini -->
-                    </div>
-                </div>
+<input type="text" id="username" class="form-control mb-2" placeholder="Username">
+<input type="password" id="password" class="form-control mb-2" placeholder="Password">
 
-            </div>
-        </div>
-    </div>
+<button class="btn btn-primary w-100" onclick="login()">LOGIN</button>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // --- KONFIGURASI ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbyg-DLthxzaW-ASmBDZD1iuVW8C9focpQJRkHxXAieT5-yTQsRZtq_qiqiR2phWJBnt/exec"; // GANTI DENGAN URL DEPLOYMENT ANDA
-        
-        let currentUser = null;
-        let currentStream = null;
-        let selectedSiswa = null;
-        let userLocation = null;
+</div>
 
-        // --- JAM DIGITAL ---
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('id-ID');
-            const dateString = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('clock').innerHTML = `${dateString}<br>${timeString}`;
-            document.getElementById('dashClock').innerText = timeString;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+<div id="dashboard" style="display:none;">
 
-        // --- LOGIN ---
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const role = document.getElementById('userRole').value;
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const btn = this.querySelector('button');
-            
-            btn.disabled = true;
-            btn.innerText = "Memproses...";
+<h5 id="welcome"></h5>
+<h3 id="clock" class="text-primary"></h3>
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "login", username: user, password: pass })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
-                    if(data.role === role || (role === 'Ortu' && data.role === 'Ortu')) {
-                        currentUser = data;
-                        initDashboard(role);
-                    } else {
-                        document.getElementById('loginMsg').innerText = "Role tidak sesuai!";
-                        btn.disabled = false;
-                        btn.innerText = "MASUK PORTAL";
-                    }
-                } else {
-                    document.getElementById('loginMsg').innerText = data.message;
-                    btn.disabled = false;
-                    btn.innerText = "MASUK PORTAL";
-                }
-            })
-            .catch(err => {
-                document.getElementById('loginMsg').innerText = "Koneksi Error";
-                btn.disabled = false;
-                btn.innerText = "MASUK PORTAL";
-            });
-        });
+<hr>
 
-        function initDashboard(role) {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = `${role} - ${currentUser.name}`;
-            
-            // Setup Tabs based on Role
-            const tabContainer = document.getElementById('pills-tab');
-            tabContainer.innerHTML = '';
-            
-            if(role === 'Admin') {
-                tabContainer.innerHTML += `<li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#viewAdmin">Dashboard</button></li>`;
-            } else if (role === 'Teacher') {
-                tabContainer.innerHTML += `<li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#viewTeacher">Dashboard Guru</button></li>`;
-            } else if (role === 'Petugas') {
-                tabContainer.innerHTML += `<li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#viewPetugas">Absensi</button></li>`;
-                startCamera();
-                getLocation();
-            } else if (role === 'Ortu') {
-                tabContainer.innerHTML += `<li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#viewOrtu">Dashboard Ortu</button></li>`;
-                loadRekapOrtu();
-            }
-        }
+<div id="petugasPanel" style="display:none;">
 
-        function logout() {
-            location.reload();
-        }
+<input type="text" id="searchSiswa" class="form-control mb-2" placeholder="Cari siswa min 3 huruf" onkeyup="cari()">
 
-        // --- LOGIKA PETUGAS (CAMERA & GPS) ---
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                document.getElementById('camera-feed').srcObject = stream;
-                currentStream = stream;
-            } catch (err) {
-                alert("Gagal akses kamera: " + err);
-            }
-        }
+<select id="hasilSiswa" class="form-select mb-3"></select>
 
-        function switchCamera() {
-            // Logika ganti kamera depan/belakang (perlu iterasi constraints)
-            // Simplified for now
-            alert("Fitur ganti kamera perlu penyesuaian device spesifik");
-        }
+<video id="video" autoplay></video>
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    userLocation = {
-                        lat: position.coords.latitude,
-                        long: position.coords.longitude
-                    };
-                    document.getElementById('gpsStatus').innerText = "GPS Aktif";
-                    document.getElementById('gpsStatus').classList.replace('bg-info', 'bg-success');
-                }, () => {
-                    document.getElementById('gpsStatus').innerText = "GPS Gagal";
-                    document.getElementById('gpsStatus').classList.replace('bg-info', 'bg-danger');
-                });
-            }
-        }
+<div class="mt-3">
+<button class="btn btn-success w-100 mb-2" onclick="absen('Masuk')">ABSEN MASUK</button>
+<button class="btn btn-danger w-100" onclick="absen('Pulang')">ABSEN PULANG</button>
+</div>
 
-        // Search Siswa
-        document.getElementById('searchSiswa').addEventListener('input', function(e) {
-            const val = e.target.value;
-            if(val.length < 3) return;
-            
-            // Fetch data siswa dari GAS (bisa di-cache agar cepat)
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getSiswa" }) })
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById('searchResult');
-                list.innerHTML = '';
-                data.forEach(s => {
-                    if(s[1].toLowerCase().includes(val.toLowerCase()) || s[0].includes(val)) {
-                        const item = document.createElement('button');
-                        item.className = 'list-group-item list-group-item-action';
-                        item.innerText = `${s[1]} (${s[3]})`;
-                        item.onclick = () => selectSiswa(s);
-                        list.appendChild(item);
-                    }
-                });
-            });
-        });
+</div>
 
-        function selectSiswa(siswaData) {
-            selectedSiswa = { nisn: siswaData[0], nama: siswaData[1], kelas: siswaData[3] };
-            document.getElementById('absenNama').innerText = selectedSiswa.nama;
-            document.getElementById('absenKelas').innerText = selectedSiswa.kelas;
-            document.getElementById('absenNISN').innerText = selectedSiswa.nisn;
-            document.getElementById('searchResult').innerHTML = '';
-            document.getElementById('searchSiswa').value = '';
-        }
+</div>
 
-        function kirimAbsen(tipe) {
-            if(!selectedSiswa) return alert("Pilih siswa dulu!");
-            if(!userLocation) return alert("Tunggu GPS aktif!");
+</div>
+</div>
 
-            // Ambil Foto
-            const video = document.getElementById('camera-feed');
-            const canvas = document.getElementById('camera-canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const fotoBase64 = canvas.toDataURL('image/jpeg', 0.5); // Compress 0.5
+<script>
 
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.disabled = true;
-            btn.innerText = "Mengirim...";
+const API_URL = "PASTE_URL_WEB_APP_ANDA";
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "absen",
-                    nisn: selectedSiswa.nisn,
-                    nama: selectedSiswa.nama,
-                    kelas: selectedSiswa.kelas,
-                    tipe: tipe,
-                    lokasi: `${userLocation.lat},${userLocation.long}`,
-                    fotoBase64: fotoBase64
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                btn.disabled = false;
-                btn.innerText = originalText;
-                // Reset form
-                selectedSiswa = null;
-                document.getElementById('absenNama').innerText = "-";
-            });
-        }
+let currentUser = "";
 
-        // --- LOGIKA ORTU ---
-        function loadRekapOrtu() {
-            // Load rekap berdasarkan NISN user yang login
-            document.getElementById('rekapOrtu').innerHTML = "<p>Memuat data absensi...</p>";
-            // Implementasi fetch data absen filtered by NISN
-        }
+function startClock(){
+setInterval(()=>{
+const now = new Date();
+document.getElementById("clock").innerHTML = now.toLocaleTimeString();
+},1000);
+}
 
-        function kirimCatatanOrtu() {
-            const pesan = document.getElementById('ortuPesan').value;
-            const fileInput = document.getElementById('ortuFoto');
-            
-            if(!pesan && fileInput.files.length === 0) return alert("Isi pesan atau upload foto");
+startClock();
 
-            let fotoBase64 = null;
-            
-            const processSend = () => {
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "simpanCatatan",
-                        nisn: currentUser.nisn,
-                        namaSiswa: currentUser.name,
-                        dari: "Ortu",
-                        namaPengirim: "Ortu/Wali",
-                        isi: pesan,
-                        fotoBase64: fotoBase64
-                    })
-                }).then(res => res.json()).then(d => alert(d.message));
-            };
+/* ================= LOGIN ================= */
 
-            if(fileInput.files.length > 0) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    fotoBase64 = e.target.result;
-                    processSend();
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                processSend();
-            }
-        }
+function login(){
 
-    </script>
+const form = new FormData();
+form.append("action","login");
+form.append("username",document.getElementById("username").value);
+form.append("password",document.getElementById("password").value);
+
+fetch(API_URL,{
+method:"POST",
+body:form
+})
+.then(res=>res.json())
+.then(res=>{
+
+if(res.status){
+currentUser = res.nama;
+
+document.getElementById("loginArea").style.display="none";
+document.getElementById("dashboard").style.display="block";
+document.getElementById("welcome").innerHTML="Selamat Datang, "+res.nama;
+
+if(res.role=="petugas"){
+document.getElementById("petugasPanel").style.display="block";
+initCamera();
+}
+
+}else{
+alert("Login Gagal");
+}
+
+});
+}
+
+/* ================= CAMERA ================= */
+
+function initCamera(){
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+document.getElementById("video").srcObject=stream;
+});
+}
+
+function ambilFoto(){
+const canvas=document.createElement("canvas");
+const video=document.getElementById("video");
+canvas.width=400;
+canvas.height=300;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(video,0,0,400,300);
+return canvas.toDataURL("image/jpeg",0.6).replace("data:image/jpeg;base64,","");
+}
+
+/* ================= CARI SISWA ================= */
+
+function cari(){
+let key=document.getElementById("searchSiswa").value;
+if(key.length<3) return;
+
+const form=new FormData();
+form.append("action","cariSiswa");
+form.append("keyword",key);
+
+fetch(API_URL,{method:"POST",body:form})
+.then(res=>res.json())
+.then(data=>{
+let select=document.getElementById("hasilSiswa");
+select.innerHTML="";
+data.forEach(s=>{
+let opt=document.createElement("option");
+opt.value=JSON.stringify(s);
+opt.text=s.nama+" - "+s.kelas;
+select.appendChild(opt);
+});
+});
+}
+
+/* ================= ABSEN ================= */
+
+function absen(jenis){
+
+let siswa=JSON.parse(document.getElementById("hasilSiswa").value);
+
+let form=new FormData();
+form.append("action","absen");
+form.append("nisn",siswa.nisn);
+form.append("nama",siswa.nama);
+form.append("kelas",siswa.kelas);
+form.append("status",jenis);
+form.append("petugas",currentUser);
+
+if(jenis=="Masuk"){
+form.append("photo",ambilFoto());
+}
+
+fetch(API_URL,{method:"POST",body:form})
+.then(res=>res.json())
+.then(res=>{
+if(res.status){
+alert("Absensi Berhasil");
+}else{
+alert("Gagal");
+}
+});
+
+}
+
+</script>
+
 </body>
 </html>
