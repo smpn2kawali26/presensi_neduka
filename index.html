@@ -31,7 +31,7 @@
         .login-card { background: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 40px 30px; width: 100%; max-width: 400px; }
         
         /* Dashboard Wrapper */
-        #dashboard-section { display: none; } /* Disembunyikan sebelum login */
+        #dashboard-section { display: none; }
         #wrapper { display: flex; transition: all 0.3s ease-in-out; }
         
         /* Sidebar (Collapsible) */
@@ -43,17 +43,15 @@
             min-height: 100vh;
             transition: all 0.3s;
         }
-        #sidebar.collapsed { margin-left: -250px; } /* Menghilangkan sidebar saat toggle */
+        #sidebar.collapsed { margin-left: -250px; }
         #sidebar .sidebar-header { padding: 20px; background: var(--secondary-bg); text-align: center; }
         #sidebar ul.components { padding: 20px 0; }
-        #sidebar ul li a { padding: 12px 20px; display: block; color: #cbd5e1; text-decoration: none; font-size: 15px; transition: 0.3s; }
-        #sidebar ul li a:hover { color: #fff; background: var(--accent-color); border-left: 4px solid #3498db; }
+        #sidebar ul li a { padding: 12px 20px; display: block; color: #cbd5e1; text-decoration: none; font-size: 15px; transition: 0.3s; cursor: pointer; }
+        #sidebar ul li a:hover, #sidebar ul li a.active { color: #fff; background: var(--accent-color); border-left: 4px solid #3498db; }
         #sidebar ul li a i { margin-right: 10px; width: 20px; text-align: center; }
 
         /* Content Area */
         #page-content-wrapper { width: 100%; }
-        
-        /* Navbar dengan Hamburger & Profile Dropdown */
         .navbar-custom { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
         .hamburger-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-bg); cursor: pointer; }
         .clock-top { font-weight: bold; color: var(--secondary-bg); margin-left: 15px; font-size: 1.2rem; }
@@ -62,17 +60,17 @@
         .dashboard-content { padding: 25px; }
         .card-custom { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; transition: 0.3s; }
         .card-custom:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        
+        /* Menyembunyikan section yang tidak aktif */
+        .content-section { display: none; }
+        .content-section.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- ============================================== -->
     <!-- BAGIAN 1: HALAMAN LOGIN -->
-    <!-- ============================================== -->
     <div id="login-section">
         <div class="login-card">
-            
-            <!-- Logo Sekolah Login (Mengambil dari file lokal di GitHub) -->
             <div class="text-center mb-3">
                 <img src="logo.png" alt="Logo SMP N 2 Kawali" width="90" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=203a43&color=fff&size=90&rounded=true';">
             </div>
@@ -80,7 +78,6 @@
             <h5 class="text-center fw-bold text-uppercase mb-1" style="color: var(--primary-bg);">PORTAL ABSENSI</h5>
             <h6 class="text-center fw-bold mb-4" style="color: var(--secondary-bg);">SMP N 2 KAWALI</h6>
 
-            <!-- Jam & Tanggal -->
             <div class="text-center fs-3 fw-bold text-dark" id="jamDigitalLogin">00:00:00</div>
             <div class="text-center text-secondary mb-4" id="tanggalDigitalLogin" style="font-size: 0.9rem;">Senin, 01 Januari 2024</div>
 
@@ -104,42 +101,35 @@
                     <input type="password" class="form-control shadow-sm" id="password" placeholder="Masukkan Password">
                 </div>
                 
-                <button type="submit" class="btn w-100 text-white" id="btnLogin" style="background-color: var(--secondary-bg);">
-                    LOGIN KE DASHBOARD
-                </button>
+                <button type="submit" class="btn w-100 text-white" id="btnLogin" style="background-color: var(--secondary-bg);">LOGIN KE DASHBOARD</button>
             </form>
-            
-            <!-- Notifikasi Error Login -->
             <div id="loginError" class="alert alert-danger mt-3 d-none text-center small"></div>
         </div>
     </div>
 
 
-    <!-- ============================================== -->
-    <!-- BAGIAN 2: DASHBOARD ADMIN UTAMA -->
-    <!-- ============================================== -->
+    <!-- BAGIAN 2: DASHBOARD ADMIN -->
     <div id="dashboard-section">
         <div id="wrapper">
             
             <!-- A. SIDEBAR -->
             <nav id="sidebar">
                 <div class="sidebar-header">
-                    <!-- Logo Sekolah Sidebar (Kecil) -->
                     <img src="logo.png" alt="Logo SMP N 2 Kawali" width="60" class="mb-2" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=2c5364&color=fff&size=60&rounded=true';">
                     <h5 class="text-white m-0">SMP N 2 KAWALI</h5>
                     <small class="text-white-50">Portal Admin</small>
                 </div>
                 <ul class="components list-unstyled">
-                    <li><a href="#"><i class="fas fa-home"></i> Beranda Admin</a></li>
-                    <li><a href="#"><i class="fas fa-user-graduate"></i> Data Siswa</a></li>
-                    <li><a href="#"><i class="fas fa-chalkboard-teacher"></i> Data Guru</a></li>
-                    <li><a href="#"><i class="fas fa-calendar-check"></i> Rekap Absen</a></li>
-                    <li><a href="#"><i class="fas fa-map-marker-alt"></i> Setting Lokasi</a></li>
-                    <li><a href="#"><i class="fas fa-clock"></i> Setting Waktu</a></li>
-                    <li><a href="#"><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
-                    <li><a href="#"><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
-                    <li><a href="#"><i class="fas fa-envelope-open-text"></i> Catatan Ortu</a></li>
-                    <li><a href="#"><i class="fas fa-file-pdf"></i> Download Laporan</a></li>
+                    <li><a id="nav-beranda" class="active"><i class="fas fa-home"></i> Beranda Admin</a></li>
+                    <li><a id="nav-siswa"><i class="fas fa-user-graduate"></i> Data Siswa</a></li>
+                    <li><a id="nav-guru"><i class="fas fa-chalkboard-teacher"></i> Data Guru</a></li>
+                    <li><a><i class="fas fa-calendar-check"></i> Rekap Absen</a></li>
+                    <li><a><i class="fas fa-map-marker-alt"></i> Setting Lokasi</a></li>
+                    <li><a><i class="fas fa-clock"></i> Setting Waktu</a></li>
+                    <li><a><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
+                    <li><a><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
+                    <li><a><i class="fas fa-envelope-open-text"></i> Catatan Ortu</a></li>
+                    <li><a><i class="fas fa-file-pdf"></i> Download Laporan</a></li>
                 </ul>
             </nav>
 
@@ -149,18 +139,15 @@
                 <!-- NAVBAR ATAS -->
                 <nav class="navbar-custom">
                     <div class="d-flex align-items-center">
-                        <!-- HAMBURGER MENU -->
                         <button class="hamburger-btn" id="menu-toggle"><i class="fas fa-bars"></i></button>
                         <div class="clock-top" id="jamDigitalDashboard">00:00:00</div>
                     </div>
-
-                    <!-- PROFILE DROPDOWN MENU -->
                     <div class="dropdown">
-                        <a class="text-decoration-none text-dark dropdown-toggle d-flex align-items-center" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="text-decoration-none text-dark dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                             <img src="https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff" class="rounded-circle me-2" width="35" height="35" alt="Profile">
                             <span class="fw-bold d-none d-sm-inline" id="userProfileName">Administrator</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
                             <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i> Pengaturan Akun</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="fas fa-sign-out-alt me-2"></i> Keluar</a></li>
@@ -168,57 +155,136 @@
                     </div>
                 </nav>
 
-                <!-- KONTEN DASHBOARD (Sementar Beranda) -->
+                <!-- AREA KONTEN DASHBOARD -->
                 <div class="dashboard-content">
-                    <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Selamat Datang, Admin!</h4>
                     
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="card card-custom p-3 bg-primary text-white">
-                                <h6><i class="fas fa-users"></i> Total Siswa</h6>
-                                <h3>320</h3>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card card-custom p-3 bg-success text-white">
-                                <h6><i class="fas fa-check-circle"></i> Hadir Hari Ini</h6>
-                                <h3>290</h3>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card card-custom p-3 bg-warning text-dark">
-                                <h6><i class="fas fa-exclamation-triangle"></i> Terlambat</h6>
-                                <h3>15</h3>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card card-custom p-3 bg-danger text-white">
-                                <h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6>
-                                <h3>15</h3>
-                            </div>
+                    <!-- SECTION: BERANDA -->
+                    <div id="section-beranda" class="content-section active">
+                        <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Selamat Datang, Admin!</h4>
+                        <div class="row">
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-primary text-white"><h6><i class="fas fa-users"></i> Total Siswa</h6><h3>320</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-success text-white"><h6><i class="fas fa-check-circle"></i> Hadir Hari Ini</h6><h3>290</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-warning text-dark"><h6><i class="fas fa-exclamation-triangle"></i> Terlambat</h6><h3>15</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3>15</h3></div></div>
                         </div>
                     </div>
-                    
-                    <div class="card card-custom mt-4">
-                        <div class="card-body">
-                            <h5 class="card-title text-secondary">Fitur Dashboard Admin</h5>
-                            <p class="text-muted">Gunakan menu di sidebar sebelah kiri untuk mengelola Data Siswa, Data Guru, Rekap Absen, dan Pengaturan Sistem SMP N 2 Kawali. Tampilan tabel dan form akan kita tambahkan pada tahap selanjutnya.</p>
-                        </div>
-                    </div>
-                </div>
 
-            </div> <!-- End Page Content -->
-        </div> <!-- End Wrapper -->
-    </div> <!-- End Dashboard Section -->
+                    <!-- SECTION: DATA SISWA -->
+                    <div id="section-siswa" class="content-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-graduate me-2"></i>Kelola Data Siswa</h4>
+                            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa" style="background-color: var(--secondary-bg); border: none;">
+                                <i class="fas fa-plus me-1"></i> Tambah Siswa
+                            </button>
+                        </div>
+                        
+                        <div class="card card-custom">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered align-middle">
+                                        <thead class="table-dark">
+                                            <tr class="text-center">
+                                                <th>ID Siswa</th>
+                                                <th>NISN</th>
+                                                <th>Nama Siswa</th>
+                                                <th>Kelas</th>
+                                                <th>Nama Ortu</th>
+                                                <th>No HP Ortu</th>
+                                                <th>Wali Kelas</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableSiswaBody">
+                                            <!-- Data Sementara / Placeholder -->
+                                            <tr>
+                                                <td class="text-center">S001</td>
+                                                <td class="text-center">12345678</td>
+                                                <td>Siswa Contoh Satu</td>
+                                                <td class="text-center">7A</td>
+                                                <td>Bapak Contoh</td>
+                                                <td>08123456789</td>
+                                                <td>Guru Wali A</td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-warning text-dark me-1"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div> 
+        </div> 
+    </div>
+
+    <!-- MODAL (POP-UP) TAMBAH DATA SISWA -->
+    <div class="modal fade" id="modalTambahSiswa" tabindex="-1" aria-labelledby="modalTambahSiswaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color: var(--secondary-bg);">
+                    <h5 class="modal-title" id="modalTambahSiswaLabel"><i class="fas fa-user-plus me-2"></i>Tambah Data Siswa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTambahSiswa">
+                        <div class="mb-3">
+                            <label class="form-label">ID Siswa</label>
+                            <input type="text" class="form-control" id="idSiswa" placeholder="Contoh: S001" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">NISN (Digunakan sebagai Password)</label>
+                            <input type="number" class="form-control" id="nisnSiswa" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap Siswa</label>
+                            <input type="text" class="form-control" id="namaSiswa" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kelas</label>
+                            <select class="form-select" id="kelasSiswa" required>
+                                <option value="" disabled selected>Pilih Kelas</option>
+                                <option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option>
+                                <option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option>
+                                <option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Orang Tua</label>
+                            <input type="text" class="form-control" id="namaOrtu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">No HP Orang Tua (Aktif WA)</label>
+                            <input type="number" class="form-control" id="hpOrtu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tahun Masuk</label>
+                            <input type="number" class="form-control" id="tahunMasuk" value="2024" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Wali Kelas</label>
+                            <input type="text" class="form-control" id="waliKelas" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSimpanSiswa" style="background-color: var(--accent-color); border: none;">Simpan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <!-- Bootstrap & JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // MASUKKAN LINK APPS SCRIPT ANDA DI SINI! (Dari Exec Apps Script)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9WtjyTlToNW3Jm13C0EuABQ2k_T4xI0ambDems23aDxbKgxhfL-mX3cNLmKo8sWgw/exec";
 
-        // 1. Script Jam Digital
+        // JAM DIGITAL
         function updateClock() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
@@ -228,81 +294,91 @@
             document.getElementById('tanggalDigitalLogin').innerText = dateStr;
             document.getElementById('jamDigitalDashboard').innerText = timeStr;
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        setInterval(updateClock, 1000); updateClock();
 
-        // 2. Tampilkan/Sembunyikan Password Berdasarkan Role
+        // LOGIKA TAMPILAN ROLE
         document.getElementById('roleSelector').addEventListener('change', function() {
             const role = this.value;
             const label = document.getElementById('labelUsername');
             const passField = document.getElementById('passwordField');
             
             if(role === 'ortu') {
-                label.innerText = 'NISN Siswa';
-                passField.style.display = 'none'; 
-                document.getElementById('password').removeAttribute('required');
+                label.innerText = 'NISN Siswa'; passField.style.display = 'none'; document.getElementById('password').removeAttribute('required');
             } else {
                 if(role === 'admin') label.innerText = 'Username Admin';
                 if(role === 'teacher') label.innerText = 'NIP Guru';
                 if(role === 'petugas') label.innerText = 'ID Petugas';
-                passField.style.display = 'block';
-                document.getElementById('password').setAttribute('required', 'true');
+                passField.style.display = 'block'; document.getElementById('password').setAttribute('required', 'true');
             }
         });
 
-        // 3. Proses Login
+        // PROSES FETCH LOGIN (DIPERKUAT)
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
-            
             const btnLogin = document.getElementById('btnLogin');
             const errorDiv = document.getElementById('loginError');
-            
             const role = document.getElementById('roleSelector').value;
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-            btnLogin.disabled = true;
-            errorDiv.classList.add('d-none');
+            btnLogin.disabled = true; errorDiv.classList.add('d-none');
 
+            // Penambahan redirect: 'follow' agar tidak macet / timeout
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "login", role: role, id: username, password: password }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                redirect: 'follow'
             })
-            .then(response => response.json())
+            .then(response => {
+                if(!response.ok) throw new Error("Gagal terhubung jaringan");
+                return response.json();
+            })
             .then(data => {
                 if(data.status === "success") {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-section').style.display = 'block';
                     document.getElementById('userProfileName').innerText = data.name;
                 } else {
-                    errorDiv.innerText = data.message;
-                    errorDiv.classList.remove('d-none');
+                    errorDiv.innerText = data.message; errorDiv.classList.remove('d-none');
                 }
             })
             .catch(error => {
-                errorDiv.innerText = "Gagal terhubung ke database. Coba lagi.";
-                errorDiv.classList.remove('d-none');
+                console.error("Error Detail: ", error);
+                errorDiv.innerText = "Gagal terhubung ke database. Pastikan Izin Akses Apps Script (Siapa saja) sudah benar."; errorDiv.classList.remove('d-none');
             })
             .finally(() => {
-                btnLogin.innerHTML = 'LOGIN KE DASHBOARD';
-                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'LOGIN KE DASHBOARD'; btnLogin.disabled = false;
             });
         });
 
-        // 4. Hamburger Menu (Toggle Sidebar)
-        document.getElementById('menu-toggle').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('sidebar').classList.toggle('collapsed');
+        // NAVIGASI SIDEBAR
+        function changePage(pageId, navId) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('#sidebar ul li a').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById(navId).classList.add('active');
+            
+            if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.add('collapsed'); }
+        }
+
+        document.getElementById('nav-beranda').addEventListener('click', () => changePage('section-beranda', 'nav-beranda'));
+        document.getElementById('nav-siswa').addEventListener('click', () => changePage('section-siswa', 'nav-siswa'));
+
+        // LAIN-LAIN
+        document.getElementById('menu-toggle').addEventListener('click', (e) => {
+            e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed');
         });
 
-        // 5. Tombol Logout
-        document.getElementById('btnLogout').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('loginForm').reset(); 
+        document.getElementById('btnLogout').addEventListener('click', (e) => {
+            e.preventDefault(); document.getElementById('loginForm').reset(); 
             document.getElementById('dashboard-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'flex'; 
+        });
+
+        document.getElementById('btnSimpanSiswa').addEventListener('click', function() {
+            alert("Tombol diklik! Kita akan memprogram tombol ini agar menyimpan data langsung ke Spreadsheet pada tahap berikutnya.");
         });
     </script>
 </body>
