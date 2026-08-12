@@ -1,236 +1,128 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOGIN | PORTAL ABSENSI SMP N 2 KAWALI</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-
-body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-background:linear-gradient(135deg,#0d6efd,#4dabf7);
-}
-
-.app{
-width:100%;
-max-width:420px;
-height:100vh;
-background:linear-gradient(160deg,#0d6efd,#74c0fc);
-border-radius:30px;
-box-shadow:0 20px 60px rgba(0,0,0,0.4);
-display:flex;
-flex-direction:column;
-justify-content:center;
-padding:25px;
-}
-
-.logo{
-width:90px;
-margin:0 auto 15px auto;
-display:block;
-filter:drop-shadow(0 10px 20px rgba(0,0,0,0.4));
-}
-
-.title{
-text-align:center;
-color:white;
-font-weight:700;
-font-size:18px;
-margin-bottom:20px;
-letter-spacing:1px;
-}
-
-.glass{
-background:rgba(255,255,255,0.2);
-backdrop-filter:blur(15px);
-border-radius:25px;
-padding:20px;
-box-shadow:0 15px 40px rgba(0,0,0,0.3);
-border:1px solid rgba(255,255,255,0.3);
-}
-
-.form-control,.form-select{
-border-radius:15px;
-padding:12px;
-}
-
-.btn-modern{
-border-radius:15px;
-padding:12px;
-font-weight:600;
-background:linear-gradient(45deg,#0d6efd,#228be6);
-border:none;
-color:white;
-box-shadow:0 8px 20px rgba(0,0,0,0.3);
-transition:0.3s;
-}
-
-.btn-modern:hover{
-transform:translateY(-2px);
-box-shadow:0 12px 25px rgba(0,0,0,0.4);
-}
-
-.loading{
-display:none;
-text-align:center;
-margin-top:10px;
-color:white;
-font-weight:600;
-}
-
-.footer{
-text-align:center;
-color:rgba(255,255,255,0.8);
-font-size:12px;
-margin-top:15px;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Absensi SMP N 2 Kawali</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            /* Warna Biru Gelap Degradasi Putih Elegan */
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #f8f9fa 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .clock {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0f2027;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .date {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #203a43;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="app">
+    <div class="login-card">
+        <!-- Nanti Logo Sekolah taruh disini ganti div ini dengan <img> -->
+        <div class="logo-placeholder">LOGO</div>
+        
+        <h5 class="text-center fw-bold text-uppercase mb-1" style="color: #0f2027;">PORTAL ABSENSI</h5>
+        <h6 class="text-center fw-bold mb-4" style="color: #203a43;">SMP N 2 KAWALI</h6>
 
-<img src="logo.png" class="logo">
+        <div class="clock" id="jamDigital">00:00:00</div>
+        <div class="date" id="tanggalDigital">Senin, 01 Januari 2024</div>
 
-<div class="title">
-PORTAL ABSENSI<br>
-SMP N 2 KAWALI
-</div>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label">Masuk Sebagai</label>
+                <select class="form-select" id="roleSelector" required>
+                    <option value="" disabled selected>-- Pilih Peran --</option>
+                    <option value="admin">User 1 (Admin)</option>
+                    <option value="teacher">User 2 (Teacher)</option>
+                    <option value="petugas">User 3 (Petugas Absen)</option>
+                    <option value="ortu">User 4 (Orang Tua)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" id="labelUsername">Username / NISN / NIP</label>
+                <input type="text" class="form-control" id="username" placeholder="Masukkan ID" required>
+            </div>
+            <div class="mb-4" id="passwordField">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Masukkan Password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #203a43; border: none;">LOGIN KE DASHBOARD</button>
+        </form>
+    </div>
 
-<div class="glass">
+    <script>
+        // Script Jam Digital
+        function updateClock() {
+            const now = new Date();
+            const jam = now.getHours().toString().padStart(2, '0');
+            const menit = now.getMinutes().toString().padStart(2, '0');
+            const detik = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('jamDigital').innerText = `${jam}:${menit}:${detik}`;
 
-<select id="role" class="form-select mb-3">
-<option value="admin">Admin</option>
-<option value="teacher">Teacher</option>
-<option value="petugas">Petugas</option>
-</select>
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('tanggalDigital').innerText = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-<input type="text" id="username" class="form-control mb-3" placeholder="Username">
+        // Script untuk mengubah Label berdasarkan Dropdown
+        document.getElementById('roleSelector').addEventListener('change', function() {
+            const role = this.value;
+            const label = document.getElementById('labelUsername');
+            const pass = document.getElementById('passwordField');
+            
+            if(role === 'admin') { label.innerText = 'Username Admin'; pass.style.display = 'block'; }
+            else if(role === 'teacher') { label.innerText = 'NIP Guru'; pass.style.display = 'block'; }
+            else if(role === 'petugas') { label.innerText = 'ID Petugas'; pass.style.display = 'block'; }
+            else if(role === 'ortu') { 
+                label.innerText = 'NISN Siswa'; 
+                pass.style.display = 'none'; // Ortu mungkin hanya pakai NISN (bisa diubah nanti)
+            }
+        });
 
-<input type="password" id="password" class="form-control mb-3" placeholder="Password">
-
-<button class="btn btn-modern w-100" onclick="login()">LOGIN</button>
-
-<div class="loading" id="loading">
-Memproses...
-</div>
-
-</div>
-
-<div class="footer">
-© 2025 SMP NEGERI 2 KAWALI
-</div>
-
-</div>
-
-<script>
-
-/* =========================================
-   KONFIGURASI
-========================================= */
-
-const API_URL = "https://script.google.com/macros/s/AKfycbxb18mhtoaG840RA1JzqbJEGmaMrj1dG2FLw_FggWA7Hkun-rNXwvgS5S8-Rl5inQAy/exec";
-
-/* =========================================
-   AUTO REDIRECT JIKA SUDAH LOGIN
-========================================= */
-
-window.onload = function(){
-  const status = localStorage.getItem("loginStatus");
-  const role = localStorage.getItem("role");
-
-  if(status === "true" && role){
-    redirectRole(role);
-  }
-};
-
-/* =========================================
-   FUNGSI LOGIN
-========================================= */
-
-function login(){
-
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(username === "" || password === ""){
-    alert("Username dan Password wajib diisi");
-    return;
-  }
-
-  document.getElementById("loading").style.display = "block";
-
-  const form = new FormData();
-  form.append("action","login");
-  form.append("username",username);
-  form.append("password",password);
-
-  fetch(API_URL,{
-    method:"POST",
-    body:form
-  })
-  .then(res => res.json())
-  .then(res => {
-
-    document.getElementById("loading").style.display = "none";
-
-    if(res.status === true){
-
-      const role = res.role.toString().toLowerCase().trim();
-
-      localStorage.setItem("loginStatus","true");
-      localStorage.setItem("nama",res.nama);
-      localStorage.setItem("role",role);
-
-      redirectRole(role);
-
-    }else{
-      alert("Login gagal. Username atau Password salah.");
-    }
-
-  })
-  .catch(err => {
-    document.getElementById("loading").style.display = "none";
-    alert("Gagal terhubung ke server.");
-  });
-
-}
-
-/* =========================================
-   REDIRECT SESUAI ROLE
-========================================= */
-
-function redirectRole(role){
-
-  role = role.toString().toLowerCase().trim();
-
-  if(role === "admin"){
-    window.location.href = "admin.html";
-  }
-  else if(role === "petugas"){
-    window.location.href = "petugas.html";
-  }
-  else if(role === "teacher" || role === "guru"){
-    window.location.href = "teacher.html";
-  }
-  else{
-    alert("Role di database tidak dikenali: " + role + "\nPastikan kolom Role di Sheet USERS berisi: admin / petugas / teacher");
-    localStorage.clear();
-  }
-
-}
-
-</script>
-
+        // Script Login (Akan dikonekkan ke App Script di Tahap 2)
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert("Tombol diklik! Selanjutnya kita akan integrasikan ini dengan Database Spreadsheet.");
+        });
+    </script>
 </body>
 </html>
