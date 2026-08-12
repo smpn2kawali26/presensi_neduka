@@ -72,9 +72,9 @@
     <div id="login-section">
         <div class="login-card">
             
-            <!-- Logo Sekolah Login -->
+            <!-- Logo Sekolah Login (Mengambil dari file lokal di GitHub) -->
             <div class="text-center mb-3">
-                <img src="https://drive.google.com/uc?export=view&id=14dlUQsifGghDvWw1cWgZ94Y1np7NzA_z" alt="Logo SMP N 2 Kawali" width="90">
+                <img src="logo.png" alt="Logo SMP N 2 Kawali" width="90" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=203a43&color=fff&size=90&rounded=true';">
             </div>
             
             <h5 class="text-center fw-bold text-uppercase mb-1" style="color: var(--primary-bg);">PORTAL ABSENSI</h5>
@@ -125,7 +125,7 @@
             <nav id="sidebar">
                 <div class="sidebar-header">
                     <!-- Logo Sekolah Sidebar (Kecil) -->
-                    <img src="https://drive.google.com/uc?export=view&id=14dlUQsifGghDvWw1cWgZ94Y1np7NzA_z" alt="Logo SMP N 2 Kawali" width="60" class="mb-2">
+                    <img src="logo.png" alt="Logo SMP N 2 Kawali" width="60" class="mb-2" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=2c5364&color=fff&size=60&rounded=true';">
                     <h5 class="text-white m-0">SMP N 2 KAWALI</h5>
                     <small class="text-white-50">Portal Admin</small>
                 </div>
@@ -239,7 +239,7 @@
             
             if(role === 'ortu') {
                 label.innerText = 'NISN Siswa';
-                passField.style.display = 'none'; // Ortu tidak butuh password sementara ini
+                passField.style.display = 'none'; 
                 document.getElementById('password').removeAttribute('required');
             } else {
                 if(role === 'admin') label.innerText = 'Username Admin';
@@ -252,7 +252,7 @@
 
         // 3. Proses Login
         document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Mencegah reload halaman
+            e.preventDefault(); 
             
             const btnLogin = document.getElementById('btnLogin');
             const errorDiv = document.getElementById('loginError');
@@ -261,26 +261,22 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // Loading state
             btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             btnLogin.disabled = true;
             errorDiv.classList.add('d-none');
 
-            // Kirim data ke Apps Script via Fetch API
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "login", role: role, id: username, password: password }),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' } // text/plain menghindari error CORS
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             })
             .then(response => response.json())
             .then(data => {
                 if(data.status === "success") {
-                    // Pindah ke Dashboard
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-section').style.display = 'block';
                     document.getElementById('userProfileName').innerText = data.name;
                 } else {
-                    // Tampilkan Error
                     errorDiv.innerText = data.message;
                     errorDiv.classList.remove('d-none');
                 }
@@ -301,12 +297,12 @@
             document.getElementById('sidebar').classList.toggle('collapsed');
         });
 
-        // 5. Tombol Logout (Di dalam Profile Dropdown)
+        // 5. Tombol Logout
         document.getElementById('btnLogout').addEventListener('click', function(e) {
             e.preventDefault();
-            document.getElementById('loginForm').reset(); // Kosongkan form
+            document.getElementById('loginForm').reset(); 
             document.getElementById('dashboard-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'flex'; // Kembali ke login
+            document.getElementById('login-section').style.display = 'flex'; 
         });
     </script>
 </body>
