@@ -126,11 +126,11 @@
                     <li><a id="nav-beranda" class="active"><i class="fas fa-home"></i> Beranda Admin</a></li>
                     <li><a id="nav-siswa"><i class="fas fa-user-graduate"></i> Data Siswa</a></li>
                     <li><a id="nav-guru"><i class="fas fa-chalkboard-teacher"></i> Data Guru</a></li>
-                    <li><a><i class="fas fa-calendar-check"></i> Rekap Absen</a></li>
-                    <li><a><i class="fas fa-map-marker-alt"></i> Setting Lokasi</a></li>
-                    <li><a><i class="fas fa-clock"></i> Setting Waktu</a></li>
-                    <li><a><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
-                    <li><a><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
+                    <li><a id="nav-rekap"><i class="fas fa-calendar-check"></i> Rekap Absen</a></li>
+                    <li><a id="nav-lokasi"><i class="fas fa-map-marker-alt"></i> Setting Lokasi</a></li>
+                    <li><a id="nav-waktu"><i class="fas fa-clock"></i> Setting Waktu</a></li>
+                    <li><a id="nav-jadwal"><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
+                    <li><a id="nav-catatan"><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
                     <li class="mt-4"><hr class="text-secondary border-2 opacity-25"></li>
                     <li><a id="nav-tampilan"><i class="fas fa-paint-brush"></i> Tampilan Visual</a></li>
                 </ul>
@@ -154,23 +154,61 @@
                 </nav>
 
                 <div class="dashboard-content">
+                    <!-- SECTION BERANDA -->
                     <div id="section-beranda" class="content-section active">
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Selamat Datang, <span class="profil-nama">Admin</span>!</h4>
                         <div class="row">
                             <div class="col-md-3"><div class="card card-custom p-3 bg-primary text-white"><h6><i class="fas fa-users"></i> Total Siswa</h6><h3 id="dashTotalSiswa">0</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-success text-white"><h6><i class="fas fa-check-circle"></i> Hadir Hari Ini</h6><h3>0</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-warning text-dark"><h6><i class="fas fa-exclamation-triangle"></i> Terlambat</h6><h3>0</h3></div></div>
+                            <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3>0</h3></div></div>
                         </div>
                     </div>
+
+                    <!-- SECTION DATA SISWA -->
                     <div id="section-siswa" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-graduate me-2"></i>Kelola Data Siswa</h4>
                         </div>
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Siswa</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Nama Ortu</th><th>No HP Ortu</th><th>Wali Kelas</th></tr></thead><tbody id="tableSiswaBody"><tr><td colspan="7" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
+
+                    <!-- SECTION DATA GURU -->
                     <div id="section-guru" class="content-section">
-                        <h4 class="fw-bold mb-4">Kelola Data Guru</h4>
-                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Guru</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Status</th></tr></thead><tbody id="tableGuruBody"><tr><td colspan="5" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-chalkboard-teacher me-2"></i>Kelola Data Guru</h4>
+                        </div>
+                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Guru</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Tugas Tambahan</th><th>Status</th></tr></thead><tbody id="tableGuruBody"><tr><td colspan="6" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
-                    <div id="section-tampilan" class="content-section"><h4 class="fw-bold mb-4">Pengaturan Tampilan</h4></div>
+
+                    <!-- SECTION LAINNYA (Placeholder agar tidak error saat diklik) -->
+                    <div id="section-rekap" class="content-section"><h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Rekap Absensi</h4><div class="card card-custom p-4"><p class="text-muted">Fitur rekapitulasi kehadiran siswa.</p></div></div>
+                    <div id="section-lokasi" class="content-section"><h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Setting Lokasi GPS</h4><div class="card card-custom p-4"><p class="text-muted">Pengaturan titik koordinat sekolah.</p></div></div>
+                    <div id="section-waktu" class="content-section"><h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Setting Waktu Absen</h4><div class="card card-custom p-4"><p class="text-muted">Pengaturan batas jam masuk dan telat.</p></div></div>
+                    <div id="section-jadwal" class="content-section"><h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Jadwal Pelajaran</h4><div class="card card-custom p-4"><p class="text-muted">Pengaturan jadwal harian.</p></div></div>
+                    <div id="section-catatan" class="content-section"><h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Catatan Guru</h4><div class="card card-custom p-4"><p class="text-muted">Catatan khusus guru piket.</p></div></div>
+
+                    <!-- SECTION TAMPILAN VISUAL -->
+                    <div id="section-tampilan" class="content-section">
+                        <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);"><i class="fas fa-paint-brush me-2"></i>Personalisasi Tampilan</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body">
+                                <h5 class="card-title fw-bold text-secondary mb-4">Warna & Gaya Huruf</h5>
+                                <div class="mb-3"><label class="form-label text-muted small">Warna Utama</label><input type="color" class="form-control form-control-color w-100" id="inputColorPrimary" value="#0f2027"></div>
+                                <div class="mb-3"><label class="form-label text-muted small">Warna Aksen</label><input type="color" class="form-control form-control-color w-100" id="inputColorSecondary" value="#203a43"></div>
+                                <div class="mb-4"><label class="form-label text-muted small">Gaya Huruf</label><select class="form-select" id="inputFontFamily"><option value="'Segoe UI', sans-serif">Segoe UI</option><option value="'Poppins', sans-serif">Poppins</option><option value="'Roboto', sans-serif">Roboto</option></select></div>
+                            </div></div></div>
+                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body">
+                                <h5 class="card-title fw-bold text-secondary mb-4">Gambar & Identitas</h5>
+                                <div class="mb-3"><label class="form-label text-muted small">Link Logo Sekolah</label><input type="text" class="form-control" id="inputLogoUrl" placeholder="logo.png"></div>
+                                <div class="mb-4"><label class="form-label text-muted small">Link Foto Profil</label><input type="text" class="form-control" id="inputProfileUrl"></div>
+                            </div></div></div>
+                        </div>
+                        <div class="card card-custom shadow-sm border-0 bg-white"><div class="card-body text-end">
+                            <button class="btn btn-outline-danger me-2" id="btnResetSettings"><i class="fas fa-undo me-2"></i>Default</button>
+                            <button class="btn btn-primary text-white" id="btnSaveSettings" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-save me-2"></i>Simpan Perubahan</button>
+                        </div></div>
+                    </div>
                 </div>
             </div> 
         </div> 
@@ -243,13 +281,33 @@
         // ==========================================
         // GANTI LINK DI BAWAH DENGAN URL DEPLOY TERBARU ANDA
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDhH48TaMIu63zRs7X2oLsfgOh2hA8BoFcHWEy7gEPnUggxIoTEeYpN9uD4K4kowPa/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPA3G0i9h1ISXIGmrRZksOqXFN3VkrL5cz1JV-pUktv1AZPwaqZo22FdKURXJu4KyC/exec";
 
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
         let useFrontCamera = true;
         let mediaStream = null;
 
+        // TEMA DAN TAMPILAN
+        const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
+        function applyTheme(theme) {
+            document.documentElement.style.setProperty('--primary-bg', theme.primary);
+            document.documentElement.style.setProperty('--secondary-bg', theme.secondary);
+            document.documentElement.style.setProperty('--accent-color', theme.secondary); 
+            document.body.style.fontFamily = theme.font;
+            document.querySelectorAll('.logo-aplikasi').forEach(img => img.src = theme.logo || DEFAULT_THEME.logo);
+            document.querySelectorAll('.foto-profil').forEach(img => img.src = theme.profile || DEFAULT_THEME.profile);
+        }
+        function loadTheme() { let t = localStorage.getItem('smpn2_theme'); if(t) applyTheme(JSON.parse(t)); else applyTheme(DEFAULT_THEME); }
+        loadTheme();
+
+        document.getElementById('btnSaveSettings').addEventListener('click', () => {
+            let n = { primary: document.getElementById('inputColorPrimary').value, secondary: document.getElementById('inputColorSecondary').value, font: document.getElementById('inputFontFamily').value, logo: document.getElementById('inputLogoUrl').value || DEFAULT_THEME.logo, profile: document.getElementById('inputProfileUrl').value || DEFAULT_THEME.profile };
+            localStorage.setItem('smpn2_theme', JSON.stringify(n)); applyTheme(n); alert("Tampilan disimpan!");
+        });
+        document.getElementById('btnResetSettings').addEventListener('click', () => { if(confirm("Kembali ke Default?")) { localStorage.removeItem('smpn2_theme'); applyTheme(DEFAULT_THEME); } });
+
+        // SUARA SHUTTER KAMERA
         function playCameraSound() {
             try {
                 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -267,10 +325,13 @@
             } catch(e) { console.log("Audio error:", e); }
         }
 
+        // JAM
         function updateClock() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('jamDigitalLogin').innerText = timeStr;
+            document.getElementById('tanggalDigitalLogin').innerText = dateStr;
             document.getElementById('jamDigitalDashboard').innerText = timeStr;
         } setInterval(updateClock, 1000); updateClock();
 
@@ -306,6 +367,7 @@
                     if(role === 'admin') {
                         document.getElementById('dashboard-admin').style.display = 'block';
                         document.getElementById('userProfileName').innerText = data.name;
+                        document.querySelector('.profil-nama').innerText = data.name;
                         fetchSiswaData();
                         fetchGuruData();
                     } else if(role === 'petugas') {
@@ -327,7 +389,7 @@
             document.getElementById('loginForm').reset();
         }
 
-        // KAMERA
+        // KAMERA PETUGAS
         function initCamera() {
             const video = document.getElementById('cameraVideo');
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -450,7 +512,7 @@
             });
         }
 
-        // FETCH ADMIN TABEL
+        // FETCH ADMIN TABEL SISWA
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -466,21 +528,22 @@
             }).catch(() => { document.getElementById('tableSiswaBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat data dari Spreadsheet.</td></tr>`; });
         }
 
+        // FETCH ADMIN TABEL GURU
         function fetchGuruData() {
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=ত্ব-utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 if(data.status === "success") {
                     let tBody = document.getElementById('tableGuruBody');
-                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(g => {
-                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru}</td><td class="text-center">${g.nip}</td><td>${g.nama}</td><td>${g.mapel}</td><td><span class="badge bg-success">${g.status}</span></td></tr>`;
+                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru}</td><td class="text-center">${g.nip}</td><td>${g.nama}</td><td>${g.mapel}</td><td>${g.tugas}</td><td><span class="badge bg-success">${g.status}</span></td></tr>`;
                     });
                 }
             });
         }
 
-        // NAVIGASI
+        // NAVIGASI SIDEBAR LENGKAP
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('#sidebar ul li a').forEach(nav => nav.classList.remove('active'));
@@ -491,7 +554,13 @@
         document.getElementById('nav-beranda').addEventListener('click', () => changePage('section-beranda', 'nav-beranda'));
         document.getElementById('nav-siswa').addEventListener('click', () => changePage('section-siswa', 'nav-siswa'));
         document.getElementById('nav-guru').addEventListener('click', () => changePage('section-guru', 'nav-guru'));
+        document.getElementById('nav-rekap').addEventListener('click', () => changePage('section-rekap', 'nav-rekap'));
+        document.getElementById('nav-lokasi').addEventListener('click', () => changePage('section-lokasi', 'nav-lokasi'));
+        document.getElementById('nav-waktu').addEventListener('click', () => changePage('section-waktu', 'nav-waktu'));
+        document.getElementById('nav-jadwal').addEventListener('click', () => changePage('section-jadwal', 'nav-jadwal'));
+        document.getElementById('nav-catatan').addEventListener('click', () => changePage('section-catatan', 'nav-catatan'));
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
+
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
         document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginForm').reset(); document.getElementById('dashboard-admin').style.display = 'none'; document.getElementById('login-section').style.display = 'flex'; });
     </script>
