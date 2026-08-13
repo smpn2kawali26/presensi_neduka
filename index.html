@@ -187,17 +187,10 @@
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-calendar-check me-2"></i>Rekapitulasi Absensi</h4>
                         </div>
                         <div class="card card-custom"><div class="card-body">
-                            <p class="text-muted">Data rekapitulasi kehadiran harian siswa dari sistem absensi.</p>
                             <div class="table-responsive">
                                 <table class="table table-hover table-bordered align-middle">
-                                    <thead class="table-dark">
-                                        <tr class="text-center">
-                                            <th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tableRekapBody">
-                                        <tr><td colspan="8" class="text-center text-muted py-3">Belum ada data rekap absensi.</td></tr>
-                                    </tbody>
+                                    <thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead>
+                                    <tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody>
                                 </table>
                             </div>
                         </div></div>
@@ -205,23 +198,12 @@
 
                     <!-- 5. SECTION SETTING LOKASI -->
                     <div id="section-lokasi" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-map-marker-alt me-2"></i>Setting Titik Koordinat GPS</h4>
-                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-map-marker-alt me-2"></i>Setting Titik Koordinat GPS</h4></div>
                         <div class="card card-custom"><div class="card-body">
-                            <form id="formSettingLokasi">
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Latitude Sekolah</label>
-                                    <input type="text" class="form-control" id="inputLat" value="-7.1895">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Longitude Sekolah</label>
-                                    <input type="text" class="form-control" id="inputLong" value="108.3421">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Radius Maksimal (Meter)</label>
-                                    <input type="number" class="form-control" id="inputRadius" value="50">
-                                </div>
+                            <form>
+                                <div class="mb-3"><label class="form-label text-muted">Latitude Sekolah</label><input type="text" class="form-control" value="-7.1895"></div>
+                                <div class="mb-3"><label class="form-label text-muted">Longitude Sekolah</label><input type="text" class="form-control" value="108.3421"></div>
+                                <div class="mb-3"><label class="form-label text-muted">Radius Maksimal (Meter)</label><input type="number" class="form-control" value="50"></div>
                                 <button type="button" onclick="alert('Pengaturan lokasi berhasil disimpan!')" class="btn btn-primary" style="background-color: var(--secondary-bg); border:none;"><i class="fas fa-save me-1"></i> Simpan Lokasi</button>
                             </form>
                         </div></div>
@@ -229,23 +211,12 @@
 
                     <!-- 6. SECTION SETTING WAKTU -->
                     <div id="section-waktu" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-clock me-2"></i>Setting Waktu Absen</h4>
-                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-clock me-2"></i>Setting Waktu Absen</h4></div>
                         <div class="card card-custom"><div class="card-body">
-                            <form id="formSettingWaktu">
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Batas Masuk Tepat Waktu</label>
-                                    <input type="time" class="form-control" id="inputBatasMasuk" value="07:00">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Batas Toleransi Terlambat (Wajib Foto)</label>
-                                    <input type="time" class="form-control" id="inputBatasTelat" value="07:15">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label text-muted">Jam Boleh Pulang</label>
-                                    <input type="time" class="form-control" id="inputBatasPulang" value="14:00">
-                                </div>
+                            <form>
+                                <div class="mb-3"><label class="form-label text-muted">Batas Masuk Tepat Waktu</label><input type="time" class="form-control" value="07:00"></div>
+                                <div class="mb-3"><label class="form-label text-muted">Batas Toleransi Terlambat (Wajib Foto)</label><input type="time" class="form-control" value="07:15"></div>
+                                <div class="mb-3"><label class="form-label text-muted">Jam Boleh Pulang</label><input type="time" class="form-control" value="14:00"></div>
                                 <button type="button" onclick="alert('Pengaturan waktu berhasil disimpan!')" class="btn btn-primary" style="background-color: var(--secondary-bg); border:none;"><i class="fas fa-save me-1"></i> Simpan Waktu</button>
                             </form>
                         </div></div>
@@ -253,21 +224,12 @@
 
                     <!-- 7. SECTION JADWAL PELAJARAN -->
                     <div id="section-jadwal" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-book me-2"></i>Kelola Jadwal Pelajaran</h4>
-                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-book me-2"></i>Kelola Jadwal Pelajaran</h4></div>
                         <div class="card card-custom"><div class="card-body">
-                            <p class="text-muted">Pengaturan jadwal mata pelajaran harian per kelas.</p>
                             <div class="table-responsive">
                                 <table class="table table-hover table-bordered align-middle">
-                                    <thead class="table-dark">
-                                        <tr class="text-center">
-                                            <th>Hari</th><th>Kelas</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Guru Pengajar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td colspan="5" class="text-center text-muted py-3">Belum ada jadwal tersimpan.</td></tr>
-                                    </tbody>
+                                    <thead class="table-dark"><tr class="text-center"><th>Hari</th><th>Kelas</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead>
+                                    <tbody id="tableJadwalBody"><tr><td colspan="6" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody>
                                 </table>
                             </div>
                         </div></div>
@@ -275,21 +237,12 @@
 
                     <!-- 8. SECTION CATATAN GURU -->
                     <div id="section-catatan" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4>
-                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4></div>
                         <div class="card card-custom"><div class="card-body">
-                            <p class="text-muted">Catatan harian perkembangan siswa atau laporan guru piket.</p>
                             <div class="table-responsive">
                                 <table class="table table-hover table-bordered align-middle">
-                                    <thead class="table-dark">
-                                        <tr class="text-center">
-                                            <th>Tanggal</th><th>Nama Siswa</th><th>Kelas</th><th>Catatan / Laporan</th><th>Guru Pelapor</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td colspan="5" class="text-center text-muted py-3">Belum ada catatan guru.</td></tr>
-                                    </tbody>
+                                    <thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Nama Siswa</th><th>Kelas</th><th>Catatan / Laporan</th><th>Guru Pelapor</th><th>Aksi</th></tr></thead>
+                                    <tbody id="tableCatatanBody"><tr><td colspan="6" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody>
                                 </table>
                             </div>
                         </div></div>
@@ -362,7 +315,7 @@
     <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWgzaENje2yOGDKQDHx3Seh09SBPnX0LDM-lmXFFAluvVajtQ0wLyhvz4bIv5Rob43/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfn5sO71wTRtwtY5S9h-lsZd0kDbnb84LqlRp74Cy9hD2f6tMtgA8sXs702l90u-FC/exec";
 
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
@@ -387,24 +340,6 @@
             localStorage.setItem('smpn2_theme', JSON.stringify(n)); applyTheme(n); alert("Tampilan disimpan!");
         });
         document.getElementById('btnResetSettings').addEventListener('click', () => { if(confirm("Kembali ke Default?")) { localStorage.removeItem('smpn2_theme'); applyTheme(DEFAULT_THEME); } });
-
-        // SUARA KAMERA
-        function playCameraSound() {
-            try {
-                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.08);
-            } catch(e) {}
-        }
 
         function updateClock() {
             const now = new Date();
@@ -450,6 +385,9 @@
                         document.querySelector('.profil-nama').innerText = data.name;
                         fetchSiswaData();
                         fetchGuruData();
+                        fetchRekapData();
+                        fetchJadwalData();
+                        fetchCatatanData();
                     } else if(role === 'petugas') {
                         document.getElementById('dashboard-petugas').style.display = 'block';
                         document.getElementById('namaPetugasLabel').innerText = data.name;
@@ -532,7 +470,6 @@
 
             if(tipe === 'MASUK' && jamStr > "07:15") {
                 statusKehadiran = "Terlambat";
-                playCameraSound();
                 const video = document.getElementById('cameraVideo');
                 const canvas = document.getElementById('cameraCanvas');
                 canvas.width = 320; canvas.height = 240;
@@ -573,7 +510,7 @@
             });
         }
 
-        // FETCH TABEL SISWA (DENGAN TOMBOL AKSI)
+        // FETCH TABEL SISWA
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -602,7 +539,7 @@
             });
         }
 
-        // FETCH TABEL GURU (DENGAN TOMBOL AKSI)
+        // FETCH TABEL GURU
         function fetchGuruData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -613,12 +550,12 @@
                     data.data.forEach(g => {
                         tBody.innerHTML += `
                             <tr>
-                                <td class="text-center fw-bold">${g.id_guru || '-'}</td>
-                                <td class="text-center">${g.nip || '-'}</td>
-                                <td>${g.nama || '-'}</td>
-                                <td>${g.mapel || '-'}</td>
-                                <td>${g.tugas || '-'}</td>
-                                <td class="text-center"><span class="badge bg-success">${g.status || 'Aktif'}</span></td>
+                                <td class="text-center fw-bold">${g.id_guru}</td>
+                                <td class="text-center">${g.nip}</td>
+                                <td>${g.nama}</td>
+                                <td>${g.mapel}</td>
+                                <td>${g.tugas}</td>
+                                <td class="text-center"><span class="badge bg-success">${g.status}</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Edit guru baris ${g.row_index}')"><i class="fas fa-edit"></i></button>
                                     <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus guru baris ${g.row_index}')"><i class="fas fa-trash"></i></button>
@@ -629,7 +566,86 @@
             });
         }
 
-        // NAVIGASI SIDEBAR LENGKAP SEMUA SUB-MENU ADMIN
+        // FETCH TABEL REKAP
+        function fetchRekapData() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
+                if(data.status === "success") {
+                    let tBody = document.getElementById('tableRekapBody');
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Belum ada data rekap absensi.</td></tr>`; return; }
+                    tBody.innerHTML = "";
+                    data.data.forEach(r => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td class="text-center">${r.tanggal}</td>
+                                <td class="text-center">${r.waktu}</td>
+                                <td class="text-center">${r.nisn}</td>
+                                <td>${r.nama}</td>
+                                <td class="text-center">${r.kelas}</td>
+                                <td class="text-center">${r.tipe}</td>
+                                <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
+                                <td>${r.petugas}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus rekap baris ${r.row_index}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            });
+        }
+
+        // FETCH TABEL JADWAL
+        function fetchJadwalData() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
+                if(data.status === "success") {
+                    let tBody = document.getElementById('tableJadwalBody');
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada jadwal pelajaran.</td></tr>`; return; }
+                    tBody.innerHTML = "";
+                    data.data.forEach(j => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td class="text-center fw-bold">${j.hari}</td>
+                                <td class="text-center">${j.kelas}</td>
+                                <td class="text-center">${j.jam}</td>
+                                <td>${j.mapel}</td>
+                                <td>${j.guru}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Edit jadwal baris ${j.row_index}')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus jadwal baris ${j.row_index}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            });
+        }
+
+        // FETCH TABEL CATATAN GURU
+        function fetchCatatanData() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
+                if(data.status === "success") {
+                    let tBody = document.getElementById('tableCatatanBody');
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada catatan guru.</td></tr>`; return; }
+                    tBody.innerHTML = "";
+                    data.data.forEach(c => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td class="text-center">${c.tanggal}</td>
+                                <td>${c.nama}</td>
+                                <td class="text-center">${c.kelas}</td>
+                                <td>${c.catatan}</td>
+                                <td>${c.guru}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus catatan baris ${c.row_index}')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            });
+        }
+
+        // NAVIGASI SIDEBAR
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('#sidebar ul li a').forEach(nav => nav.classList.remove('active'));
