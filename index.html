@@ -15,7 +15,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; overflow-x: hidden; transition: background-color 0.3s, font-family 0.3s; }
 
         /* Login & Wrapper */
-        #login-section { background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 50%, #f8f9fa 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; transition: background 0.5s ease; }
+        #login-section { background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 50%, #f8f9fa 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .login-card { background: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 40px 30px; width: 100%; max-width: 400px; }
         .dashboard-container { display: none; }
         #wrapper { display: flex; transition: all 0.3s ease-in-out; }
@@ -23,9 +23,9 @@
         /* Sidebar */
         #sidebar { min-width: 250px; max-width: 250px; background: var(--primary-bg); color: var(--text-light); min-height: 100vh; transition: all 0.3s; }
         #sidebar.collapsed { margin-left: -250px; }
-        #sidebar .sidebar-header { padding: 20px; background: var(--secondary-bg); text-align: center; transition: background 0.3s; }
+        #sidebar .sidebar-header { padding: 20px; background: var(--secondary-bg); text-align: center; }
         #sidebar ul.components { padding: 20px 0; }
-        #sidebar ul li a { padding: 12px 20px; display: block; color: #cbd5e1; text-decoration: none; font-size: 15px; transition: 0.3s; cursor: pointer; }
+        #sidebar ul li a { padding: 12px 20px; display: block; color: #cbd5e1; text-decoration: none; font-size: 15px; cursor: pointer; }
         #sidebar ul li a:hover, #sidebar ul li a.active { color: #fff; background: var(--accent-color); border-left: 4px solid #3498db; }
         #sidebar ul li a i { margin-right: 10px; width: 20px; text-align: center; }
 
@@ -36,8 +36,7 @@
         .clock-top { font-weight: bold; color: var(--secondary-bg); margin-left: 15px; font-size: 1.2rem; }
         
         .dashboard-content { padding: 25px; }
-        .card-custom { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; transition: 0.3s; }
-        .card-custom:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .card-custom { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .content-section { display: none; }
         .content-section.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -77,7 +76,7 @@
 </head>
 <body>
 
-    <!-- BAGIAN 1: HALAMAN LOGIN -->
+    <!-- LOGIN -->
     <div id="login-section">
         <div class="login-card">
             <div class="text-center mb-3">
@@ -114,14 +113,12 @@
     </div>
 
 
-    <!-- ============================================== -->
-    <!-- BAGIAN 2: DASHBOARD ADMIN LENGKAP -->
-    <!-- ============================================== -->
+    <!-- DASHBOARD ADMIN -->
     <div id="dashboard-admin" class="dashboard-container">
         <div id="wrapper">
             <nav id="sidebar">
                 <div class="sidebar-header">
-                    <img src="logo.png" alt="Logo SMP N 2 Kawali" width="60" class="mb-2 logo-aplikasi" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=2c5364&color=fff&size=60&rounded=true';">
+                    <img src="logo.png" alt="Logo" width="60" class="mb-2 logo-aplikasi" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=2c5364&color=fff&size=60&rounded=true';">
                     <h5 class="text-white m-0">SMP N 2 KAWALI</h5>
                     <small class="text-white-50">Portal Admin</small>
                 </div>
@@ -151,91 +148,36 @@
                             <span class="fw-bold d-none d-sm-inline" id="userProfileName">Administrator</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i> Pengaturan Akun</a></li>
-                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="fas fa-sign-out-alt me-2"></i> Keluar</a></li>
                         </ul>
                     </div>
                 </nav>
 
                 <div class="dashboard-content">
-                    <!-- SECTION BERANDA -->
                     <div id="section-beranda" class="content-section active">
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Selamat Datang, <span class="profil-nama">Admin</span>!</h4>
                         <div class="row">
                             <div class="col-md-3"><div class="card card-custom p-3 bg-primary text-white"><h6><i class="fas fa-users"></i> Total Siswa</h6><h3 id="dashTotalSiswa">0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-success text-white"><h6><i class="fas fa-check-circle"></i> Hadir Hari Ini</h6><h3>0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-warning text-dark"><h6><i class="fas fa-exclamation-triangle"></i> Terlambat</h6><h3>0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3>0</h3></div></div>
                         </div>
                     </div>
-
-                    <!-- SECTION DATA SISWA -->
                     <div id="section-siswa" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-graduate me-2"></i>Kelola Data Siswa</h4>
-                            <button class="btn btn-primary shadow-sm" onclick="openModalSiswa('tambah')" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-plus me-1"></i> Tambah Siswa</button>
                         </div>
-                        <div class="card card-custom">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-bordered align-middle">
-                                        <thead class="table-dark"><tr class="text-center"><th>ID Siswa</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Nama Ortu</th><th>No HP Ortu</th><th>Wali Kelas</th><th>Aksi</th></tr></thead>
-                                        <tbody id="tableSiswaBody"><tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Mengambil data...</td></tr></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Siswa</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Nama Ortu</th><th>No HP Ortu</th><th>Wali Kelas</th></tr></thead><tbody id="tableSiswaBody"><tr><td colspan="7" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
-
-                    <!-- SECTION DATA GURU -->
                     <div id="section-guru" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-chalkboard-teacher me-2"></i>Kelola Data Guru</h4>
-                            <button class="btn btn-primary shadow-sm" onclick="openModalGuru('tambah')" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-plus me-1"></i> Tambah Guru</button>
-                        </div>
-                        <div class="card card-custom">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-bordered align-middle">
-                                        <thead class="table-dark"><tr class="text-center"><th>ID Guru</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Tugas Tambahan</th><th>No HP</th><th>Status</th><th>Aksi</th></tr></thead>
-                                        <tbody id="tableGuruBody"><tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Mengambil data...</td></tr></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        <h4 class="fw-bold mb-4">Kelola Data Guru</h4>
+                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Guru</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Status</th></tr></thead><tbody id="tableGuruBody"><tr><td colspan="5" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
-
-                    <!-- SECTION TAMPILAN -->
-                    <div id="section-tampilan" class="content-section">
-                        <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);"><i class="fas fa-paint-brush me-2"></i>Personalisasi Tampilan</h4>
-                        <div class="row">
-                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body">
-                                <h5 class="card-title fw-bold text-secondary mb-4">Warna & Gaya Huruf</h5>
-                                <div class="mb-3"><label class="form-label text-muted small">Warna Utama</label><input type="color" class="form-control form-control-color w-100" id="inputColorPrimary"></div>
-                                <div class="mb-3"><label class="form-label text-muted small">Warna Aksen</label><input type="color" class="form-control form-control-color w-100" id="inputColorSecondary"></div>
-                                <div class="mb-4"><label class="form-label text-muted small">Gaya Huruf</label><select class="form-select" id="inputFontFamily"><option value="'Segoe UI', sans-serif">Segoe UI</option><option value="'Poppins', sans-serif">Poppins</option><option value="'Roboto', sans-serif">Roboto</option></select></div>
-                            </div></div></div>
-                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body">
-                                <h5 class="card-title fw-bold text-secondary mb-4">Gambar & Identitas</h5>
-                                <div class="mb-3"><label class="form-label text-muted small">Link Logo Sekolah</label><input type="text" class="form-control" id="inputLogoUrl"></div>
-                                <div class="mb-4"><label class="form-label text-muted small">Link Foto Profil</label><input type="text" class="form-control" id="inputProfileUrl"></div>
-                            </div></div></div>
-                        </div>
-                        <div class="card card-custom shadow-sm border-0 bg-white"><div class="card-body text-end">
-                            <button class="btn btn-outline-danger me-2" id="btnResetSettings"><i class="fas fa-undo me-2"></i>Default</button>
-                            <button class="btn btn-primary text-white" id="btnSaveSettings" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-save me-2"></i>Simpan</button>
-                        </div></div>
-                    </div>
+                    <div id="section-tampilan" class="content-section"><h4 class="fw-bold mb-4">Pengaturan Tampilan</h4></div>
                 </div>
             </div> 
         </div> 
     </div>
 
 
-    <!-- ============================================== -->
-    <!-- BAGIAN 3: DASHBOARD PETUGAS ABSEN (USER 3) -->
-    <!-- ============================================== -->
+    <!-- DASHBOARD PETUGAS ABSEN (USER 3) -->
     <div id="dashboard-petugas" class="dashboard-container container py-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -295,49 +237,19 @@
     </div>
 
 
-    <!-- MODAL (POP-UP) TAMBAH/EDIT SISWA -->
-    <div class="modal fade" id="modalSiswa" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header text-white" style="background-color: var(--secondary-bg);">
-                    <h5 class="modal-title" id="modalSiswaLabel">Tambah Siswa</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formSiswa">
-                        <input type="hidden" id="siswaRowIndex">
-                        <div class="mb-3"><label class="form-label">ID Siswa</label><input type="text" class="form-control" id="idSiswa" required></div>
-                        <div class="mb-3"><label class="form-label">NISN</label><input type="number" class="form-control" id="nisnSiswa" required></div>
-                        <div class="mb-3"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="namaSiswa" required></div>
-                        <div class="mb-3"><label class="form-label">Kelas</label><select class="form-select" id="kelasSiswa" required><option value="7A">7A</option><option value="7B">7B</option><option value="7C">7C</option><option value="8A">8A</option><option value="8B">8B</option><option value="8C">8C</option><option value="9A">9A</option><option value="9B">9B</option><option value="9C">9C</option></select></div>
-                        <div class="mb-3"><label class="form-label">Nama Ortu</label><input type="text" class="form-control" id="namaOrtu" required></div>
-                        <div class="mb-3"><label class="form-label">No HP Ortu</label><input type="number" class="form-control" id="hpOrtu" required></div>
-                        <div class="mb-3"><label class="form-label">Tahun Masuk</label><input type="number" class="form-control" id="tahunMasuk" value="2024" required></div>
-                        <div class="mb-3"><label class="form-label">Wali Kelas</label><input type="text" class="form-control" id="waliKelas" required></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" form="formSiswa" class="btn btn-primary" id="btnSimpanSiswa" style="background-color: var(--accent-color); border:none;">Simpan Data</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
     <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // GANTI LINK DI BAWAH DENGAN LINK DEPLOY APPS SCRIPT TERBARU ANDA
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9WtjyTlToNW3Jm13C0EuABQ2k_T4xI0ambDems23aDxbKgxhfL-mX3cNLmKo8sWgw/exec";
+        // ==========================================
+        // GANTI LINK DI BAWAH DENGAN URL DEPLOY TERBARU ANDA
+        // ==========================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDhH48TaMIu63zRs7X2oLsfgOh2hA8BoFcHWEy7gEPnUggxIoTEeYpN9uD4K4kowPa/exec";
 
-        let globalDataSiswa = [];
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
         let useFrontCamera = true;
         let mediaStream = null;
 
-        // FUNGSI EFEK SUARA KLIK (SHUTTER KAMERA)
         function playCameraSound() {
             try {
                 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -355,40 +267,24 @@
             } catch(e) { console.log("Audio error:", e); }
         }
 
-        // TEMA
-        const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
-        function applyTheme(theme) {
-            document.documentElement.style.setProperty('--primary-bg', theme.primary);
-            document.documentElement.style.setProperty('--secondary-bg', theme.secondary);
-            document.documentElement.style.setProperty('--accent-color', theme.secondary); 
-            document.body.style.fontFamily = theme.font;
-            document.querySelectorAll('.logo-aplikasi').forEach(img => img.src = theme.logo || DEFAULT_THEME.logo);
-            document.querySelectorAll('.foto-profil').forEach(img => img.src = theme.profile || DEFAULT_THEME.profile);
-        }
-        function loadTheme() { let t = localStorage.getItem('smpn2_theme'); if(t) applyTheme(JSON.parse(t)); else applyTheme(DEFAULT_THEME); }
-        loadTheme();
-
-        // JAM DIGITAL
         function updateClock() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('jamDigitalLogin').innerText = timeStr;
-            document.getElementById('tanggalDigitalLogin').innerText = dateStr;
             document.getElementById('jamDigitalDashboard').innerText = timeStr;
         } setInterval(updateClock, 1000); updateClock();
 
-        // LOGIN SYSTEM
+        // LOGIN
         document.getElementById('roleSelector').addEventListener('change', function() {
             const role = this.value;
             const label = document.getElementById('labelUsername');
             const passField = document.getElementById('passwordField');
-            if(role === 'ortu') { label.innerText = 'NISN Siswa'; passField.style.display = 'none'; document.getElementById('password').removeAttribute('required'); } 
+            if(role === 'ortu') { label.innerText = 'NISN Siswa'; passField.style.display = 'none'; } 
             else { 
                 if(role === 'admin') label.innerText = 'Username Admin';
                 if(role === 'teacher') label.innerText = 'NIP Guru';
                 if(role === 'petugas') label.innerText = 'ID Petugas';
-                passField.style.display = 'block'; document.getElementById('password').setAttribute('required', 'true'); 
+                passField.style.display = 'block'; 
             }
         });
 
@@ -410,8 +306,8 @@
                     if(role === 'admin') {
                         document.getElementById('dashboard-admin').style.display = 'block';
                         document.getElementById('userProfileName').innerText = data.name;
-                        document.querySelector('.profil-nama').innerText = data.name;
-                        fetchSiswaData(); fetchGuruData();
+                        fetchSiswaData();
+                        fetchGuruData();
                     } else if(role === 'petugas') {
                         document.getElementById('dashboard-petugas').style.display = 'block';
                         document.getElementById('namaPetugasLabel').innerText = data.name;
@@ -421,7 +317,7 @@
                 } else {
                     err.innerText = data.message; err.classList.remove('d-none');
                 }
-            }).catch(e => { err.innerText = "Gagal terhubung."; err.classList.remove('d-none'); }).finally(() => { btn.innerHTML = 'LOGIN KE DASHBOARD'; btn.disabled = false; });
+            }).catch(e => { err.innerText = "Gagal terhubung ke database."; err.classList.remove('d-none'); }).finally(() => { btn.innerHTML = 'LOGIN KE DASHBOARD'; btn.disabled = false; });
         });
 
         function logoutPetugas() {
@@ -431,7 +327,7 @@
             document.getElementById('loginForm').reset();
         }
 
-        // KAMERA PETUGAS
+        // KAMERA
         function initCamera() {
             const video = document.getElementById('cameraVideo');
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -446,7 +342,7 @@
             initCamera();
         }
 
-        // AMBIL DATA SISWA UNTUK AUTO-COMPLETE
+        // AMBIL DATA SISWA UNTUK PETUGAS
         function loadSiswaForAbsen() {
             fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -458,7 +354,7 @@
             });
         }
 
-        // KETIK 3 HURUF -> MUNCUL DROPDOWN (NISN, Nama, Kelas)
+        // AUTO-COMPLETE PENCARIAN
         document.getElementById('searchSiswaInput').addEventListener('input', function() {
             const keyword = this.value.toLowerCase().trim();
             const listEl = document.getElementById('autocompleteList');
@@ -490,9 +386,9 @@
             });
         });
 
-        // PROSES ABSEN & EFEK SUARA KAMERA
+        // PROSES ABSEN
         function prosesAbsen(tipe) {
-            if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu dari hasil pencarian!"); return; }
+            if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
 
             const notif = document.getElementById('absenNotif');
             notif.className = "mt-3 alert alert-info text-center fw-bold";
@@ -507,7 +403,7 @@
 
             if(tipe === 'MASUK' && jamStr > "07:15") {
                 statusKehadiran = "Terlambat";
-                playCameraSound(); // Bunyi klik shutter
+                playCameraSound();
                 
                 const video = document.getElementById('cameraVideo');
                 const canvas = document.getElementById('cameraCanvas');
@@ -554,21 +450,20 @@
             });
         }
 
-        // FUNGSI ADMIN PENDUKUNG
+        // FETCH ADMIN TABEL
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 if(data.status === "success") {
-                    globalDataSiswa = data.data;
                     document.getElementById('dashTotalSiswa').innerText = data.data.length;
                     let tBody = document.getElementById('tableSiswaBody');
-                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data siswa.</td></tr>`; return; }
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Belum ada data siswa.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(s => {
-                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${s.id_siswa}</td><td class="text-center">${s.nisn}</td><td>${s.nama}</td><td class="text-center"><span class="badge bg-secondary">${s.kelas}</span></td><td>${s.ortu}</td><td>${s.hp}</td><td>${s.wali}</td><td class="text-center"><button class="btn btn-sm btn-warning me-1" onclick="openModalSiswa('edit', ${s.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="hapusSiswa(${s.row_index})"><i class="fas fa-trash"></i></button></td></tr>`;
+                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${s.id_siswa}</td><td class="text-center">${s.nisn}</td><td>${s.nama}</td><td class="text-center"><span class="badge bg-secondary">${s.kelas}</span></td><td>${s.ortu}</td><td>${s.hp}</td><td>${s.wali}</td></tr>`;
                     });
                 }
-            });
+            }).catch(() => { document.getElementById('tableSiswaBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat data dari Spreadsheet.</td></tr>`; });
         }
 
         function fetchGuruData() {
@@ -576,21 +471,16 @@
             .then(res => res.json()).then(data => {
                 if(data.status === "success") {
                     let tBody = document.getElementById('tableGuruBody');
-                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(g => {
-                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru}</td><td class="text-center">${g.nip}</td><td>${g.nama}</td><td>${g.mapel}</td><td>${g.tugas}</td><td>${g.hp}</td><td><span class="badge bg-success">${g.status}</span></td><td class="text-center">Edit/Hapus</td></tr>`;
+                        tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru}</td><td class="text-center">${g.nip}</td><td>${g.nama}</td><td>${g.mapel}</td><td><span class="badge bg-success">${g.status}</span></td></tr>`;
                     });
                 }
             });
         }
 
-        function openModalSiswa(mode, rowIndex) {
-            let myModal = new bootstrap.Modal(document.getElementById('modalSiswa'));
-            myModal.show();
-        }
-
-        // NAVIGASI ADMIN
+        // NAVIGASI
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('#sidebar ul li a').forEach(nav => nav.classList.remove('active'));
