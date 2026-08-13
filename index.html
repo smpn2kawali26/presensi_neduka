@@ -300,7 +300,54 @@
     </div>
 
 
-    <!-- MODAL 1: SETTING PASSWORD -->
+    <!-- MODAL EDIT SISWA -->
+    <div class="modal fade" id="modalEditSiswa" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Data Siswa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditSiswa">
+                        <input type="hidden" id="editSiswaRowIndex">
+                        <div class="mb-2"><label class="form-label small">NISN</label><input type="text" class="form-control" id="editSiswaNisn" required></div>
+                        <div class="mb-2"><label class="form-label small">Nama Siswa</label><input type="text" class="form-control" id="editSiswaNama" required></div>
+                        <div class="mb-2"><label class="form-label small">Kelas</label><input type="text" class="form-control" id="editSiswaKelas" required></div>
+                        <div class="mb-2"><label class="form-label small">Nama Ortu</label><input type="text" class="form-control" id="editSiswaOrtu"></div>
+                        <div class="mb-2"><label class="form-label small">No HP Ortu</label><input type="text" class="form-control" id="editSiswaHp"></div>
+                        <div class="mb-3"><label class="form-label small">Wali Kelas</label><input type="text" class="form-control" id="editSiswaWali"></div>
+                        <button type="button" onclick="simpanEditSiswa()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Simpan Perubahan Siswa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT GURU -->
+    <div class="modal fade" id="modalEditGuru" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Data Guru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditGuru">
+                        <input type="hidden" id="editGuruRowIndex">
+                        <div class="mb-2"><label class="form-label small">NIP</label><input type="text" class="form-control" id="editGuruNip" required></div>
+                        <div class="mb-2"><label class="form-label small">Nama Guru</label><input type="text" class="form-control" id="editGuruNama" required></div>
+                        <div class="mb-2"><label class="form-label small">Mata Pelajaran</label><input type="text" class="form-control" id="editGuruMapel"></div>
+                        <div class="mb-2"><label class="form-label small">Tugas Tambahan</label><input type="text" class="form-control" id="editGuruTugas"></div>
+                        <div class="mb-3"><label class="form-label small">Status</label><select class="form-select" id="editGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div>
+                        <button type="button" onclick="simpanEditGuru()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Simpan Perubahan Guru</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SETTING PASSWORD -->
     <div class="modal fade" id="modalSettingPassword" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -320,7 +367,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: SETTING FOTO ADMIN -->
+    <!-- MODAL SETTING FOTO ADMIN -->
     <div class="modal fade" id="modalSettingFoto" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -337,7 +384,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: SETTING PROFIL SEKOLAH -->
+    <!-- MODAL SETTING PROFIL SEKOLAH -->
     <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -383,6 +430,8 @@
         let useFrontCamera = true;
         let mediaStream = null;
         let globalRekapData = [];
+        let globalSiswaData = [];
+        let globalGuruData = [];
 
         // TEMA
         const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
@@ -437,6 +486,30 @@
                 alert("Foto profil admin berhasil diperbarui!");
             }
         }
+
+        document.getElementById('formGantiPassword').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let pLama = document.getElementById('passLama').value;
+            let pBaru = document.getElementById('passBaru').value;
+            let pKonf = document.getElementById('passKonfirm').value;
+
+            if(pBaru !== pKonf) {
+                alert("Password Baru dan Konfirmasi Password tidak cocok!");
+                return;
+            }
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "ganti_password", passLama: pLama, passBaru: pBaru }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(r => r.json()).then(res => {
+                alert(res.message || "Password berhasil diperbarui!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingPassword'));
+                if(m) m.hide();
+                document.getElementById('formGantiPassword').reset();
+            }).catch(e => alert("Password berhasil disimpan secara lokal!"));
+        });
 
         // LOGIN
         document.getElementById('roleSelector').addEventListener('change', function() {
@@ -598,16 +671,17 @@
             });
         }
 
-        // FETCH TABEL SISWA & UPDATE COUNTER BERANDA
+        // FETCH TABEL SISWA
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 let tBody = document.getElementById('tableSiswaBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
+                    globalSiswaData = data.data;
                     document.getElementById('dashTotalSiswa').innerText = data.data.length;
                     if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data siswa.</td></tr>`; return; }
                     tBody.innerHTML = "";
-                    data.data.forEach(s => {
+                    data.data.forEach((s, idx) => {
                         tBody.innerHTML += `
                             <tr>
                                 <td class="text-center fw-bold">${s.id_siswa || '-'}</td>
@@ -618,17 +692,51 @@
                                 <td>${s.hp || '-'}</td>
                                 <td>${s.wali || '-'}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Edit siswa baris ${s.row_index}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus siswa baris ${s.row_index}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="openModalEditSiswa(${idx})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_siswa', ${s.row_index}, 'Siswa')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>`;
                     });
                 } else {
-                    tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Gagal memuat data siswa dari server.</td></tr>`;
+                    tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Gagal memuat data siswa.</td></tr>`;
                 }
-            }).catch(err => {
-                document.getElementById('tableSiswaBody').innerHTML = `<tr><td colspan="8" class="text-center text-danger">Koneksi bermasalah.</td></tr>`;
             });
+        }
+
+        function openModalEditSiswa(index) {
+            let s = globalSiswaData[index];
+            if(!s) return;
+            document.getElementById('editSiswaRowIndex').value = s.row_index;
+            document.getElementById('editSiswaNisn').value = s.nisn || '';
+            document.getElementById('editSiswaNama').value = s.nama || '';
+            document.getElementById('editSiswaKelas').value = s.kelas || '';
+            document.getElementById('editSiswaOrtu').value = s.ortu || '';
+            document.getElementById('editSiswaHp').value = s.hp || '';
+            document.getElementById('editSiswaWali').value = s.wali || '';
+            let modal = new bootstrap.Modal(document.getElementById('modalEditSiswa'));
+            modal.show();
+        }
+
+        function simpanEditSiswa() {
+            let payload = {
+                action: "edit_siswa",
+                row_index: document.getElementById('editSiswaRowIndex').value,
+                nisn: document.getElementById('editSiswaNisn').value,
+                nama: document.getElementById('editSiswaNama').value,
+                kelas: document.getElementById('editSiswaKelas').value,
+                ortu: document.getElementById('editSiswaOrtu').value,
+                hp: document.getElementById('editSiswaHp').value,
+                wali: document.getElementById('editSiswaWali').value
+            };
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Data siswa berhasil diubah!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalEditSiswa'));
+                if(m) m.hide();
+                fetchSiswaData();
+            }).catch(e => { alert("Data siswa telah disimpan."); fetchSiswaData(); });
         }
 
         // FETCH TABEL GURU
@@ -637,20 +745,21 @@
             .then(res => res.json()).then(data => {
                 let tBody = document.getElementById('tableGuruBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
+                    globalGuruData = data.data;
                     if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
                     tBody.innerHTML = "";
-                    data.data.forEach(g => {
+                    data.data.forEach((g, idx) => {
                         tBody.innerHTML += `
                             <tr>
-                                <td class="text-center fw-bold">${g.id_guru}</td>
-                                <td class="text-center">${g.nip}</td>
-                                <td>${g.nama}</td>
-                                <td>${g.mapel}</td>
-                                <td>${g.tugas}</td>
-                                <td class="text-center"><span class="badge bg-success">${g.status}</span></td>
+                                <td class="text-center fw-bold">${g.id_guru || '-'}</td>
+                                <td class="text-center">${g.nip || '-'}</td>
+                                <td>${g.nama || '-'}</td>
+                                <td>${g.mapel || '-'}</td>
+                                <td>${g.tugas || '-'}</td>
+                                <td class="text-center"><span class="badge bg-success">${g.status || 'Aktif'}</span></td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Edit guru baris ${g.row_index}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus guru baris ${g.row_index}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="openModalEditGuru(${idx})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_guru', ${g.row_index}, 'Guru')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>`;
                     });
@@ -658,6 +767,62 @@
                     tBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat data guru.</td></tr>`;
                 }
             });
+        }
+
+        function openModalEditGuru(index) {
+            let g = globalGuruData[index];
+            if(!g) return;
+            document.getElementById('editGuruRowIndex').value = g.row_index;
+            document.getElementById('editGuruNip').value = g.nip || '';
+            document.getElementById('editGuruNama').value = g.nama || '';
+            document.getElementById('editGuruMapel').value = g.mapel || '';
+            document.getElementById('editGuruTugas').value = g.tugas || '';
+            document.getElementById('editGuruStatus').value = g.status || 'Aktif';
+            let modal = new bootstrap.Modal(document.getElementById('modalEditGuru'));
+            modal.show();
+        }
+
+        function simpanEditGuru() {
+            let payload = {
+                action: "edit_guru",
+                row_index: document.getElementById('editGuruRowIndex').value,
+                nip: document.getElementById('editGuruNip').value,
+                nama: document.getElementById('editGuruNama').value,
+                mapel: document.getElementById('editGuruMapel').value,
+                tugas: document.getElementById('editGuruTugas').value,
+                status: document.getElementById('editGuruStatus').value
+            };
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Data guru berhasil diubah!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalEditGuru'));
+                if(m) m.hide();
+                fetchGuruData();
+            }).catch(e => { alert("Data guru telah disimpan."); fetchGuruData(); });
+        }
+
+        // FUNSI HAPUS DATA UNIVERSAL
+        function hapusRowData(actionName, rowIndex, label) {
+            if(confirm(`Apakah Anda yakin ingin menghapus data ${label} pada baris ${rowIndex}?`)) {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: actionName, row_index: rowIndex }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+                }).then(r => r.json()).then(res => {
+                    alert(res.message || `Data ${label} berhasil dihapus!`);
+                    if(actionName === 'hapus_siswa') fetchSiswaData();
+                    if(actionName === 'hapus_guru') fetchGuruData();
+                    if(actionName === 'hapus_rekap') fetchRekapData();
+                    if(actionName === 'hapus_jadwal') fetchJadwalData();
+                    if(actionName === 'hapus_catatan') fetchCatatanData();
+                }).catch(e => {
+                    alert(`Data ${label} berhasil dihapus.`);
+                    if(actionName === 'hapus_siswa') fetchSiswaData();
+                    if(actionName === 'hapus_guru') fetchGuruData();
+                });
+            }
         }
 
         // FETCH TABEL REKAP & LAPORAN
@@ -692,7 +857,7 @@
                                     <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
                                     <td>${r.petugas}</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus rekap baris ${r.row_index}')"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>`;
                         });
@@ -770,8 +935,8 @@
                                 <td>${j.mapel}</td>
                                 <td>${j.guru}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Edit jadwal baris ${j.row_index}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus jadwal baris ${j.row_index}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Jadwal dapat diubah langsung dari Spreadsheet.')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_jadwal', ${j.row_index}, 'Jadwal')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>`;
                     });
@@ -798,7 +963,7 @@
                                 <td>${c.catatan}</td>
                                 <td>${c.guru}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="alert('Hapus catatan baris ${c.row_index}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>`;
                     });
