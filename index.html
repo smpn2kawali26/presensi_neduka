@@ -1,4 +1,62 @@
 <!DOCTYPE html>
+<!-- Tambahkan Chart.js di bagian head -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 1. MATA PASSWORD (Di form login) -->
+<div class="input-group mb-3">
+    <input type="password" class="form-control" id="password" placeholder="Password">
+    <button class="btn btn-outline-secondary" type="button" onclick="togglePass()"><i class="fas fa-eye"></i></button>
+</div>
+
+<!-- 2. GRAFIK BERANDA (Di section beranda) -->
+<div class="row">
+    <div class="col-md-6"><canvas id="kehadiranChart"></canvas></div>
+    <div class="col-md-6"><h4 id="persentaseHadir">0% Kehadiran</h4></div>
+</div>
+
+<!-- 3. TOMBOL TAMBAH PELAJARAN (Di section jadwal) -->
+<button class="btn btn-success mb-3" onclick="showModalTambahJadwal()">+ Tambah Pelajaran</button>
+
+<!-- 4. MODAL SETTING PROFIL (Di bawah penutup body) -->
+<div class="modal fade" id="modalSettingSekolah" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Setting Profil Sekolah</h5></div>
+            <div class="modal-body">
+                <input type="text" id="namaSekolah" class="form-control mb-2" placeholder="Nama Sekolah">
+                <input type="text" id="alamatSekolah" class="form-control mb-2" placeholder="Alamat">
+                <input type="text" id="namaKepsek" class="form-control mb-2" placeholder="Nama Kepala Sekolah">
+                <input type="text" id="nipKepsek" class="form-control mb-2" placeholder="NIP">
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="simpanProfil()">Simpan</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // FUNGSI MATA PASSWORD
+    function togglePass() {
+        var x = document.getElementById("password");
+        x.type = (x.type === "password") ? "text" : "password";
+    }
+
+    // FUNGSI GRAFIK
+    function renderChart(hadir, alpa) {
+        new Chart(document.getElementById('kehadiranChart'), {
+            type: 'doughnut',
+            data: { labels: ['Hadir', 'Alpa'], datasets: [{ data: [hadir, alpa], backgroundColor: ['#198754', '#dc3545'] }] }
+        });
+        document.getElementById('persentaseHadir').innerText = Math.round((hadir/(hadir+alpa))*100) + "% Kehadiran";
+    }
+
+    // FUNGSI TAMBAH PELAJARAN (Terintegrasi Spreadsheet)
+    function simpanJadwal() {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "tambah_pelajaran", hari: 'Senin', kelas: '7A', mapel: 'Matematika', jam: '08:00', guru: 'Budi' }),
+            headers: {'Content-Type': 'text/plain'}
+        }).then(() => { alert("Jadwal Ditambahkan!"); fetchJadwalData(); });
+    }
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -246,7 +304,7 @@
     <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTIECKVzDHCV_oUCeGz-tOFRKQ8P3wwSxUQHcK3ds1kOi9aCTVPQz9bL51nHUwNv0/exec";
+        const SCRIPT_URL = "";
 
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
