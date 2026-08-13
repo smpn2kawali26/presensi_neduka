@@ -42,7 +42,6 @@
         .content-section.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Animasi Loading Tabel */
         .spinner-table { text-align: center; padding: 20px; color: var(--secondary-bg); }
     </style>
 </head>
@@ -141,11 +140,13 @@
                         </div>
                     </div>
 
-                    <!-- SECTION DATA SISWA -->
+                    <!-- ============================================== -->
+                    <!-- SECTION: DATA SISWA -->
+                    <!-- ============================================== -->
                     <div id="section-siswa" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-graduate me-2"></i>Kelola Data Siswa</h4>
-                            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa" style="background-color: var(--secondary-bg); border: none;">
+                            <button class="btn btn-primary shadow-sm" onclick="openModalSiswa('tambah')" style="background-color: var(--secondary-bg); border: none;">
                                 <i class="fas fa-plus me-1"></i> Tambah Siswa
                             </button>
                         </div>
@@ -167,6 +168,46 @@
                                             </tr>
                                         </thead>
                                         <tbody id="tableSiswaBody">
+                                            <tr>
+                                                <td colspan="8" class="spinner-table">
+                                                    <i class="fas fa-spinner fa-spin fa-2x"></i><br>Mengambil data dari Spreadsheet...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- SECTION: DATA GURU (BARU) -->
+                    <!-- ============================================== -->
+                    <div id="section-guru" class="content-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-chalkboard-teacher me-2"></i>Kelola Data Guru</h4>
+                            <button class="btn btn-primary shadow-sm" onclick="openModalGuru('tambah')" style="background-color: var(--secondary-bg); border: none;">
+                                <i class="fas fa-plus me-1"></i> Tambah Guru
+                            </button>
+                        </div>
+                        
+                        <div class="card card-custom">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered align-middle">
+                                        <thead class="table-dark">
+                                            <tr class="text-center">
+                                                <th>ID Guru</th>
+                                                <th>NIP</th>
+                                                <th>Nama Guru</th>
+                                                <th>Mata Pelajaran</th>
+                                                <th>Tugas Tambahan</th>
+                                                <th>No HP</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableGuruBody">
                                             <tr>
                                                 <td colspan="8" class="spinner-table">
                                                     <i class="fas fa-spinner fa-spin fa-2x"></i><br>Mengambil data dari Spreadsheet...
@@ -219,16 +260,19 @@
         </div> 
     </div>
 
-    <!-- MODAL (POP-UP) TAMBAH DATA SISWA -->
-    <div class="modal fade" id="modalTambahSiswa" tabindex="-1" aria-hidden="true">
+    <!-- ============================================== -->
+    <!-- MODAL (POP-UP) TAMBAH/EDIT DATA SISWA -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="modalSiswa" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header text-white" style="background-color: var(--secondary-bg);">
-                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Tambah Data Siswa</h5>
+                    <h5 class="modal-title" id="modalSiswaLabel"><i class="fas fa-user-plus me-2"></i>Tambah Data Siswa</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formTambahSiswa">
+                    <form id="formSiswa">
+                        <input type="hidden" id="siswaRowIndex">
                         <div class="mb-3"><label class="form-label">ID Siswa</label><input type="text" class="form-control" id="idSiswa" placeholder="S001" required></div>
                         <div class="mb-3"><label class="form-label">NISN (Password)</label><input type="number" class="form-control" id="nisnSiswa" required></div>
                         <div class="mb-3"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="namaSiswa" required></div>
@@ -246,20 +290,58 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <!-- Tombol ini sudah diganti tipenya jadi submit agar HTML5 Required jalan -->
-                    <button type="submit" form="formTambahSiswa" class="btn btn-primary" id="btnSimpanSiswa" style="background-color: var(--accent-color); border:none;">Simpan ke Database</button>
+                    <button type="submit" form="formSiswa" class="btn btn-primary" id="btnSimpanSiswa" style="background-color: var(--accent-color); border:none;">Simpan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL (POP-UP) GURU -->
+    <!-- ============================================== -->
+    <div class="modal fade" id="modalGuru" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color: var(--secondary-bg);">
+                    <h5 class="modal-title" id="modalGuruLabel"><i class="fas fa-chalkboard-teacher me-2"></i>Tambah Data Guru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formGuru">
+                        <input type="hidden" id="guruRowIndex">
+                        <div class="mb-3"><label class="form-label">ID Guru</label><input type="text" class="form-control" id="idGuru" placeholder="G001" required></div>
+                        <div class="mb-3"><label class="form-label">NIP</label><input type="text" class="form-control" id="nipGuru" required></div>
+                        <div class="mb-3"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="namaGuru" required></div>
+                        <div class="mb-3"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="mapelGuru" required></div>
+                        <div class="mb-3"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tugasGuru" placeholder="Misal: Wali Kelas 7A"></div>
+                        <div class="mb-3"><label class="form-label">No HP Guru</label><input type="number" class="form-control" id="hpGuru" required></div>
+                        <div class="mb-3"><label class="form-label">Password (Login)</label><input type="text" class="form-control" id="passGuru" required></div>
+                        <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="statusGuru" required>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Cuti">Cuti</option>
+                            <option value="Pindah">Pindah</option>
+                        </select></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" form="formGuru" class="btn btn-primary" id="btnSimpanGuru" style="background-color: var(--accent-color); border:none;">Simpan Data</button>
                 </div>
             </div>
         </div>
     </div>
 
 
+    <!-- Bootstrap & JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ==========================================
         // GANTI LINK DI BAWAH INI DENGAN LINK API BARU ANDA DARI LANGKAH 1
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrljDw6-I94XXbNDRPcNBUkku3ZEXlf8sF5i5ArkuBpL9ykbKy6yq2d_v5bsCTWJuK/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2zaMdBPe2cMV13K1BuJkrb4gjtoKICaw5VvzwuLq8WUr8TSn4jRZgeLmCiYCpeR6v/exec";
+
+        let globalDataSiswa = [];
+        let globalDataGuru = [];
 
         // TEMA DAN WARNA
         const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
@@ -309,14 +391,15 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    document.getElementById('dashTotalSiswa').innerText = data.data.length; // Update angka di Beranda
+                    globalDataSiswa = data.data; 
+                    document.getElementById('dashTotalSiswa').innerText = data.data.length; 
                     
                     if(data.data.length === 0) {
                         tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Belum ada data siswa di Spreadsheet. Silakan tambah data.</td></tr>`;
                         return;
                     }
 
-                    tBody.innerHTML = ""; // Bersihkan tabel
+                    tBody.innerHTML = ""; 
                     data.data.forEach(siswa => {
                         let row = `
                             <tr>
@@ -325,11 +408,11 @@
                                 <td>${siswa.nama}</td>
                                 <td class="text-center"><span class="badge bg-secondary">${siswa.kelas}</span></td>
                                 <td>${siswa.ortu}</td>
-                                <td><a href="https://wa.me/62${siswa.hp.substring(1)}" target="_blank" class="text-decoration-none text-success"><i class="fab fa-whatsapp"></i> ${siswa.hp}</a></td>
+                                <td><a href="https://wa.me/62${siswa.hp.toString().substring(1)}" target="_blank" class="text-decoration-none text-success"><i class="fab fa-whatsapp"></i> ${siswa.hp}</a></td>
                                 <td>${siswa.wali}</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-danger" title="Hapus"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="openModalSiswa('edit', ${siswa.row_index})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusData('siswa', ${siswa.row_index})"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -338,23 +421,125 @@
                 }
             })
             .catch(err => {
-                tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data dari Spreadsheet. Pastikan link API benar.</td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data dari Spreadsheet.</td></tr>`;
             });
         }
 
         // ------------------------------------------
-        // FUNGSI UTAMA: MENYIMPAN DATA SISWA
+        // FUNGSI UTAMA: MENGAMBIL DATA GURU
         // ------------------------------------------
-        document.getElementById('formTambahSiswa').addEventListener('submit', function(e) {
-            e.preventDefault(); // Mencegah form pindah halaman
+        function fetchGuruData() {
+            const tBody = document.getElementById('tableGuruBody');
+            tBody.innerHTML = `<tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Sedang sinkronisasi data guru...</td></tr>`;
             
-            const btnSimpan = document.getElementById('btnSimpanSiswa');
-            btnSimpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-            btnSimpan.disabled = true;
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "get_guru" }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    globalDataGuru = data.data;
+                    
+                    if(data.data.length === 0) {
+                        tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Belum ada data guru.</td></tr>`;
+                        return;
+                    }
 
-            // Kumpulkan data dari form
-            const newSiswa = {
-                action: "tambah_siswa",
+                    tBody.innerHTML = "";
+                    data.data.forEach(guru => {
+                        let row = `
+                            <tr>
+                                <td class="text-center fw-bold">${guru.id_guru}</td>
+                                <td class="text-center">${guru.nip}</td>
+                                <td>${guru.nama}</td>
+                                <td>${guru.mapel}</td>
+                                <td>${guru.tugas}</td>
+                                <td><a href="https://wa.me/62${guru.hp.toString().substring(1)}" target="_blank" class="text-decoration-none text-success"><i class="fab fa-whatsapp"></i> ${guru.hp}</a></td>
+                                <td><span class="badge ${guru.status === 'Aktif' ? 'bg-success' : 'bg-danger'}">${guru.status}</span></td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="openModalGuru('edit', ${guru.row_index})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusData('guru', ${guru.row_index})"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                        tBody.innerHTML += row;
+                    });
+                }
+            })
+            .catch(err => { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data guru.</td></tr>`; });
+        }
+
+
+        // ------------------------------------------
+        // MANAJEMEN MODAL (TAMBAH / EDIT)
+        // ------------------------------------------
+        let modalSiswaInstance = null;
+        let modalGuruInstance = null;
+
+        function openModalSiswa(mode, rowIndex = null) {
+            if(!modalSiswaInstance) modalSiswaInstance = new bootstrap.Modal(document.getElementById('modalSiswa'));
+            document.getElementById('formSiswa').reset();
+            
+            if(mode === 'tambah') {
+                document.getElementById('modalSiswaLabel').innerHTML = '<i class="fas fa-user-plus me-2"></i>Tambah Data Siswa';
+                document.getElementById('siswaRowIndex').value = '';
+            } else if(mode === 'edit') {
+                document.getElementById('modalSiswaLabel').innerHTML = '<i class="fas fa-user-edit me-2"></i>Edit Data Siswa';
+                let siswa = globalDataSiswa.find(s => s.row_index === rowIndex);
+                if(siswa) {
+                    document.getElementById('siswaRowIndex').value = siswa.row_index;
+                    document.getElementById('idSiswa').value = siswa.id_siswa;
+                    document.getElementById('nisnSiswa').value = siswa.nisn;
+                    document.getElementById('namaSiswa').value = siswa.nama;
+                    document.getElementById('kelasSiswa').value = siswa.kelas;
+                    document.getElementById('namaOrtu').value = siswa.ortu;
+                    document.getElementById('hpOrtu').value = siswa.hp;
+                    document.getElementById('tahunMasuk').value = siswa.tahun;
+                    document.getElementById('waliKelas').value = siswa.wali;
+                }
+            }
+            modalSiswaInstance.show();
+        }
+
+        function openModalGuru(mode, rowIndex = null) {
+            if(!modalGuruInstance) modalGuruInstance = new bootstrap.Modal(document.getElementById('modalGuru'));
+            document.getElementById('formGuru').reset();
+            
+            if(mode === 'tambah') {
+                document.getElementById('modalGuruLabel').innerHTML = '<i class="fas fa-chalkboard-teacher me-2"></i>Tambah Data Guru';
+                document.getElementById('guruRowIndex').value = '';
+            } else if(mode === 'edit') {
+                document.getElementById('modalGuruLabel').innerHTML = '<i class="fas fa-user-edit me-2"></i>Edit Data Guru';
+                let guru = globalDataGuru.find(g => g.row_index === rowIndex);
+                if(guru) {
+                    document.getElementById('guruRowIndex').value = guru.row_index;
+                    document.getElementById('idGuru').value = guru.id_guru;
+                    document.getElementById('nipGuru').value = guru.nip;
+                    document.getElementById('namaGuru').value = guru.nama;
+                    document.getElementById('mapelGuru').value = guru.mapel;
+                    document.getElementById('tugasGuru').value = guru.tugas;
+                    document.getElementById('hpGuru').value = guru.hp;
+                    document.getElementById('passGuru').value = guru.password;
+                    document.getElementById('statusGuru').value = guru.status;
+                }
+            }
+            modalGuruInstance.show();
+        }
+
+        // ------------------------------------------
+        // FUNGSI SIMPAN & HAPUS
+        // ------------------------------------------
+        document.getElementById('formSiswa').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const btn = document.getElementById('btnSimpanSiswa');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true;
+
+            let rowIndex = document.getElementById('siswaRowIndex').value;
+            const dataSiswa = {
+                action: rowIndex ? "edit_siswa" : "tambah_siswa",
+                row_index: rowIndex,
                 id_siswa: document.getElementById('idSiswa').value,
                 nisn: document.getElementById('nisnSiswa').value,
                 nama: document.getElementById('namaSiswa').value,
@@ -365,37 +550,58 @@
                 wali: document.getElementById('waliKelas').value
             };
 
-            // Kirim ke Spreadsheet
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(newSiswa),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                redirect: 'follow'
-            })
-            .then(res => res.json())
-            .then(data => {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dataSiswa), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
                 if(data.status === "success") {
-                    alert("Sukses! Data Siswa berhasil masuk ke Spreadsheet.");
-                    document.getElementById('formTambahSiswa').reset(); // Kosongkan form
-                    
-                    // Tutup Pop-up Modal Bootstrap
-                    let modalEl = document.getElementById('modalTambahSiswa');
-                    let modalInstance = bootstrap.Modal.getInstance(modalEl);
-                    modalInstance.hide();
-                    
-                    // Refresh data tabel
+                    modalSiswaInstance.hide();
                     fetchSiswaData();
-                } else {
-                    alert("Gagal menyimpan: " + data.message);
-                }
-            })
-            .catch(err => alert("Terjadi kesalahan jaringan!"))
-            .finally(() => {
-                btnSimpan.innerHTML = 'Simpan ke Database';
-                btnSimpan.disabled = false;
-            });
+                } else alert("Gagal: " + data.message);
+            }).catch(err => alert("Kesalahan jaringan!")).finally(() => { btn.innerHTML = 'Simpan Data'; btn.disabled = false; });
         });
 
+        document.getElementById('formGuru').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const btn = document.getElementById('btnSimpanGuru');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true;
+
+            let rowIndex = document.getElementById('guruRowIndex').value;
+            const dataGuru = {
+                action: rowIndex ? "edit_guru" : "tambah_guru",
+                row_index: rowIndex,
+                id_guru: document.getElementById('idGuru').value,
+                nip: document.getElementById('nipGuru').value,
+                nama: document.getElementById('namaGuru').value,
+                mapel: document.getElementById('mapelGuru').value,
+                tugas: document.getElementById('tugasGuru').value,
+                hp: document.getElementById('hpGuru').value,
+                password: document.getElementById('passGuru').value,
+                status: document.getElementById('statusGuru').value
+            };
+
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dataGuru), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
+                if(data.status === "success") {
+                    modalGuruInstance.hide();
+                    fetchGuruData();
+                } else alert("Gagal: " + data.message);
+            }).catch(err => alert("Kesalahan jaringan!")).finally(() => { btn.innerHTML = 'Simpan Data'; btn.disabled = false; });
+        });
+
+        function hapusData(tipe, rowIndex) {
+            if(confirm(`Yakin ingin menghapus data ${tipe} ini?`)) {
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "hapus_" + tipe, row_index: rowIndex }), 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' 
+                })
+                .then(res => res.json()).then(data => {
+                    if(data.status === "success") {
+                        if(tipe === 'siswa') fetchSiswaData();
+                        if(tipe === 'guru') fetchGuruData();
+                    } else alert("Gagal menghapus.");
+                });
+            }
+        }
 
         // LOGIN
         document.getElementById('roleSelector').addEventListener('change', function() {
@@ -424,12 +630,12 @@
                     document.getElementById('userProfileName').innerText = data.name;
                     document.querySelector('.profil-nama').innerText = data.name;
                     
-                    // OTOMATIS AMBIL DATA SISWA SETELAH LOGIN BERHASIL
                     fetchSiswaData();
+                    fetchGuruData();
                 } else {
                     err.innerText = data.message; err.classList.remove('d-none');
                 }
-            }).catch(e => { err.innerText = "Gagal terhubung."; err.classList.remove('d-none'); }).finally(() => { btn.innerHTML = 'LOGIN KE DASHBOARD'; btn.disabled = false; });
+            }).catch(e => { err.innerText = "Gagal memproses ke database."; err.classList.remove('d-none'); }).finally(() => { btn.innerHTML = 'LOGIN KE DASHBOARD'; btn.disabled = false; });
         });
 
         // SIDEBAR
@@ -440,8 +646,10 @@
             document.getElementById(navId).classList.add('active');
             if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.add('collapsed'); }
         }
+
         document.getElementById('nav-beranda').addEventListener('click', () => changePage('section-beranda', 'nav-beranda'));
         document.getElementById('nav-siswa').addEventListener('click', () => changePage('section-siswa', 'nav-siswa'));
+        document.getElementById('nav-guru').addEventListener('click', () => changePage('section-guru', 'nav-guru'));
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
         
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
