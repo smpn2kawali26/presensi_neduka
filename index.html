@@ -130,7 +130,7 @@
             <nav id="sidebar">
                 <div class="sidebar-header">
                     <img src="logo.png" alt="Logo" width="60" class="mb-2 logo-aplikasi" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=SMP&background=2c5364&color=fff&size=60&rounded=true';">
-                    <h5 class="text-white m-0">SMP N 2 KAWALI</h5>
+                    <h5 class="text-white m-0 sekolah-nama-label">SMP N 2 KAWALI</h5>
                     <small class="text-white-50">Portal Admin</small>
                 </div>
                 <ul class="components list-unstyled">
@@ -214,8 +214,8 @@
                         
                         <div class="card card-custom p-4">
                             <div class="text-center border-bottom pb-3 mb-4">
-                                <h3 class="fw-bold text-uppercase m-0">SMP N 2 KAWALI</h3>
-                                <p class="text-muted m-0 small">Laporan Resmi Rekapitulasi Kehadiran Siswa</p>
+                                <h3 class="fw-bold text-uppercase m-0" id="printNamaSekolah">SMP N 2 KAWALI</h3>
+                                <p class="text-muted m-0 small" id="printAlamatSekolah">Laporan Resmi Rekapitulasi Kehadiran Siswa</p>
                             </div>
                             
                             <div class="row mb-3 no-print">
@@ -248,9 +248,9 @@
 
                             <div class="row mt-5 d-none d-print-flex" style="display: flex; justify-content: space-between;">
                                 <div class="col-4 text-center">
-                                    <p>Mengetahui,<br>Kepala SMP N 2 Kawali</p>
+                                    <p>Mengetahui,<br>Kepala <span class="printNamaSekolahText">SMP N 2 KAWALI</span></p>
                                     <br><br><br>
-                                    <p class="fw-bold text-decoration-underline">_______________________<br><small class="fw-normal">NIP. ...................................</small></p>
+                                    <p class="fw-bold text-decoration-underline"><span id="printKepsek">Nama Kepala Sekolah, S.Pd., M.Pd.</span><br><small class="fw-normal">NIP. <span id="printNipKepsek">...................................</span></small></p>
                                 </div>
                                 <div class="col-4 text-center">
                                     <p>Kawali, <span id="printDate"></span><br>Petugas / Guru Piket</p>
@@ -377,7 +377,7 @@
                 </div>
                 <div class="modal-body text-center">
                     <img src="" class="rounded-circle foto-profil mb-3 border shadow" width="90" height="90" alt="Preview">
-                    <div class="mb-3 text-start"><label class="form-label">URL / Link Foto Baru</label><input type="text" class="form-control" id="inputUrlFoto" placeholder="https://..."></div>
+                    <div class="mb-3 text-start"><label class="form-label">URL / Link Foto Baru</label><input type="text" class="form-control" id="inputUrlFotoAdmin" placeholder="https://..."></div>
                     <button type="button" onclick="simpanFotoAdmin()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Perbarui Foto</button>
                 </div>
             </div>
@@ -395,9 +395,10 @@
                 <div class="modal-body">
                     <form id="formProfilSekolah">
                         <div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="sekolahNama" value="SMP N 2 KAWALI"></div>
-                        <div class="mb-3"><label class="form-label">Kepala Sekolah</label><input type="text" class="form-control" id="sekolahKepsek" value="Nama Kepala Sekolah, S.Pd., M.Pd."></div>
+                        <div class="mb-3"><label class="form-label">Nama Kepala Sekolah</label><input type="text" class="form-control" id="sekolahKepsek" value="Nama Kepala Sekolah, S.Pd., M.Pd."></div>
+                        <div class="mb-3"><label class="form-label">NIP Kepala Sekolah</label><input type="text" class="form-control" id="sekolahNipKepsek" value="196809061999031004"></div>
                         <div class="mb-3"><label class="form-label">Alamat</label><textarea class="form-control" id="sekolahAlamat" rows="2">Jl. Kawali No. ... Ciamis</textarea></div>
-                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal" onclick="alert('Profil sekolah berhasil diperbarui!')">Simpan Profil Sekolah</button>
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Simpan Profil Sekolah</button>
                     </form>
                 </div>
             </div>
@@ -433,8 +434,9 @@
         let globalSiswaData = [];
         let globalGuruData = [];
 
-        // TEMA
-        const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
+        // TEMA & PROFIL SEKOLAH
+        const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff', sekolah: 'SMP N 2 KAWALI', kepsek: 'Nama Kepala Sekolah, S.Pd., M.Pd.', nipKepsek: '196809061999031004', alamat: 'Jl. Kawali No. ... Ciamis' };
+        
         function applyTheme(theme) {
             document.documentElement.style.setProperty('--primary-bg', theme.primary);
             document.documentElement.style.setProperty('--secondary-bg', theme.secondary);
@@ -442,15 +444,74 @@
             document.body.style.fontFamily = theme.font;
             document.querySelectorAll('.logo-aplikasi').forEach(img => img.src = theme.logo || DEFAULT_THEME.logo);
             document.querySelectorAll('.foto-profil').forEach(img => img.src = theme.profile || DEFAULT_THEME.profile);
+            document.querySelectorAll('.sekolah-nama-label').forEach(el => el.innerText = theme.sekolah || DEFAULT_THEME.sekolah);
+            
+            document.getElementById('printNamaSekolah').innerText = theme.sekolah || DEFAULT_THEME.sekolah;
+            document.querySelectorAll('.printNamaSekolahText').forEach(el => el.innerText = theme.sekolah || DEFAULT_THEME.sekolah);
+            document.getElementById('printAlamatSekolah').innerText = theme.alamat || DEFAULT_THEME.alamat;
+            document.getElementById('printKepsek').innerText = theme.kepsek || DEFAULT_THEME.kepsek;
+            document.getElementById('printNipKepsek').innerText = theme.nipKepsek || DEFAULT_THEME.nipKepsek;
         }
-        function loadTheme() { let t = localStorage.getItem('smpn2_theme'); if(t) applyTheme(JSON.parse(t)); else applyTheme(DEFAULT_THEME); }
+
+        function loadTheme() { 
+            let t = localStorage.getItem('smpn2_theme'); 
+            if(t) {
+                let parsed = JSON.parse(t);
+                applyTheme(parsed);
+                document.getElementById('sekolahNama').value = parsed.sekolah || DEFAULT_THEME.sekolah;
+                document.getElementById('sekolahKepsek').value = parsed.kepsek || DEFAULT_THEME.kepsek;
+                document.getElementById('sekolahNipKepsek').value = parsed.nipKepsek || DEFAULT_THEME.nipKepsek;
+                document.getElementById('sekolahAlamat').value = parsed.alamat || DEFAULT_THEME.alamat;
+                document.getElementById('inputUrlFotoAdmin').value = parsed.profile || '';
+            } else {
+                applyTheme(DEFAULT_THEME);
+            }
+        }
         loadTheme();
 
         document.getElementById('btnSaveSettings').addEventListener('click', () => {
-            let n = { primary: document.getElementById('inputColorPrimary').value, secondary: document.getElementById('inputColorSecondary').value, font: document.getElementById('inputFontFamily').value, logo: document.getElementById('inputLogoUrl').value || DEFAULT_THEME.logo, profile: document.getElementById('inputProfileUrl').value || DEFAULT_THEME.profile };
-            localStorage.setItem('smpn2_theme', JSON.stringify(n)); applyTheme(n); alert("Tampilan disimpan!");
+            let current = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+            current.primary = document.getElementById('inputColorPrimary').value;
+            current.secondary = document.getElementById('inputColorSecondary').value;
+            current.font = document.getElementById('inputFontFamily').value;
+            current.logo = document.getElementById('inputLogoUrl').value || DEFAULT_THEME.logo;
+            current.profile = document.getElementById('inputProfileUrl').value || current.profile;
+            localStorage.setItem('smpn2_theme', JSON.stringify(current)); 
+            applyTheme(current); 
+            alert("Tampilan disimpan!");
         });
-        document.getElementById('btnResetSettings').addEventListener('click', () => { if(confirm("Kembali ke Default?")) { localStorage.removeItem('smpn2_theme'); applyTheme(DEFAULT_THEME); } });
+
+        document.getElementById('btnResetSettings').addEventListener('click', () => { 
+            if(confirm("Kembali ke Default?")) { 
+                localStorage.removeItem('smpn2_theme'); 
+                applyTheme(DEFAULT_THEME); 
+            } 
+        });
+
+        function simpanFotoAdmin() {
+            let urlFoto = document.getElementById('inputUrlFotoAdmin').value.trim();
+            if(urlFoto) {
+                let currentTheme = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+                currentTheme.profile = urlFoto;
+                localStorage.setItem('smpn2_theme', JSON.stringify(currentTheme));
+                applyTheme(currentTheme);
+                alert("Foto profil admin berhasil diperbarui!");
+            } else {
+                alert("Masukkan URL foto yang valid.");
+            }
+        }
+
+        document.getElementById('formProfilSekolah').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let current = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+            current.sekolah = document.getElementById('sekolahNama').value;
+            current.kepsek = document.getElementById('sekolahKepsek').value;
+            current.nipKepsek = document.getElementById('sekolahNipKepsek').value;
+            current.alamat = document.getElementById('sekolahAlamat').value;
+            localStorage.setItem('smpn2_theme', JSON.stringify(current));
+            applyTheme(current);
+            alert("Profil sekolah dan NIP Kepala Sekolah berhasil diperbarui!");
+        });
 
         function updateClock() {
             const now = new Date();
@@ -476,17 +537,6 @@
             }
         }
 
-        function simpanFotoAdmin() {
-            let urlFoto = document.getElementById('inputUrlFoto').value;
-            if(urlFoto) {
-                let currentTheme = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
-                currentTheme.profile = urlFoto;
-                localStorage.setItem('smpn2_theme', JSON.stringify(currentTheme));
-                applyTheme(currentTheme);
-                alert("Foto profil admin berhasil diperbarui!");
-            }
-        }
-
         document.getElementById('formGantiPassword').addEventListener('submit', function(e) {
             e.preventDefault();
             let pLama = document.getElementById('passLama').value;
@@ -508,7 +558,12 @@
                 let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingPassword'));
                 if(m) m.hide();
                 document.getElementById('formGantiPassword').reset();
-            }).catch(e => alert("Password berhasil disimpan secara lokal!"));
+            }).catch(e => {
+                alert("Password berhasil disimpan!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingPassword'));
+                if(m) m.hide();
+                document.getElementById('formGantiPassword').reset();
+            });
         });
 
         // LOGIN
@@ -803,7 +858,7 @@
             }).catch(e => { alert("Data guru telah disimpan."); fetchGuruData(); });
         }
 
-        // FUNSI HAPUS DATA UNIVERSAL
+        // HAPUS DATA UNIVERSAL
         function hapusRowData(actionName, rowIndex, label) {
             if(confirm(`Apakah Anda yakin ingin menghapus data ${label} pada baris ${rowIndex}?`)) {
                 fetch(SCRIPT_URL, {
