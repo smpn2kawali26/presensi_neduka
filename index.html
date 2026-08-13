@@ -160,9 +160,9 @@
                             <span class="fw-bold d-none d-sm-inline" id="userProfileName">Administrator</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
-                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Password Admin')"><i class="fas fa-key me-2 text-warning"></i> Setting Password</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Foto Admin')"><i class="fas fa-image me-2 text-info"></i> Setting Foto Admin</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Profil Sekolah')"><i class="fas fa-school me-2 text-success"></i> Setting Profil Sekolah</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSettingPassword"><i class="fas fa-key me-2 text-warning"></i> Setting Password</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSettingFoto"><i class="fas fa-image me-2 text-info"></i> Setting Foto Admin</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSettingProfilSekolah"><i class="fas fa-school me-2 text-success"></i> Setting Profil Sekolah</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="fas fa-sign-out-alt me-2"></i> Keluar</a></li>
                         </ul>
@@ -300,6 +300,64 @@
     </div>
 
 
+    <!-- MODAL 1: SETTING PASSWORD -->
+    <div class="modal fade" id="modalSettingPassword" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Ganti Password Admin</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formGantiPassword">
+                        <div class="mb-3"><label class="form-label">Password Lama</label><input type="password" class="form-control" id="passLama" required></div>
+                        <div class="mb-3"><label class="form-label">Password Baru</label><input type="password" class="form-control" id="passBaru" required></div>
+                        <div class="mb-3"><label class="form-label">Konfirmasi Password Baru</label><input type="password" class="form-control" id="passKonfirm" required></div>
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Simpan Password Baru</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: SETTING FOTO ADMIN -->
+    <div class="modal fade" id="modalSettingFoto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-image me-2"></i>Atur Foto Profil Admin</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="" class="rounded-circle foto-profil mb-3 border shadow" width="90" height="90" alt="Preview">
+                    <div class="mb-3 text-start"><label class="form-label">URL / Link Foto Baru</label><input type="text" class="form-control" id="inputUrlFoto" placeholder="https://..."></div>
+                    <button type="button" onclick="simpanFotoAdmin()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Perbarui Foto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: SETTING PROFIL SEKOLAH -->
+    <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-school me-2"></i>Profil Sekolah</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formProfilSekolah">
+                        <div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="sekolahNama" value="SMP N 2 KAWALI"></div>
+                        <div class="mb-3"><label class="form-label">Kepala Sekolah</label><input type="text" class="form-control" id="sekolahKepsek" value="Nama Kepala Sekolah, S.Pd., M.Pd."></div>
+                        <div class="mb-3"><label class="form-label">Alamat</label><textarea class="form-control" id="sekolahAlamat" rows="2">Jl. Kawali No. ... Ciamis</textarea></div>
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal" onclick="alert('Profil sekolah berhasil diperbarui!')">Simpan Profil Sekolah</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- DASHBOARD PETUGAS ABSEN (USER 3) -->
     <div id="dashboard-petugas" class="dashboard-container container py-4">
         <div class="row justify-content-center"><div class="col-md-8"><div class="card card-custom p-4 shadow">
@@ -355,7 +413,6 @@
             document.getElementById('printDate').innerText = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         } setInterval(updateClock, 1000); updateClock();
 
-        // TOGGLE PASSWORD VISIBILITY
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePasswordIcon');
@@ -367,6 +424,17 @@
                 passwordInput.type = 'password';
                 toggleIcon.classList.remove('fa-eye-slash');
                 toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function simpanFotoAdmin() {
+            let urlFoto = document.getElementById('inputUrlFoto').value;
+            if(urlFoto) {
+                let currentTheme = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+                currentTheme.profile = urlFoto;
+                localStorage.setItem('smpn2_theme', JSON.stringify(currentTheme));
+                applyTheme(currentTheme);
+                alert("Foto profil admin berhasil diperbarui!");
             }
         }
 
@@ -530,13 +598,13 @@
             });
         }
 
-        // FETCH TABEL SISWA
+        // FETCH TABEL SISWA & UPDATE COUNTER BERANDA
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                if(data.status === "success") {
+                let tBody = document.getElementById('tableSiswaBody');
+                if(data.status === "success" && Array.isArray(data.data)) {
                     document.getElementById('dashTotalSiswa').innerText = data.data.length;
-                    let tBody = document.getElementById('tableSiswaBody');
                     if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data siswa.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(s => {
@@ -555,7 +623,11 @@
                                 </td>
                             </tr>`;
                     });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Gagal memuat data siswa dari server.</td></tr>`;
                 }
+            }).catch(err => {
+                document.getElementById('tableSiswaBody').innerHTML = `<tr><td colspan="8" class="text-center text-danger">Koneksi bermasalah.</td></tr>`;
             });
         }
 
@@ -563,9 +635,9 @@
         function fetchGuruData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                if(data.status === "success") {
-                    let tBody = document.getElementById('tableGuruBody');
-                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Belum ada data guru di Spreadsheet.</td></tr>`; return; }
+                let tBody = document.getElementById('tableGuruBody');
+                if(data.status === "success" && Array.isArray(data.data)) {
+                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Belum ada data guru.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(g => {
                         tBody.innerHTML += `
@@ -582,6 +654,8 @@
                                 </td>
                             </tr>`;
                     });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat data guru.</td></tr>`;
                 }
             });
         }
@@ -590,15 +664,23 @@
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                if(data.status === "success") {
+                let tBody = document.getElementById('tableRekapBody');
+                if(data.status === "success" && Array.isArray(data.data)) {
                     globalRekapData = data.data; 
                     
-                    let tBody = document.getElementById('tableRekapBody');
+                    let totalHadir = 0;
+                    let totalTelat = 0;
+                    let totalAlpa = 0;
+
                     if(data.data.length === 0) { 
                         tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Belum ada data rekap absensi.</td></tr>`; 
                     } else {
                         tBody.innerHTML = "";
                         data.data.forEach(r => {
+                            if(r.status === 'Hadir') totalHadir++;
+                            else if(r.status === 'Terlambat') totalTelat++;
+                            else totalAlpa++;
+
                             tBody.innerHTML += `
                                 <tr>
                                     <td class="text-center">${r.tanggal}</td>
@@ -616,8 +698,14 @@
                         });
                     }
                     
+                    document.getElementById('dashTotalHadir').innerText = totalHadir;
+                    document.getElementById('dashTotalTelat').innerText = totalTelat;
+                    document.getElementById('dashTotalAlpa').innerText = totalAlpa;
+
                     renderLaporanTable(globalRekapData);
                     populateFilterKelas(globalRekapData);
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Gagal memuat rekap absensi.</td></tr>`;
                 }
             });
         }
@@ -669,8 +757,8 @@
         function fetchJadwalData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                if(data.status === "success") {
-                    let tBody = document.getElementById('tableJadwalBody');
+                let tBody = document.getElementById('tableJadwalBody');
+                if(data.status === "success" && Array.isArray(data.data)) {
                     if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada jadwal pelajaran.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(j => {
@@ -687,6 +775,8 @@
                                 </td>
                             </tr>`;
                     });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat jadwal pelajaran.</td></tr>`;
                 }
             });
         }
@@ -695,8 +785,8 @@
         function fetchCatatanData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                if(data.status === "success") {
-                    let tBody = document.getElementById('tableCatatanBody');
+                let tBody = document.getElementById('tableCatatanBody');
+                if(data.status === "success" && Array.isArray(data.data)) {
                     if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada catatan guru.</td></tr>`; return; }
                     tBody.innerHTML = "";
                     data.data.forEach(c => {
@@ -712,6 +802,8 @@
                                 </td>
                             </tr>`;
                     });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat catatan guru.</td></tr>`;
                 }
             });
         }
