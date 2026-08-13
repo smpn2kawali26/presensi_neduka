@@ -112,7 +112,10 @@
                 </div>
                 <div class="mb-4" id="passwordField">
                     <label class="form-label text-muted small">Password</label>
-                    <input type="password" class="form-control shadow-sm" id="password" placeholder="Masukkan Password">
+                    <div class="input-group">
+                        <input type="password" class="form-control shadow-sm" id="password" placeholder="Masukkan Password">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()"><i class="fas fa-eye" id="togglePasswordIcon"></i></button>
+                    </div>
                 </div>
                 <button type="submit" class="btn w-100 text-white" id="btnLogin" style="background-color: var(--secondary-bg); border: none;">LOGIN KE DASHBOARD</button>
             </form>
@@ -157,6 +160,10 @@
                             <span class="fw-bold d-none d-sm-inline" id="userProfileName">Administrator</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Password Admin')"><i class="fas fa-key me-2 text-warning"></i> Setting Password</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Foto Admin')"><i class="fas fa-image me-2 text-info"></i> Setting Foto Admin</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="alert('Fitur Setting Profil Sekolah')"><i class="fas fa-school me-2 text-success"></i> Setting Profil Sekolah</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" id="btnLogout"><i class="fas fa-sign-out-alt me-2"></i> Keluar</a></li>
                         </ul>
                     </div>
@@ -205,14 +212,12 @@
                             <button onclick="window.print()" class="btn btn-primary" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-print me-2"></i>Cetak / Simpan PDF</button>
                         </div>
                         
-                        <!-- Header Surat / Laporan Khusus Cetak -->
                         <div class="card card-custom p-4">
                             <div class="text-center border-bottom pb-3 mb-4">
                                 <h3 class="fw-bold text-uppercase m-0">SMP N 2 KAWALI</h3>
                                 <p class="text-muted m-0 small">Laporan Resmi Rekapitulasi Kehadiran Siswa</p>
                             </div>
                             
-                            <!-- Filter Section (Hilang saat diprint) -->
                             <div class="row mb-3 no-print">
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Filter Berdasarkan Kelas:</label>
@@ -241,7 +246,6 @@
                                 </table>
                             </div>
 
-                            <!-- Tanda Tangan / Footer Laporan Print -->
                             <div class="row mt-5 d-none d-print-flex" style="display: flex; justify-content: space-between;">
                                 <div class="col-4 text-center">
                                     <p>Mengetahui,<br>Kepala SMP N 2 Kawali</p>
@@ -320,7 +324,7 @@
         let selectedSiswaData = null;
         let useFrontCamera = true;
         let mediaStream = null;
-        let globalRekapData = []; // Menyimpan data rekap untuk laporan
+        let globalRekapData = [];
 
         // TEMA
         const DEFAULT_THEME = { primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff' };
@@ -350,6 +354,21 @@
             document.getElementById('jamDigitalDashboard').innerText = timeStr;
             document.getElementById('printDate').innerText = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         } setInterval(updateClock, 1000); updateClock();
+
+        // TOGGLE PASSWORD VISIBILITY
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
 
         // LOGIN
         document.getElementById('roleSelector').addEventListener('change', function() {
@@ -572,7 +591,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 if(data.status === "success") {
-                    globalRekapData = data.data; // Simpan data untuk rekap & laporan
+                    globalRekapData = data.data; 
                     
                     let tBody = document.getElementById('tableRekapBody');
                     if(data.data.length === 0) { 
@@ -597,7 +616,6 @@
                         });
                     }
                     
-                    // Render data ke laporan juga
                     renderLaporanTable(globalRekapData);
                     populateFilterKelas(globalRekapData);
                 }
