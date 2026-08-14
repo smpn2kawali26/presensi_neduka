@@ -156,7 +156,7 @@
                     </div>
                     <div class="dropdown">
                         <a class="text-decoration-none text-dark dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                            <img src="https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff" class="rounded-circle me-2 foto-profil-admin" width="35" height="35" alt="Profile" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff';">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff" class="rounded-circle me-2 foto-profil-admin" width="35" height="35" alt="Profile" style="object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff';">
                             <span class="fw-bold d-none d-sm-inline" id="userProfileName">Administrator Utama</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
@@ -304,7 +304,7 @@
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);"><i class="fas fa-paint-brush me-2"></i>Personalisasi Tampilan</h4>
                         <div class="row">
                             <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body"><h5 class="card-title fw-bold text-secondary mb-4">Warna & Gaya Huruf</h5><div class="mb-3"><label class="form-label text-muted small">Warna Utama</label><input type="color" class="form-control form-control-color w-100" id="inputColorPrimary" value="#0f2027"></div><div class="mb-3"><label class="form-label text-muted small">Warna Aksen</label><input type="color" class="form-control form-control-color w-100" id="inputColorSecondary" value="#203a43"></div><div class="mb-4"><label class="form-label text-muted small">Gaya Huruf</label><select class="form-select" id="inputFontFamily"><option value="'Segoe UI', sans-serif">Segoe UI</option><option value="'Poppins', sans-serif">Poppins</option><option value="'Roboto', sans-serif">Roboto</option></select></div></div></div></div>
-                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body"><h5 class="card-title fw-bold text-secondary mb-4">Gambar & Identitas</h5><div class="mb-3"><label class="form-label text-muted small">Link Logo Sekolah</label><input type="text" class="form-control" id="inputLogoUrl" placeholder="logo.png"></div><div class="mb-4"><label class="form-label text-muted small">Link Foto Profil Admin</label><input type="text" class="form-control" id="inputProfileUrl"></div></div></div></div>
+                            <div class="col-md-6 mb-4"><div class="card card-custom h-100"><div class="card-body"><h5 class="card-title fw-bold text-secondary mb-4">Gambar & Identitas</h5><div class="mb-3"><label class="form-label text-muted small">Link Logo Sekolah</label><input type="text" class="form-control" id="inputLogoUrl" placeholder="logo.png"></div></div></div></div>
                         </div>
                         <div class="card card-custom shadow-sm border-0 bg-white"><div class="card-body text-end"><button class="btn btn-outline-danger me-2" id="btnResetSettings"><i class="fas fa-undo me-2"></i>Default</button><button class="btn btn-primary text-white" id="btnSaveSettings" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-save me-2"></i>Simpan Perubahan</button></div></div>
                     </div>
@@ -381,7 +381,7 @@
         </div>
     </div>
 
-    <!-- MODAL SETTING FOTO ADMIN -->
+    <!-- MODAL SETTING FOTO ADMIN (UNGGAH FILE LANGSUNG) -->
     <div class="modal fade" id="modalSettingFoto" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -390,9 +390,12 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img src="" class="rounded-circle foto-profil-admin mb-3 border shadow" width="90" height="90" alt="Preview" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff';">
-                    <div class="mb-3 text-start"><label class="form-label">URL / Link Foto Baru</label><input type="text" class="form-control" id="inputUrlFotoAdmin" placeholder="https://..."></div>
-                    <button type="button" onclick="simpanFotoAdmin()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Perbarui Foto</button>
+                    <img src="" class="rounded-circle foto-profil-admin mb-3 border shadow" width="90" height="90" alt="Preview" style="object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff';">
+                    <div class="mb-3 text-start">
+                        <label class="form-label">Pilih File Foto Baru dari Perangkat</label>
+                        <input type="file" class="form-control" id="inputFileFotoAdmin" accept="image/*">
+                    </div>
+                    <button type="button" onclick="simpanFotoAdmin()" id="btnUploadFoto" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Unggah & Perbarui Foto</button>
                 </div>
             </div>
         </div>
@@ -438,7 +441,7 @@
     <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzV2C0F0enoUSacXPoCni5mrWOksWb_qr_A24M6E8aBo3cIwFka-jvEVG7fSiAVO_mV/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwI8guV6BAO-mhYqZoy0-lqdQYD_jLSNcVznsrZ55cfJ9ChA2o0AJuhR6IjGA25Mnwx/exec";
 
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
@@ -482,7 +485,6 @@
             if(document.getElementById('sekolahKepsek')) document.getElementById('sekolahKepsek').value = current.kepsek || '';
             if(document.getElementById('sekolahNipKepsek')) document.getElementById('sekolahNipKepsek').value = current.nipKepsek || '';
             if(document.getElementById('sekolahAlamat')) document.getElementById('sekolahAlamat').value = current.alamat || '';
-            if(document.getElementById('inputUrlFotoAdmin')) document.getElementById('inputUrlFotoAdmin').value = current.profile || '';
             if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = current.lat || '';
             if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = current.lng || '';
             if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = current.radius || '';
@@ -514,7 +516,6 @@
                     if(document.getElementById('sekolahKepsek')) document.getElementById('sekolahKepsek').value = current.kepsek;
                     if(document.getElementById('sekolahNipKepsek')) document.getElementById('sekolahNipKepsek').value = current.nipKepsek;
                     if(document.getElementById('sekolahAlamat')) document.getElementById('sekolahAlamat').value = current.alamat;
-                    if(document.getElementById('inputUrlFotoAdmin')) document.getElementById('inputUrlFotoAdmin').value = current.profile;
                     if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = current.lat;
                     if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = current.lng;
                     if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = current.radius;
@@ -580,14 +581,12 @@
             current.secondary = document.getElementById('inputColorSecondary').value;
             current.font = document.getElementById('inputFontFamily').value;
             current.logo = document.getElementById('inputLogoUrl').value || DEFAULT_THEME.logo;
-            current.profile = document.getElementById('inputProfileUrl').value || current.profile;
             
             simpanSettingKeDatabase({
                 'primary_color': current.primary,
                 'secondary_color': current.secondary,
                 'font_family': current.font,
-                'logo_url': current.logo,
-                'admin_profile_url': current.profile
+                'logo_url': current.logo
             }, "Tampilan visual disimpan!");
         });
 
@@ -599,12 +598,42 @@
             } 
         });
 
+        // FUNGSI UNGGAH FOTO PROFIL ADMIN LANGSUNG DARI FILE PERANGKAT
         function simpanFotoAdmin() {
-            let urlFoto = document.getElementById('inputUrlFotoAdmin').value.trim();
-            if(urlFoto) {
-                simpanSettingKeDatabase({ 'admin_profile_url': urlFoto }, "Foto profil admin berhasil diperbarui di Database!");
+            let fileInput = document.getElementById('inputFileFotoAdmin');
+            if (fileInput.files && fileInput.files[0]) {
+                let btn = document.getElementById('btnUploadFoto');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunggah...'; btn.disabled = true;
+
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let base64Image = e.target.result;
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "simpan_foto_admin", image_base64: base64Image }),
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+                    })
+                    .then(r => r.json()).then(res => {
+                        if (res.status === "success") {
+                            let current = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+                            current.profile = res.url;
+                            localStorage.setItem('smpn2_theme', JSON.stringify(current));
+                            applyTheme(current);
+                            alert(res.message);
+                            let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingFoto'));
+                            if(m) m.hide();
+                        } else {
+                            alert("Gagal mengunggah foto.");
+                        }
+                    }).catch(err => {
+                        alert("Terjadi kesalahan jaringan.");
+                    }).finally(() => {
+                        btn.innerHTML = 'Unggah & Perbarui Foto'; btn.disabled = false;
+                    });
+                };
+                reader.readAsDataURL(fileInput.files[0]);
             } else {
-                alert("Masukkan URL foto yang valid.");
+                alert("Silakan pilih file foto terlebih dahulu.");
             }
         }
 
