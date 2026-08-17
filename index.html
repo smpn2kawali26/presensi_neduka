@@ -403,7 +403,7 @@
         </div>
     </div>
 
-    <!-- MODAL SETTING FOTO ADMIN (MENGGUNAKAN LINK URL YANG STABIL DAN AMAN) -->
+    <!-- MODAL SETTING FOTO ADMIN (DIKEMBALIKAN KE UPLOAD FILE DENGAN KOMPRESI OTOMATIS) -->
     <div class="modal fade" id="modalSettingFoto" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -414,10 +414,10 @@
                 <div class="modal-body text-center">
                     <img src="" class="rounded-circle foto-profil-admin mb-3 border shadow" width="90" height="90" alt="Preview" style="object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff';">
                     <div class="mb-3 text-start">
-                        <label class="form-label">Link URL Foto Profil Baru</label>
-                        <input type="text" class="form-control" id="inputUrlFotoAdmin" placeholder="https://... (contoh link gambar langsung)">
+                        <label class="form-label">Pilih File Foto Baru dari Perangkat</label>
+                        <input type="file" class="form-control" id="inputFileFotoAdmin" accept="image/*">
                     </div>
-                    <button type="button" onclick="simpanFotoAdmin()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Perbarui Foto</button>
+                    <button type="button" onclick="simpanFotoAdmin()" id="btnUploadFoto" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Unggah & Perbarui Foto</button>
                 </div>
             </div>
         </div>
@@ -463,7 +463,7 @@
     <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZWDjY-yj_1WZ6kI8fL2vU99mvQP_gS9OmKgo_E1ud2fYHPo4G_Jgape_Nl5wefAhd/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4_KtKLpmybH6gpeyFFXt-fy6E8O2AuTGLCp4GG9Q_g2xNN07eTSD2qZs5HiQErJ_d/exec";
 
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
@@ -508,7 +508,6 @@
             if(document.getElementById('sekolahKepsek')) document.getElementById('sekolahKepsek').value = current.kepsek || '';
             if(document.getElementById('sekolahNipKepsek')) document.getElementById('sekolahNipKepsek').value = current.nipKepsek || '';
             if(document.getElementById('sekolahAlamat')) document.getElementById('sekolahAlamat').value = current.alamat || '';
-            if(document.getElementById('inputUrlFotoAdmin')) document.getElementById('inputUrlFotoAdmin').value = current.profile || '';
             if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = current.lat || '';
             if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = current.lng || '';
             if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = current.radius || '';
@@ -539,7 +538,6 @@
                     if(document.getElementById('sekolahKepsek')) document.getElementById('sekolahKepsek').value = current.kepsek;
                     if(document.getElementById('sekolahNipKepsek')) document.getElementById('sekolahNipKepsek').value = current.nipKepsek;
                     if(document.getElementById('sekolahAlamat')) document.getElementById('sekolahAlamat').value = current.alamat;
-                    if(document.getElementById('inputUrlFotoAdmin')) document.getElementById('inputUrlFotoAdmin').value = current.profile;
                     if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = current.lat;
                     if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = current.lng;
                     if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = current.radius;
@@ -621,12 +619,75 @@
             } 
         });
 
+        // FUNGSI UNGGAH FOTO PROFIL ADMIN (UPLOAD FILE + KOMPRESI OTOMATIS)
         function simpanFotoAdmin() {
-            let urlFoto = document.getElementById('inputUrlFotoAdmin').value.trim();
-            if(urlFoto) {
-                simpanSettingKeDatabase({ 'admin_profile_url': urlFoto }, "Foto profil admin berhasil diperbarui!");
+            let fileInput = document.getElementById('inputFileFotoAdmin');
+            if (fileInput.files && fileInput.files[0]) {
+                let file = fileInput.files[0];
+                let btn = document.getElementById('btnUploadFoto');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompres & Mengunggah...'; 
+                btn.disabled = true;
+
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        // Kompresi agar tidak terjadi "Kesalahan Jaringan" akibat payload yang terlalu besar
+                        let canvas = document.createElement('canvas');
+                        let MAX_WIDTH = 300;
+                        let MAX_HEIGHT = 300;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        let compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // Kompresi JPEG 60%
+
+                        fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: "simpan_foto_admin", image_base64: compressedBase64 }),
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+                        })
+                        .then(r => r.json()).then(res => {
+                            if (res.status === "success") {
+                                let current = JSON.parse(localStorage.getItem('smpn2_theme')) || DEFAULT_THEME;
+                                current.profile = res.url;
+                                localStorage.setItem('smpn2_theme', JSON.stringify(current));
+                                applyTheme(current);
+                                alert(res.message);
+                                let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingFoto'));
+                                if(m) m.hide();
+                                document.getElementById('inputFileFotoAdmin').value = ""; // Reset input form
+                            } else {
+                                alert("Gagal mengunggah foto: " + res.message);
+                            }
+                        }).catch(err => {
+                            alert("Terjadi kesalahan jaringan saat mengirim data. Harap coba foto dengan resolusi lebih kecil.");
+                        }).finally(() => {
+                            btn.innerHTML = 'Unggah & Perbarui Foto'; 
+                            btn.disabled = false;
+                        });
+                    };
+                };
+                reader.readAsDataURL(file);
             } else {
-                alert("Masukkan URL foto yang valid.");
+                alert("Silakan pilih file foto terlebih dahulu dari perangkat.");
             }
         }
 
