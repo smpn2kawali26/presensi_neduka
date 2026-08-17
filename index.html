@@ -736,7 +736,7 @@
             });
         }
 
-        // FUNGSI BARU: UNDUH EXCEL PER KELAS MATRIKS 1-31
+        // FUNGSI UNDUH EXCEL PER KELAS MATRIKS 1-31 (DENGAN PENCOCOKAN TANGGAL DISEMPURNAKAN)
         function downloadExcelLaporan() {
             let selectedKelas = document.getElementById('filterKelas').value;
             if(!selectedKelas) {
@@ -755,7 +755,6 @@
             let rekapKelas = globalRekapData.filter(r => r.kelas === selectedKelas);
             let daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
 
-            // Hitung hari efektif (jumlah hari yang benar-benar ada aktivitas absen untuk kelas ini)
             let uniqueDates = [...new Set(rekapKelas.map(r => r.tanggal))];
             let totalHariEfektif = uniqueDates.length > 0 ? uniqueDates.length : daysInMonth; 
 
@@ -798,10 +797,20 @@
                 for(let i=1; i<=31; i++) {
                     if (i <= daysInMonth) {
                         let statusHariIni = "-";
+                        
                         let record = rekapKelas.find(r => {
-                            let tglParts = r.tanggal.split('/'); 
-                            if(tglParts.length > 0) return parseInt(tglParts[0]) === i;
-                            return false;
+                            if (!r.nisn || String(r.nisn).trim() !== String(siswa.nisn).trim()) return false;
+                            
+                            let tglNum = 0;
+                            let rawTgl = String(r.tanggal);
+                            if (rawTgl.includes('-')) {
+                                let parts = rawTgl.split('T')[0].split('-');
+                                if (parts.length === 3) tglNum = parseInt(parts[2], 10);
+                            } else if (rawTgl.includes('/')) {
+                                let parts = rawTgl.split('/');
+                                if (parts.length >= 1) tglNum = parseInt(parts[0], 10);
+                            }
+                            return tglNum === i;
                         });
 
                         if(record) {
