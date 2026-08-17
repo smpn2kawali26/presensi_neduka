@@ -227,11 +227,14 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead><tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 4.1 SECTION LAPORAN (CETAK PDF) -->
+                    <!-- 4.1 SECTION LAPORAN (CETAK PDF & EXCEL) -->
                     <div id="section-laporan" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                        <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-file-alt me-2"></i>Laporan Absensi Sekolah</h4>
-                            <button onclick="window.print()" class="btn btn-primary" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-print me-2"></i>Cetak / Simpan PDF</button>
+                            <div class="d-flex gap-2">
+                                <button onclick="downloadExcelLaporan()" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Unduh Excel (Per Kelas)</button>
+                                <button onclick="window.print()" class="btn btn-primary" style="background-color: var(--secondary-bg); border: none;"><i class="fas fa-print me-2"></i>Cetak / Simpan PDF</button>
+                            </div>
                         </div>
                         
                         <div class="card card-custom p-4">
@@ -633,7 +636,6 @@
                     let img = new Image();
                     img.src = e.target.result;
                     img.onload = function () {
-                        // Kompresi agar tidak terjadi "Kesalahan Jaringan" akibat payload yang terlalu besar
                         let canvas = document.createElement('canvas');
                         let MAX_WIDTH = 300;
                         let MAX_HEIGHT = 300;
@@ -657,7 +659,7 @@
                         let ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        let compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // Kompresi JPEG 60%
+                        let compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
 
                         fetch(SCRIPT_URL, {
                             method: 'POST',
@@ -673,7 +675,7 @@
                                 alert(res.message);
                                 let m = bootstrap.Modal.getInstance(document.getElementById('modalSettingFoto'));
                                 if(m) m.hide();
-                                document.getElementById('inputFileFotoAdmin').value = ""; // Reset input form
+                                document.getElementById('inputFileFotoAdmin').value = ""; 
                             } else {
                                 alert("Gagal mengunggah foto: " + res.message);
                             }
@@ -695,13 +697,12 @@
         function renderDashboardCharts(rekapData) {
             let kelasList = [...new Set(rekapData.map(item => item.kelas))].filter(Boolean).sort();
             if(kelasList.length === 0) {
-                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; // Contoh default jika data kosong
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; 
             }
 
             let hadirCounts = kelasList.map(k => rekapData.filter(item => item.kelas === k && item.status === 'Hadir').length);
             let telatCounts = kelasList.map(k => rekapData.filter(item => item.kelas === k && item.status === 'Terlambat').length);
 
-            // 1. Grafik Batang (Bar Chart)
             const ctxBar = document.getElementById('barChartKelas').getContext('2d');
             if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, {
@@ -716,7 +717,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
 
-            // 2. Grafik Radar / Laba-laba (Radar Chart)
             const ctxRadar = document.getElementById('radarChartKelas').getContext('2d');
             if(radarChartInstance) radarChartInstance.destroy();
             radarChartInstance = new Chart(ctxRadar, {
@@ -734,6 +734,138 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
+        }
+
+        // FUNGSI BARU: UNDUH EXCEL PER KELAS MATRIKS 1-31
+        function downloadExcelLaporan() {
+            let selectedKelas = document.getElementById('filterKelas').value;
+            if(!selectedKelas) {
+                alert("Silakan pilih salah satu KELAS terlebih dahulu dari menu dropdown filter untuk mengunduh format matriks!");
+                return;
+            }
+
+            let t = localStorage.getItem('smpn2_theme');
+            let theme = t ? JSON.parse(t) : DEFAULT_THEME;
+            let currentMonth = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+            let currentDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            let petugasName = document.getElementById('userProfileName').innerText;
+
+            let siswaKelas = globalSiswaData.filter(s => s.kelas === selectedKelas);
+            siswaKelas.sort((a, b) => a.nama.localeCompare(b.nama));
+            let rekapKelas = globalRekapData.filter(r => r.kelas === selectedKelas);
+            let daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+
+            // Hitung hari efektif (jumlah hari yang benar-benar ada aktivitas absen untuk kelas ini)
+            let uniqueDates = [...new Set(rekapKelas.map(r => r.tanggal))];
+            let totalHariEfektif = uniqueDates.length > 0 ? uniqueDates.length : daysInMonth; 
+
+            let tableHTML = `
+                <table border="1" style="border-collapse: collapse;">
+                    <thead>
+                        <tr><th colspan="35" style="text-align: left; font-size: 14pt; font-weight: bold;">${theme.sekolah}</th></tr>
+                        <tr><th colspan="35" style="text-align: left; font-size: 12pt; font-weight: bold;">LAPORAN REKAPITULASI ABSENSI SISWA</th></tr>
+                        <tr><th colspan="35" style="text-align: left; font-size: 11pt; font-weight: bold;">KELAS : ${selectedKelas}</th></tr>
+                        <tr><th colspan="35" style="text-align: left; font-size: 11pt; font-weight: bold;">BULAN : ${currentMonth}</th></tr>
+                        <tr><th colspan="35"></th></tr>
+                        <tr style="background-color: #d9d9d9;">
+                            <th rowspan="2" style="vertical-align: middle;">NO</th>
+                            <th rowspan="2" style="vertical-align: middle;">NISN</th>
+                            <th rowspan="2" style="vertical-align: middle;">NAMA SISWA</th>
+                            <th colspan="31" style="text-align: center;">TANGGAL / HARI</th>
+                            <th rowspan="2" style="vertical-align: middle;">TOTAL HADIR</th>
+                            <th rowspan="2" style="vertical-align: middle;">% KEHADIRAN</th>
+                        </tr>
+                        <tr style="background-color: #d9d9d9;">
+            `;
+            
+            for(let i=1; i<=31; i++) {
+                tableHTML += `<th style="text-align: center;">${i}</th>`;
+            }
+            tableHTML += `</tr></thead><tbody>`;
+
+            if(siswaKelas.length === 0) {
+                tableHTML += `<tr><td colspan="35" style="text-align: center;">Tidak ada data siswa di kelas ini</td></tr>`;
+            }
+
+            siswaKelas.forEach((siswa, index) => {
+                let totalHadirTelat = 0;
+                
+                tableHTML += `<tr>
+                    <td style="text-align: center;">${index + 1}</td>
+                    <td style="text-align: center; mso-number-format:'\\@';">${siswa.nisn}</td>
+                    <td>${siswa.nama}</td>`;
+
+                for(let i=1; i<=31; i++) {
+                    if (i <= daysInMonth) {
+                        let statusHariIni = "-";
+                        let record = rekapKelas.find(r => {
+                            let tglParts = r.tanggal.split('/'); 
+                            if(tglParts.length > 0) return parseInt(tglParts[0]) === i;
+                            return false;
+                        });
+
+                        if(record) {
+                            let statusRaw = record.status.toLowerCase();
+                            if(statusRaw.includes('hadir')) { statusHariIni = "H"; totalHadirTelat++; }
+                            else if(statusRaw.includes('terlambat')) { statusHariIni = "T"; totalHadirTelat++; }
+                            else if(statusRaw.includes('izin')) { statusHariIni = "I"; }
+                            else if(statusRaw.includes('alpa') || statusRaw.includes('absen')) { statusHariIni = "A"; }
+                            else { statusHariIni = record.status.charAt(0).toUpperCase(); }
+                        }
+                        tableHTML += `<td style="text-align: center;">${statusHariIni}</td>`;
+                    } else {
+                        tableHTML += `<td style="text-align: center; background-color: #f0f0f0;"></td>`;
+                    }
+                }
+                
+                let persen = Math.round((totalHadirTelat / totalHariEfektif) * 100);
+                if(persen > 100) persen = 100;
+
+                tableHTML += `
+                    <td style="text-align: center; font-weight: bold;">${totalHadirTelat}</td>
+                    <td style="text-align: center; font-weight: bold;">${persen}%</td>
+                </tr>`;
+            });
+
+            tableHTML += `
+                    <tr><td colspan="35"></td></tr>
+                    <tr><td colspan="35"></td></tr>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td colspan="10" style="text-align: center; font-weight: bold;">Mengetahui,</td>
+                        <td colspan="10"></td>
+                        <td colspan="11" style="text-align: center;">Kawali, ${currentDate}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td colspan="10" style="text-align: center; font-weight: bold;">Kepala ${theme.sekolah}</td>
+                        <td colspan="10"></td>
+                        <td colspan="11" style="text-align: center; font-weight: bold;">Petugas / Guru Piket</td>
+                    </tr>
+                    <tr><td colspan="35"></td></tr>
+                    <tr><td colspan="35"></td></tr>
+                    <tr><td colspan="35"></td></tr>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td colspan="10" style="text-align: center; font-weight: bold; text-decoration: underline;">${theme.kepsek}</td>
+                        <td colspan="10"></td>
+                        <td colspan="11" style="text-align: center; font-weight: bold; text-decoration: underline;">${petugasName}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td colspan="10" style="text-align: center;">NIP. ${theme.nipKepsek}</td>
+                        <td colspan="10"></td>
+                        <td colspan="11" style="text-align: center;"></td>
+                    </tr>
+                </tbody></table>`;
+
+            let blob = new Blob([tableHTML], { type: "application/vnd.ms-excel" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Laporan_Absensi_Kelas_${selectedKelas}_${currentMonth.replace(/\s/g, "_")}.xls`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function updateClock() {
