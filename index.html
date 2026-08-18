@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Absensi SMP N 2 Kawali</title>
+    <title>Portal Absensi Terpadu - SMP N 2 Kawali</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome (Icon) -->
@@ -86,7 +86,7 @@
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- LOGIN SECTION -->
     <div id="login-section">
         <div class="login-card">
             <div class="text-center mb-3">
@@ -126,7 +126,7 @@
     </div>
 
 
-    <!-- DASHBOARD ADMIN -->
+    <!-- DASHBOARD ADMIN (USER 1) -->
     <div id="dashboard-admin" class="dashboard-container">
         <div id="wrapper">
             <nav id="sidebar">
@@ -182,7 +182,7 @@
                             <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3 id="dashTotalAlpa">0</h3></div></div>
                         </div>
 
-                        <!-- GRAFIK REKAP ABSEN PER KELAS (BATANG & RADAR/LABA-LABA) -->
+                        <!-- GRAFIK REKAP ABSEN PER KELAS -->
                         <div class="row mt-4">
                             <div class="col-md-6 mb-4">
                                 <div class="card card-custom p-4 h-100">
@@ -194,7 +194,7 @@
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="card card-custom p-4 h-100">
-                                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-chart-pie me-2"></i>Rekap Absensi Radar (Laba-laba) Per Kelas</h5>
+                                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-chart-pie me-2"></i>Rekap Absensi Radar Per Kelas</h5>
                                     <div style="position: relative; height: 280px; width: 100%;">
                                         <canvas id="radarChartKelas"></canvas>
                                     </div>
@@ -339,6 +339,104 @@
     </div>
 
 
+    <!-- DASHBOARD PETUGAS ABSEN (USER 3) -->
+    <div id="dashboard-petugas" class="dashboard-container container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-custom p-4 shadow">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-camera-retro me-2"></i>Portal Petugas Absen</h4>
+                        <button class="btn btn-sm btn-outline-danger" onclick="logoutPetugas()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+                    </div>
+                    <hr>
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small">Petugas Piket yang Bertugas:</p>
+                            <h5 class="fw-bold text-dark" id="namaPetugasLabel">Petugas Absen</h5>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <span class="badge bg-success" id="gpsStatusBadge"><i class="fas fa-map-marker-alt me-1"></i> Memeriksa GPS...</span>
+                        </div>
+                    </div>
+
+                    <!-- Autocomplete 3 Huruf -->
+                    <div class="mb-3 position-relative">
+                        <label class="form-label fw-bold small">Cari Siswa (Ketik Nama / NISN min 3 huruf):</label>
+                        <input type="text" class="form-control" id="searchSiswaInput" placeholder="Ketik minimal 3 huruf nama siswa..." autocomplete="off">
+                        <div id="autocompleteList"></div>
+                    </div>
+
+                    <div class="alert alert-info d-none mb-3" id="selectedSiswaCard">
+                        <strong>Terpilih:</strong> <span id="txtNamaSiswa"></span> | <strong>Kelas:</strong> <span id="txtKelasSiswa"></span> | <strong>NISN:</strong> <span id="txtNisnSiswa"></span>
+                    </div>
+
+                    <!-- Kamera & Kompresi Pintar -->
+                    <div class="text-center mb-3">
+                        <div id="video-container" class="mb-2 shadow border">
+                            <video id="cameraVideo" autoplay playsinline></video>
+                            <canvas id="cameraCanvas"></canvas>
+                        </div>
+                        <button class="btn btn-sm btn-secondary mb-3" onclick="switchCamera()"><i class="fas fa-sync-alt me-1"></i> Putar Kamera</button>
+                    </div>
+
+                    <!-- Tombol Masuk & Pulang -->
+                    <div class="row">
+                        <div class="col-6"><button class="btn btn-success w-100 py-2 fw-bold" onclick="prosesAbsen('MASUK')"><i class="fas fa-sign-in-alt me-1"></i> ABSEN MASUK</button></div>
+                        <div class="col-6"><button class="btn btn-primary w-100 py-2 fw-bold" onclick="prosesAbsen('PULANG')" style="background-color: var(--secondary-bg);"><i class="fas fa-sign-out-alt me-1"></i> ABSEN PULANG</button></div>
+                    </div>
+                    <div id="absenNotif" class="mt-3 alert d-none text-center fw-bold"></div>
+
+                    <!-- Keterangan Rekap Kehadiran Real-Time Per Kelas -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-chart-pie me-2"></i>Status Masuk Hari Ini Per Kelas:</h6>
+                        <div id="realtimeKelasSummary" class="row g-2">
+                            <div class="text-muted small">Memuat data rekap kelas...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- DASHBOARD ORANG TUA / WALI MURID (USER 4) -->
+    <div id="dashboard-ortu" class="dashboard-container container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-custom p-4 shadow">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-shield me-2"></i>Portal Orang Tua / Wali Murid</h4>
+                        <button class="btn btn-sm btn-outline-danger" onclick="logoutOrtu()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+                    </div>
+                    <hr>
+                    <div class="card bg-light border-0 p-3 mb-4">
+                        <h5 class="fw-bold text-dark mb-1" id="ortuNamaSiswa">-</h5>
+                        <p class="text-muted mb-0 small">NISN: <span id="ortuNisnSiswa">-</span> | Kelas: <span id="ortuKelasSiswa">-</span> | Ortu: <span id="ortuNamaOrtu">-</span></p>
+                    </div>
+
+                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Riwayat Kehadiran Siswa</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr class="text-center">
+                                    <th>Tanggal</th>
+                                    <th>Waktu</th>
+                                    <th>Tipe</th>
+                                    <th>Status</th>
+                                    <th>Petugas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableOrtuRiwayat">
+                                <tr><td colspan="5" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat anak...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- MODAL EDIT SISWA -->
     <div class="modal fade" id="modalEditSiswa" tabindex="-1">
         <div class="modal-dialog">
@@ -442,66 +540,6 @@
                         <div class="mb-3"><label class="form-label">Alamat</label><textarea class="form-control" id="sekolahAlamat" rows="2" required>Jl. Kawali No. ... Ciamis</textarea></div>
                         <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);" data-bs-dismiss="modal">Simpan Profil Sekolah</button>
                     </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- DASHBOARD PETUGAS ABSEN (USER 3 - MULTI PETUGAS, AUTOCOMPLETE 3 HURUF, GPS, KAMERA TERSEMBUNYI & KOMPRESI, REAL-TIME KELAS) -->
-    <div id="dashboard-petugas" class="dashboard-container container py-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card card-custom p-4 shadow">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-camera-retro me-2"></i>Portal Petugas Absen</h4>
-                        <button class="btn btn-sm btn-outline-danger" onclick="logoutPetugas()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
-                    </div>
-                    <hr>
-                    <div class="row mb-3 align-items-center">
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted small">Petugas Piket yang Bertugas:</p>
-                            <h5 class="fw-bold text-dark" id="namaPetugasLabel">Petugas Absen</h5>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <span class="badge bg-success" id="gpsStatusBadge"><i class="fas fa-map-marker-alt me-1"></i> Memeriksa GPS...</span>
-                        </div>
-                    </div>
-
-                    <!-- Autocomplete 3 Huruf -->
-                    <div class="mb-3 position-relative">
-                        <label class="form-label fw-bold small">Cari Siswa (Ketik Nama / NISN min 3 huruf):</label>
-                        <input type="text" class="form-control" id="searchSiswaInput" placeholder="Ketik minimal 3 huruf nama siswa..." autocomplete="off">
-                        <div id="autocompleteList"></div>
-                    </div>
-
-                    <div class="alert alert-info d-none mb-3" id="selectedSiswaCard">
-                        <strong>Terpilih:</strong> <span id="txtNamaSiswa"></span> | <strong>Kelas:</strong> <span id="txtKelasSiswa"></span> | <strong>NISN:</strong> <span id="txtNisnSiswa"></span>
-                    </div>
-
-                    <!-- Kamera & Kompresi Pintar (Hanya Aktif saat Telat / Sesuai Kebutuhan) -->
-                    <div class="text-center mb-3">
-                        <div id="video-container" class="mb-2 shadow border">
-                            <video id="cameraVideo" autoplay playsinline></video>
-                            <canvas id="cameraCanvas"></canvas>
-                        </div>
-                        <button class="btn btn-sm btn-secondary mb-3" onclick="switchCamera()"><i class="fas fa-sync-alt me-1"></i> Putar Kamera</button>
-                    </div>
-
-                    <!-- Tombol Masuk & Pulang -->
-                    <div class="row">
-                        <div class="col-6"><button class="btn btn-success w-100 py-2 fw-bold" onclick="prosesAbsen('MASUK')"><i class="fas fa-sign-in-alt me-1"></i> ABSEN MASUK</button></div>
-                        <div class="col-6"><button class="btn btn-primary w-100 py-2 fw-bold" onclick="prosesAbsen('PULANG')" style="background-color: var(--secondary-bg);"><i class="fas fa-sign-out-alt me-1"></i> ABSEN PULANG</button></div>
-                    </div>
-                    <div id="absenNotif" class="mt-3 alert d-none text-center fw-bold"></div>
-
-                    <!-- Keterangan Rekap Kehadiran Real-Time Per Kelas -->
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-chart-pie me-2"></i>Status Masuk Hari Ini Per Kelas:</h6>
-                        <div id="realtimeKelasSummary" class="row g-2">
-                            <div class="text-muted small">Memuat data rekap kelas...</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -670,7 +708,6 @@
             } 
         });
 
-        // FUNGSI UNGGAH FOTO PROFIL ADMIN (UPLOAD FILE + KOMPRESI OTOMATIS)
         function simpanFotoAdmin() {
             let fileInput = document.getElementById('inputFileFotoAdmin');
             if (fileInput.files && fileInput.files[0]) {
@@ -691,15 +728,9 @@
                         let height = img.height;
 
                         if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                         } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
                         }
 
                         canvas.width = width;
@@ -728,7 +759,7 @@
                                 alert("Gagal mengunggah foto: " + res.message);
                             }
                         }).catch(err => {
-                            alert("Terjadi kesalahan jaringan saat mengirim data. Harap coba foto dengan resolusi lebih kecil.");
+                            alert("Terjadi kesalahan jaringan saat mengirim data.");
                         }).finally(() => {
                             btn.innerHTML = 'Unggah & Perbarui Foto'; 
                             btn.disabled = false;
@@ -741,12 +772,9 @@
             }
         }
 
-        // FUNGSI GRAFIK DASHBOARD (BATANG & RADAR)
         function renderDashboardCharts(rekapData) {
             let kelasList = [...new Set(rekapData.map(item => item.kelas))].filter(Boolean).sort();
-            if(kelasList.length === 0) {
-                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; 
-            }
+            if(kelasList.length === 0) { kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; }
 
             let hadirCounts = kelasList.map(k => rekapData.filter(item => item.kelas === k && item.status === 'Hadir').length);
             let telatCounts = kelasList.map(k => rekapData.filter(item => item.kelas === k && item.status === 'Terlambat').length);
@@ -784,7 +812,6 @@
             });
         }
 
-        // FUNGSI UNDUH EXCEL PER KELAS MATRIKS 1-31
         function downloadExcelLaporan() {
             let selectedKelas = document.getElementById('filterKelas').value;
             if(!selectedKelas) {
@@ -825,18 +852,13 @@
                         <tr style="background-color: #d9d9d9;">
             `;
             
-            for(let i=1; i<=31; i++) {
-                tableHTML += `<th style="text-align: center;">${i}</th>`;
-            }
+            for(let i=1; i<=31; i++) { tableHTML += `<th style="text-align: center;">${i}</th>`; }
             tableHTML += `</tr></thead><tbody>`;
 
-            if(siswaKelas.length === 0) {
-                tableHTML += `<tr><td colspan="35" style="text-align: center;">Tidak ada data siswa di kelas ini</td></tr>`;
-            }
+            if(siswaKelas.length === 0) { tableHTML += `<tr><td colspan="35" style="text-align: center;">Tidak ada data siswa di kelas ini</td></tr>`; }
 
             siswaKelas.forEach((siswa, index) => {
                 let totalHadirTelat = 0;
-                
                 tableHTML += `<tr>
                     <td style="text-align: center;">${index + 1}</td>
                     <td style="text-align: center; mso-number-format:'\\@';">${siswa.nisn}</td>
@@ -845,10 +867,8 @@
                 for(let i=1; i<=31; i++) {
                     if (i <= daysInMonth) {
                         let statusHariIni = "-";
-                        
                         let record = rekapKelas.find(r => {
                             if (!r.nisn || String(r.nisn).trim() !== String(siswa.nisn).trim()) return false;
-                            
                             let tglNum = 0;
                             let rawTgl = String(r.tanggal);
                             if (rawTgl.includes('-')) {
@@ -886,7 +906,6 @@
 
             tableHTML += `
                     <tr><td colspan="35"></td></tr>
-                    <tr><td colspan="35"></td></tr>
                     <tr>
                         <td colspan="4"></td>
                         <td colspan="10" style="text-align: center; font-weight: bold;">Mengetahui,</td>
@@ -899,9 +918,7 @@
                         <td colspan="10"></td>
                         <td colspan="11" style="text-align: center; font-weight: bold;">Petugas / Guru Piket</td>
                     </tr>
-                    <tr><td colspan="35"></td></tr>
-                    <tr><td colspan="35"></td></tr>
-                    <tr><td colspan="35"></td></tr>
+                    <tr><td colspan="35"></td></tr><tr><td colspan="35"></td></tr><tr><td colspan="35"></td></tr>
                     <tr>
                         <td colspan="4"></td>
                         <td colspan="10" style="text-align: center; font-weight: bold; text-decoration: underline;">${theme.kepsek}</td>
@@ -955,10 +972,7 @@
             let pBaru = document.getElementById('passBaru').value;
             let pKonf = document.getElementById('passKonfirm').value;
 
-            if(pBaru !== pKonf) {
-                alert("Password Baru dan Konfirmasi Password tidak cocok!");
-                return;
-            }
+            if(pBaru !== pKonf) { alert("Password Baru dan Konfirmasi Password tidak cocok!"); return; }
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -978,7 +992,7 @@
             });
         });
 
-        // LOGIN (Mendukung Multi-Petugas / >3 Petugas)
+        // LOGIN SYSTEM (Admin, Teacher, Petugas, Ortu)
         document.getElementById('roleSelector').addEventListener('change', function() {
             const role = this.value;
             const label = document.getElementById('labelUsername');
@@ -1013,33 +1027,30 @@
                         document.getElementById('dashboard-admin').style.display = 'block';
                         document.getElementById('userProfileName').innerText = data.name;
                         document.querySelector('.profil-nama').innerText = data.name;
-                        fetchSiswaData();
-                        fetchGuruData();
-                        fetchRekapData();
-                        fetchJadwalData();
-                        fetchCatatanData();
+                        fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData();
                     } else if(role === 'petugas') {
                         document.getElementById('dashboard-petugas').style.display = 'block';
                         currentPetugasName = data.name || inputId;
                         document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
-                        initCamera();
-                        loadSiswaForAbsen();
-                        checkPetugasGPS();
-                        fetchRekapDataForPetugas();
+                        initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
+                    } else if(role === 'ortu') {
+                        document.getElementById('dashboard-ortu').style.display = 'block';
+                        loadOrtuDashboard(inputId, data);
                     }
                 } else {
                     err.innerText = data.message; err.classList.remove('d-none');
                 }
             }).catch(e => { 
-                // Fallback jika offline/gagal koneksi agar petugas tetap bisa masuk
                 if(role === 'petugas') {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-petugas').style.display = 'block';
                     currentPetugasName = inputId;
                     document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
-                    initCamera();
-                    loadSiswaForAbsen();
-                    checkPetugasGPS();
+                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS();
+                } else if(role === 'ortu') {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('dashboard-ortu').style.display = 'block';
+                    loadOrtuDashboard(inputId, { name: "Siswa (Offline)", kelas: "-", ortu: "-" });
                 } else {
                     err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
                 }
@@ -1053,7 +1064,49 @@
             document.getElementById('loginForm').reset();
         }
 
-        // GPS DETEKSI PADA DASHBOARD PETUGAS
+        function logoutOrtu() {
+            document.getElementById('dashboard-ortu').style.display = 'none';
+            document.getElementById('login-section').style.display = 'flex';
+            document.getElementById('loginForm').reset();
+        }
+
+        function loadOrtuDashboard(nisn, data) {
+            document.getElementById('ortuNamaSiswa').innerText = data.name || "Nama Siswa";
+            document.getElementById('ortuNisnSiswa').innerText = nisn;
+            document.getElementById('ortuKelasSiswa').innerText = data.kelas || "-";
+            document.getElementById('ortuNamaOrtu').innerText = data.ortu || "-";
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(res => res.json()).then(resData => {
+                let tBody = document.getElementById('tableOrtuRiwayat');
+                if(resData.status === "success" && Array.isArray(resData.data)) {
+                    if(resData.data.length === 0) {
+                        tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran.</td></tr>`;
+                        return;
+                    }
+                    tBody.innerHTML = "";
+                    resData.data.forEach(r => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td class="text-center">${r.tanggal}</td>
+                                <td class="text-center">${r.waktu}</td>
+                                <td class="text-center">${r.tipe}</td>
+                                <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
+                                <td>${r.petugas || '-'}</td>
+                            </tr>`;
+                    });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                }
+            }).catch(err => {
+                document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
+            });
+        }
+
         function checkPetugasGPS() {
             const badge = document.getElementById('gpsStatusBadge');
             if (navigator.geolocation) {
@@ -1099,19 +1152,16 @@
             .then(res => res.json()).then(data => {
                 if(data.status === "success") { listSiswaAbsen = data.data; }
             }).catch(e => {
-                // Fallback jika offline, ambil dari globalSiswaData jika ada
                 if(globalSiswaData.length > 0) listSiswaAbsen = globalSiswaData;
             });
         }
 
-        // AUTOCOMPLETE DROPDOWN SISWA (MINIMAL 3 HURUF)
         document.getElementById('searchSiswaInput').addEventListener('input', function() {
             const keyword = this.value.toLowerCase().trim();
             const listEl = document.getElementById('autocompleteList');
             listEl.innerHTML = "";
             if(keyword.length < 3) return;
             
-            // Ambil dari listSiswaAbsen atau globalSiswaData
             let dataSource = listSiswaAbsen.length > 0 ? listSiswaAbsen : globalSiswaData;
             const filtered = dataSource.filter(s => s.nama.toLowerCase().includes(keyword) || String(s.nisn).includes(keyword));
             
@@ -1136,7 +1186,6 @@
             });
         });
 
-        // PROSES ABSEN & KOMPRESI FOTO SISWA TERLAMBAT
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu dari pencarian (min. 3 huruf)!"); return; }
             const notif = document.getElementById('absenNotif');
@@ -1151,15 +1200,14 @@
 
             let limitToleransi = document.getElementById('waktuToleransi') ? document.getElementById('waktuToleransi').value : "07:15";
             
-            // Jika absen Masuk dan lewat dari waktu toleransi, status jadi Terlambat & Ambil Foto (Dikompres kecil)
             if(tipe === 'MASUK' && jamStr > limitToleransi) {
                 statusKehadiran = "Terlambat";
                 const video = document.getElementById('cameraVideo');
                 const canvas = document.getElementById('cameraCanvas');
-                canvas.width = 240; canvas.height = 180; // Resolusi kecil agar hemat Drive 15GB
+                canvas.width = 240; canvas.height = 180;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                fotoBase64 = canvas.toDataURL('image/jpeg', 0.4); // Kompresi kualitas 40%
+                fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
 
             let payloadAbsen = {
@@ -1184,7 +1232,6 @@
                     notif.className = "mt-3 alert alert-success text-center fw-bold";
                     notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran}) tercatat.`;
                     
-                    // Update rekap lokal & ringkasan real-time kelas
                     globalRekapData.push({
                         tanggal: new Date().toLocaleDateString('id-ID'),
                         waktu: jamStr,
@@ -1219,7 +1266,6 @@
             });
         }
 
-        // FETCH REKAP KHUSUS UNTUK RINGKASAN PETUGAS
         function fetchRekapDataForPetugas() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -1230,15 +1276,12 @@
             }).catch(e => {});
         }
 
-        // RENDER KETERANGAN JUMLAH MASUK MASING-MASING KELAS SECARA REAL-TIME
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary');
             if(!container) return;
 
             let kelasList = [...new Set(rekapData.map(item => item.kelas))].filter(Boolean).sort();
-            if(kelasList.length === 0) {
-                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"];
-            }
+            if(kelasList.length === 0) { kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; }
 
             container.innerHTML = "";
             kelasList.forEach(kelas => {
@@ -1255,7 +1298,6 @@
             });
         }
 
-        // FETCH TABEL SISWA
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -1324,7 +1366,6 @@
             }).catch(e => { alert("Data siswa telah disimpan."); fetchSiswaData(); });
         }
 
-        // FETCH TABEL GURU
         function fetchGuruData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -1388,7 +1429,6 @@
             }).catch(e => { alert("Data guru telah disimpan."); fetchGuruData(); });
         }
 
-        // HAPUS DATA UNIVERSAL
         function hapusRowData(actionName, rowIndex, label) {
             if(confirm(`Apakah Anda yakin ingin menghapus data ${label} pada baris ${rowIndex}?`)) {
                 fetch(SCRIPT_URL, {
@@ -1410,17 +1450,13 @@
             }
         }
 
-        // FETCH TABEL REKAP & LAPORAN
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 let tBody = document.getElementById('tableRekapBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
                     globalRekapData = data.data; 
-                    
-                    let totalHadir = 0;
-                    let totalTelat = 0;
-                    let totalAlpa = 0;
+                    let totalHadir = 0, totalTelat = 0, totalAlpa = 0;
 
                     if(data.data.length === 0) { 
                         tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Belum ada data rekap absensi.</td></tr>`; 
@@ -1461,7 +1497,6 @@
             });
         }
 
-        // RENDER TABEL LAPORAN
         function renderLaporanTable(dataArray) {
             let tBody = document.getElementById('tableLaporanBody');
             if(!tBody) return;
@@ -1484,29 +1519,20 @@
             });
         }
 
-        // POPULATE KELAS PADA FILTER LAPORAN
         function populateFilterKelas(dataArray) {
             let kelasSet = [...new Set(dataArray.map(item => item.kelas))].filter(Boolean);
             let selectEl = document.getElementById('filterKelas');
             if(!selectEl) return;
             selectEl.innerHTML = `<option value="">Semua Kelas</option>`;
-            kelasSet.forEach(kelas => {
-                selectEl.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-            });
+            kelasSet.forEach(kelas => { selectEl.innerHTML += `<option value="${kelas}">${kelas}</option>`; });
         }
 
-        // FILTER LAPORAN BERDASARKAN KELAS
         function filterLaporan() {
             let selectedKelas = document.getElementById('filterKelas').value;
-            if(selectedKelas === "") {
-                renderLaporanTable(globalRekapData);
-            } else {
-                let filtered = globalRekapData.filter(item => item.kelas === selectedKelas);
-                renderLaporanTable(filtered);
-            }
+            if(selectedKelas === "") { renderLaporanTable(globalRekapData); } 
+            else { renderLaporanTable(globalRekapData.filter(item => item.kelas === selectedKelas)); }
         }
 
-        // FETCH TABEL JADWAL
         function fetchJadwalData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -1534,7 +1560,6 @@
             });
         }
 
-        // FETCH TABEL CATATAN GURU
         function fetchCatatanData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -1561,7 +1586,6 @@
             });
         }
 
-        // NAVIGASI SIDEBAR
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('#sidebar ul li a').forEach(nav => nav.classList.remove('active'));
