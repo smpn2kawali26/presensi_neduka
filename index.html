@@ -335,7 +335,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. SECTION REKAP ABSEN (DENGAN FILTER BULAN & TAHUN + PAGINATION) -->
+                    <!-- 4. SECTION REKAP ABSEN -->
                     <div id="section-rekap" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-calendar-check me-2"></i>Rekapitulasi Absensi</h4>
@@ -493,7 +493,7 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>Hari</th><th>Kelas / Rombel</th><th>Jam Ke</th><th>Waktu</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead><tbody id="tableJadwalBody"><tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 8. SECTION CATATAN GURU (DENGAN PAGINATION) -->
+                    <!-- 8. SECTION CATATAN GURU -->
                     <div id="section-catatan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4>
@@ -938,7 +938,7 @@
         function changeLimit(section) {
             let limitVal = parseInt(document.getElementById('limit' + section.charAt(0).toUpperCase() + section.slice(1)).value);
             paginationState[section].limit = limitVal;
-            paginationState[section].page = 1; // Reset ke halaman 1
+            paginationState[section].page = 1;
 
             if(section === 'siswa') renderAdminSiswaTable(globalSiswaData);
             if(section === 'guru') renderAdminGuruTable(globalGuruData);
@@ -1206,6 +1206,7 @@
             }
         }
 
+        // --- FUNGSI UTAMA RINCIAN REKAP PER KELAS (DIPERBAIKI) ---
         function renderRincianKelasTable(siswaData, rekapData) {
             let tBody = document.getElementById('tableRincianKelasBody');
             if(!tBody) return;
@@ -1213,31 +1214,18 @@
             let kelasList = [...new Set(siswaData.map(s => s.kelas))].filter(Boolean).sort();
             if(kelasList.length === 0) { kelasList = ["7A", "7B", "8A", "8B", "8C", "9A", "9B", "9C"]; }
 
-            // Filter rekap hari ini (tanggal hari ini)
-            let todayStr = new Date().toLocaleDateString('id-ID');
-            let rekapHariIni = rekapData.filter(r => {
-                if(!r.tanggal) return false;
-                let tgl = String(r.tanggal);
-                return tgl.includes(todayStr) || tgl.includes(new Date().toISOString().split('T')[0]);
-            });
-
             tBody.innerHTML = "";
             kelasList.forEach(kelas => {
                 let siswaKelas = siswaData.filter(s => String(s.kelas).trim() === String(kelas).trim());
                 let totalSiswa = siswaKelas.length;
 
-                // Asumsi deteksi L/P dari data siswa jika ada kolom gender atau deteksi sederhana (jika tidak ada kolom gender, bagi rata atau default ke Laki-laki / deteksi nama akhiran tertentu atau property 'jk' jika ada)
-                // Kita buat fungsi aman helper untuk cek L / P
                 let getGender = (s) => {
                     let g = String(s.jk || s.gender || s.kelamin || "").toUpperCase();
                     if(g.startsWith('P') || g === 'PEREMPUAN') return 'P';
-                    return 'L'; // Default L
+                    return 'L';
                 };
 
-                let siswaL = siswaKelas.filter(s => getGender(s) === 'L');
-                let siswaP = siswaKelas.filter(s => getGender(s) === 'P');
-
-                let rekapKelas = rekapHariIni.filter(r => String(r.kelas).trim() === String(kelas).trim());
+                let rekapKelas = rekapData.filter(r => String(r.kelas).trim() === String(kelas).trim());
 
                 let countHadirL = 0, countHadirP = 0;
                 let countTelatL = 0, countTelatP = 0;
@@ -2126,7 +2114,7 @@
         function renderAdminSiswaTable(dataArray) {
             let tBody = document.getElementById('tableSiswaBody');
             if(!tBody) return;
-            if(dataArray.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data siswa.</td>return;` }
+            if(dataArray.length === 0) { tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada data siswa.</td></tr>`; return; }
 
             let state = paginationState.siswa;
             let start = (state.page - 1) * state.limit;
@@ -2134,7 +2122,6 @@
 
             tBody.innerHTML = "";
             paginatedItems.forEach((s, idx) => {
-                let actualIndex = start + idx;
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center fw-bold">${s.id_siswa || '-'}</td>
