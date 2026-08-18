@@ -75,13 +75,39 @@
             color: #0d6efd;
         }
 
-        /* Tampilan Jadwal Estetik Perkamen ala Kartu Hari */
-        .schedule-aesthetic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            padding: 10px 0;
+        /* Tampilan Tab Hari untuk Jadwal Estetik */
+        .schedule-tabs-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
+        .schedule-tab-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--secondary-bg);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .schedule-tab-btn:hover {
+            background: #cbd5e1;
+        }
+        .schedule-tab-btn.active {
+            background: var(--secondary-bg);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .schedule-content-box {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
         .schedule-parchment-card {
             background: #fdfbf7;
             background-image: radial-gradient(#e3dcd2 15%, transparent 16%);
@@ -91,11 +117,6 @@
             padding: 20px;
             box-shadow: 0 6px 15px rgba(0,0,0,0.08);
             position: relative;
-            transition: transform 0.3s ease;
-        }
-        .schedule-parchment-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
         }
         .parchment-header {
             background: linear-gradient(135deg, #203a43 0%, #0f2027 100%);
@@ -737,9 +758,9 @@
                         </table>
                     </div>
 
-                    <!-- Tampilan Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari) -->
+                    <!-- Tampilan Jadwal Pelajaran Estetik dengan Tab Hari Interaktif -->
                     <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran Estetik</h5>
-                    <div id="ortuJadwalContainer" class="schedule-aesthetic-grid">
+                    <div id="ortuJadwalContainer">
                         <div class="text-muted small">Memuat jadwal pelajaran rombel kelas...</div>
                     </div>
                 </div>
@@ -1206,7 +1227,6 @@
             }
         }
 
-        // --- FUNGSI UTAMA RINCIAN REKAP PER KELAS (DIPERBAIKI) ---
         function renderRincianKelasTable(siswaData, rekapData) {
             let tBody = document.getElementById('tableRincianKelasBody');
             if(!tBody) return;
@@ -1735,7 +1755,7 @@
             container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal estetik rombel ${kelas}...</div>`;
 
             if(globalJadwalData.length > 0) {
-                renderOrtuAestheticCards(globalJadwalData, kelas);
+                renderOrtuAestheticTabs(globalJadwalData, kelas);
             } else {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -1745,7 +1765,7 @@
                 .then(res => res.json()).then(data => {
                     if(data.status === "success" && Array.isArray(data.data)) {
                         globalJadwalData = calculateJamKe(data.data);
-                        renderOrtuAestheticCards(globalJadwalData, kelas);
+                        renderOrtuAestheticTabs(globalJadwalData, kelas);
                     } else {
                         container.innerHTML = `<div class="text-muted small text-center">Jadwal belum tersedia untuk kelas ${kelas}.</div>`;
                     }
@@ -1755,7 +1775,7 @@
             }
         }
 
-        function renderOrtuAestheticCards(dataJadwal, kelasSiswa) {
+        function renderOrtuAestheticTabs(dataJadwal, kelasSiswa) {
             let container = document.getElementById('ortuJadwalContainer');
             let jadwalKelas = dataJadwal.filter(j => String(j.kelas).trim().toLowerCase() === String(kelasSiswa).trim().toLowerCase());
             
@@ -1765,29 +1785,57 @@
             }
 
             let listHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            container.innerHTML = "";
+            let activeDay = "Senin";
 
+            let tabsHtml = `<div class="schedule-tabs-container">`;
+            listHari.forEach((hari, idx) => {
+                let jHari = jadwalKelas.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
+                if(jHari.length > 0) {
+                    let isActive = (hari === activeDay || (idx === 0)) ? 'active' : '';
+                    if(isActive) activeDay = hari;
+                    tabsHtml += `<button class="schedule-tab-btn ${isActive}" onclick="switchScheduleTab('${hari}', this)">${hari}</button>`;
+                }
+            });
+            tabsHtml += `</div>`;
+
+            let contentHtml = `<div class="schedule-content-box" id="scheduleContentBox">`;
             listHari.forEach(hari => {
                 let jHari = jadwalKelas.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
+                let displayStyle = (hari === activeDay) ? 'block' : 'none';
+                
                 if(jHari.length > 0) {
                     let itemsHtml = "";
                     jHari.forEach(item => {
                         let parsed = parseMapelGuru(item.jam, item.mapel, item.guru);
                         itemsHtml += `
-                            <div class="parchment-item text-dark fw-bold" style="font-size: 0.85rem; padding: 10px;">
+                            <div class="parchment-item text-dark fw-bold mb-2" style="font-size: 0.85rem; padding: 10px;">
                                 <i class="fas fa-check-circle text-success me-1"></i> Jam ke ${item.computedJamKe}, ${parsed.waktu} : ${parsed.mapel} : ${parsed.guru}
                             </div>
                         `;
                     });
 
-                    container.innerHTML += `
-                        <div class="schedule-parchment-card">
-                            <div class="parchment-header">${hari.toUpperCase()}</div>
-                            <div>${itemsHtml}</div>
+                    contentHtml += `
+                        <div class="schedule-day-pane" id="pane-${hari}" style="display: ${displayStyle};">
+                            <div class="schedule-parchment-card m-0">
+                                <div class="parchment-header">${hari.toUpperCase()}</div>
+                                <div>${itemsHtml}</div>
+                            </div>
                         </div>
                     `;
                 }
             });
+            contentHtml += `</div>`;
+
+            container.innerHTML = tabsHtml + contentHtml;
+        }
+
+        function switchScheduleTab(hari, btnElement) {
+            document.querySelectorAll('.schedule-tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            document.querySelectorAll('.schedule-day-pane').forEach(pane => pane.style.display = 'none');
+            let targetPane = document.getElementById('pane-' + hari);
+            if(targetPane) targetPane.style.display = 'block';
         }
 
         document.getElementById('formPengajuanIzin').addEventListener('submit', function(e) {
