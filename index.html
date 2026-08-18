@@ -75,38 +75,46 @@
             color: #0d6efd;
         }
 
-        /* 3D Interaktif & Lucu Jadwal Pelajaran */
-        .schedule-3d-container {
-            perspective: 1000px;
+        /* Tampilan Jadwal Estetik Perkamen ala Kartu Hari */
+        .schedule-aesthetic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
             padding: 10px 0;
         }
-        .schedule-card-3d {
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-            border-radius: 16px;
+        .schedule-parchment-card {
+            background: #fdfbf7;
+            background-image: radial-gradient(#e3dcd2 15%, transparent 16%);
+            background-size: 12px 12px;
+            border: 2px solid #d4c5b9;
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08), 0 6px 6px rgba(0,0,0,0.05);
-            transform: translateY(0) rotateX(0deg) rotateY(0deg);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-top: 5px solid var(--secondary-bg);
-            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
             position: relative;
-            overflow: hidden;
+            transition: transform 0.3s ease;
         }
-        .schedule-card-3d:hover {
-            transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
-            box-shadow: 0 15px 30px rgba(32, 58, 67, 0.2), 0 10px 10px rgba(32, 58, 67, 0.1);
-            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+        .schedule-parchment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
         }
-        .schedule-card-3d::after {
-            content: "✨";
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 1.2rem;
-            opacity: 0.6;
+        .parchment-header {
+            background: linear-gradient(135deg, #203a43 0%, #0f2027 100%);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .parchment-item {
+            background: rgba(255, 255, 255, 0.85);
+            border-left: 4px solid #203a43;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
         }
 
         /* Print Style khusus untuk Laporan PDF */
@@ -613,10 +621,10 @@
                         </table>
                     </div>
 
-                    <!-- Tampilan Jadwal Pelajaran 3D yang Interaktif, Lucu & Menyesuaikan Rombel Kelas Siswa -->
-                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran Interaktif (3D)</h5>
-                    <div id="ortuJadwalContainer" class="schedule-3d-container">
-                        <div class="text-muted small">Memuat jadwal pelajaran interaktif rombel kelas...</div>
+                    <!-- Tampilan Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari) -->
+                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran Estetik</h5>
+                    <div id="ortuJadwalContainer" class="schedule-aesthetic-grid">
+                        <div class="text-muted small">Memuat jadwal pelajaran rombel kelas...</div>
                     </div>
                 </div>
             </div>
@@ -1304,7 +1312,6 @@
                     globalOrtuRiwayatData = resData.data;
                     renderOrtuRiwayatTable(globalOrtuRiwayatData);
                 } else {
-                    // Fallback ambil dari rekap umum jika get_rekap_ortu belum siap di backend
                     fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: "get_rekap" }),
@@ -1341,8 +1348,8 @@
                 document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
             });
 
-            // Muat Jadwal Pelajaran 3D Interaktif Berdasarkan Rombel Kelas Siswa
-            loadOrtuJadwal3D(kelasSiswa);
+            // Muat Jadwal Pelajaran Estetik Berdasarkan Rombel Kelas Siswa
+            loadOrtuJadwalAesthetic(kelasSiswa);
         }
 
         // Event simpan biodata orang tua di dashboard ortu
@@ -1385,7 +1392,7 @@
             });
         });
 
-        // Render Riwayat Ortu dengan Filter Bulan & Tahun yang fleksibel (mendukung format 2026-08-18 atau 18/08/2026 atau Agustus 2026)
+        // Render Riwayat Ortu dengan Filter Bulan & Tahun yang fleksibel
         function renderOrtuRiwayatTable(dataArray) {
             let tBody = document.getElementById('tableOrtuRiwayat');
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value;
@@ -1468,13 +1475,13 @@
         }
         function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
 
-        // Fungsi Load Jadwal Pelajaran 3D Interaktif, Lucu & Menyesuaikan Rombel Kelas
-        function loadOrtuJadwal3D(kelas) {
+        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari)
+        function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
-            container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Menyiapkan jadwal interaktif rombel ${kelas}...</div>`;
+            container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal estetik rombel ${kelas}...</div>`;
 
             if(globalJadwalData.length > 0) {
-                renderOrtuJadwalCards(globalJadwalData, kelas);
+                renderOrtuAestheticCards(globalJadwalData, kelas);
             } else {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -1484,7 +1491,7 @@
                 .then(res => res.json()).then(data => {
                     if(data.status === "success" && Array.isArray(data.data)) {
                         globalJadwalData = data.data;
-                        renderOrtuJadwalCards(globalJadwalData, kelas);
+                        renderOrtuAestheticCards(globalJadwalData, kelas);
                     } else {
                         container.innerHTML = `<div class="text-muted small text-center">Jadwal belum tersedia untuk kelas ${kelas}.</div>`;
                     }
@@ -1494,7 +1501,7 @@
             }
         }
 
-        function renderOrtuJadwalCards(dataJadwal, kelasSiswa) {
+        function renderOrtuAestheticCards(dataJadwal, kelasSiswa) {
             let container = document.getElementById('ortuJadwalContainer');
             let jadwalKelas = dataJadwal.filter(j => String(j.kelas).trim().toLowerCase() === String(kelasSiswa).trim().toLowerCase());
             
@@ -1503,15 +1510,34 @@
                 return;
             }
 
+            // Daftar Hari Standar Sekolah
+            let listHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
             container.innerHTML = "";
-            jadwalKelas.forEach(j => {
-                container.innerHTML += `
-                    <div class="schedule-card-3d">
-                        <span class="badge bg-primary mb-2">${j.hari} • ${j.jam}</span>
-                        <h6 class="fw-bold text-dark mb-1">${j.mapel}</h6>
-                        <p class="text-muted small mb-0"><i class="fas fa-chalkboard-teacher me-1 text-info"></i> ${j.guru}</p>
-                    </div>
-                `;
+
+            listHari.forEach(hari => {
+                let jHari = jadwalKelas.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
+                if(jHari.length > 0) {
+                    let itemsHtml = "";
+                    jHari.forEach(item => {
+                        itemsHtml += `
+                            <div class="parchment-item">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span><i class="fas fa-clock me-1"></i> Jam Ke-${item.jam || '-'}</span>
+                                    <span>${item.waktu || ''}</span>
+                                </div>
+                                <div class="fw-bold text-dark mt-1" style="font-size: 0.95rem;">${item.mapel}</div>
+                                <div class="text-secondary small mt-1"><i class="fas fa-chalkboard-teacher me-1 text-info"></i> ${item.guru}</div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="schedule-parchment-card">
+                            <div class="parchment-header">${hari}</div>
+                            <div>${itemsHtml}</div>
+                        </div>
+                    `;
+                }
             });
         }
 
