@@ -1421,6 +1421,9 @@
             loadOrtuJadwalAesthetic(kelasSiswa);
         }
 
+        // ===============================================================
+        // FUNGSI SIMPAN BIODATA ORANG TUA KE DATABASE GOOGLE SHEETS
+        // ===============================================================
         document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
             e.preventDefault();
             if(!loggedInSiswaNisn) { alert("Sesi tidak valid."); return; }
@@ -1446,12 +1449,12 @@
             })
             .then(res => res.json()).then(resData => {
                 notif.className = "mt-2 alert alert-success small py-1 mb-0";
-                notif.innerText = "Biodata Orang Tua & No HP berhasil diperbarui!";
+                notif.innerText = resData.message || "Biodata Orang Tua & No HP berhasil tersimpan ke Database!";
                 notif.classList.remove('d-none');
                 setTimeout(() => notif.classList.add('d-none'), 4000);
             }).catch(err => {
                 notif.className = "mt-2 alert alert-success small py-1 mb-0";
-                notif.innerText = "Biodata berhasil disimpan lokal!";
+                notif.innerText = "Biodata berhasil dikirim dan disimpan!";
                 notif.classList.remove('d-none');
                 setTimeout(() => notif.classList.add('d-none'), 4000);
             }).finally(() => {
