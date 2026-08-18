@@ -282,7 +282,7 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead><tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 4.1 SECTION LAPORAN (DENGAN FILTER KELAS & BULAN/TAHUN) -->
+                    <!-- 4.1 SECTION LAPORAN -->
                     <div id="section-laporan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-file-alt me-2"></i>Laporan Absensi Sekolah</h4>
@@ -398,7 +398,7 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>Hari</th><th>Kelas / Rombel</th><th>Jam Ke</th><th>Waktu</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead><tbody id="tableJadwalBody"><tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 8. SECTION CATATAN GURU (DENGAN FILTER BULAN & TAHUN) -->
+                    <!-- 8. SECTION CATATAN GURU -->
                     <div id="section-catatan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4>
@@ -833,7 +833,6 @@
             let m = jam || '-';
             let g = (guru && String(guru).trim() !== '' && guru !== '-') ? guru : '-';
             
-            // Jika guru kosong tapi di mapel ada nama guru (memakai separator " - ")
             if(g === '-' && m.includes(' - ')) {
                 let parts = m.split(' - ');
                 m = parts[0].trim();
@@ -1371,11 +1370,9 @@
             document.getElementById('ortuNamaSiswaDisplay').innerText = namaSiswa;
             document.getElementById('ortuNisnSiswaDisplay').innerText = nisn + " | Kelas: " + kelasSiswa;
             
-            // Set input biodata orang tua & HP
             document.getElementById('inputOrtuNama').value = namaOrtu;
             document.getElementById('inputOrtuHp').value = hpOrtu;
 
-            // Ambil Riwayat Kehadiran Anak
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }),
@@ -1405,7 +1402,6 @@
                 document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
             });
 
-            // Ambil Catatan Guru khusus untuk Siswa ini
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_catatan" }),
@@ -1422,11 +1418,9 @@
                 document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
             });
 
-            // Muat Jadwal Pelajaran Estetik Berdasarkan Rombel Kelas Siswa
             loadOrtuJadwalAesthetic(kelasSiswa);
         }
 
-        // Event simpan biodata orang tua di dashboard ortu
         document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
             e.preventDefault();
             if(!loggedInSiswaNisn) { alert("Sesi tidak valid."); return; }
@@ -1466,7 +1460,6 @@
             });
         });
 
-        // Render Riwayat Ortu dengan Filter Bulan & Tahun yang fleksibel
         function renderOrtuRiwayatTable(dataArray) {
             let tBody = document.getElementById('tableOrtuRiwayat');
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value;
@@ -1509,7 +1502,6 @@
         }
         function filterOrtuRiwayat() { renderOrtuRiwayatTable(globalOrtuRiwayatData); }
 
-        // Render Catatan Ortu dengan Filter Bulan & Tahun yang fleksibel
         function renderOrtuCatatanTable(dataArray) {
             let tBody = document.getElementById('tableOrtuCatatan');
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
@@ -1549,7 +1541,6 @@
         }
         function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
 
-        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari)
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
             container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal estetik rombel ${kelas}...</div>`;
@@ -1584,7 +1575,6 @@
                 return;
             }
 
-            // Daftar Hari Standar Sekolah
             let listHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
             container.innerHTML = "";
 
@@ -1594,7 +1584,6 @@
                     let itemsHtml = "";
                     jHari.forEach(item => {
                         let parsed = parseMapelGuru(item.jam, item.mapel, item.guru);
-                        // FORMAT BARU SESUAI INSTRUKSI: Jam ke, pukul : Nama Mata Pelajaran : Pengajar.
                         itemsHtml += `
                             <div class="parchment-item text-dark fw-bold" style="font-size: 0.85rem; padding: 10px;">
                                 <i class="fas fa-check-circle text-success me-1"></i> Jam ke ${item.computedJamKe}, ${parsed.waktu} : ${parsed.mapel} : ${parsed.guru}
@@ -1612,7 +1601,6 @@
             });
         }
 
-        // Pengajuan Izin / Sakit dengan Kompresi Gambar Bukti Fisik
         document.getElementById('formPengajuanIzin').addEventListener('submit', function(e) {
             e.preventDefault();
             if(!loggedInSiswaNisn) { alert("Sesi siswa tidak valid, silakan login ulang."); return; }
@@ -1652,7 +1640,7 @@
                     let compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
                     let payload = {
-                        action: "proses_absen",
+                        action: "ajukan_izin_ortu",
                         nisn: loggedInSiswaNisn,
                         nama: document.getElementById('ortuNamaSiswaDisplay').innerText,
                         kelas: document.getElementById('ortuNisnSiswaDisplay').innerText,
@@ -1769,9 +1757,45 @@
             });
         });
 
+        // ===============================================================
+        // FUNGSI MENGHITUNG JARAK GPS (HAVERSINE METER)
+        // ===============================================================
+        function hitungJarakMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
+
+        // ===============================================================
+        // FUNGSI PROSES ABSEN DENGAN VALIDASI RADIUS GPS
+        // ===============================================================
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu dari pencarian (min. 3 huruf)!"); return; }
             
+            // Validasi Titik Koordinat Radius GPS
+            let t = localStorage.getItem('smpn2_theme');
+            let currentTheme = t ? JSON.parse(t) : DEFAULT_THEME;
+            let sekolahLat = parseFloat(currentTheme.lat || DEFAULT_THEME.lat);
+            let sekolahLng = parseFloat(currentTheme.lng || DEFAULT_THEME.lng);
+            let radiusMaks = parseFloat(currentTheme.radius || DEFAULT_THEME.radius);
+
+            if (currentPetugasLat === null || currentPetugasLng === null) {
+                alert("Lokasi GPS belum terdeteksi! Pastikan GPS HP Anda aktif dan browser diizinkan mengakses lokasi.");
+                return;
+            }
+
+            let jarakUser = hitungJarakMeters(sekolahLat, sekolahLng, currentPetugasLat, currentPetugasLng);
+            
+            if (jarakUser > radiusMaks) {
+                alert(`GAGAL ABSEN: Anda berada di luar area sekolah!\n\nJarak Anda saat ini: ${Math.round(jarakUser)} meter\nBatas Maksimal Radius: ${radiusMaks} meter`);
+                return; 
+            }
+
             const now = new Date();
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             
@@ -1825,7 +1849,7 @@
             .then(res => res.json()).then(resData => {
                 if(resData.status === "success" || resData.status === undefined) {
                     notif.className = "mt-3 alert alert-success text-center fw-bold";
-                    notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran}) tercatat.`;
+                    notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran}) tercatat. Jarak: ${Math.round(jarakUser)}m.`;
                     
                     globalRekapData.push({
                         tanggal: new Date().toLocaleDateString('id-ID'),
@@ -2045,7 +2069,6 @@
             }
         }
 
-        // Fetch Rekap Data (Admin) dengan Filter Bulan & Tahun
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -2115,7 +2138,6 @@
         }
         function filterAdminRekap() { renderAdminRekapTable(globalRekapData); }
 
-        // Render Laporan Absensi (Admin) dengan Filter Kelas, Bulan & Tahun
         function renderLaporanTable(dataArray) {
             let tBody = document.getElementById('tableLaporanBody');
             if(!tBody) return;
@@ -2167,7 +2189,6 @@
 
         function filterLaporan() { renderLaporanTable(globalRekapData); }
 
-        // Fetch Jadwal Data dengan Dukungan Tambah, Edit, Jam Ke Otomatis, dan Parsing Guru
         function fetchJadwalData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
@@ -2242,9 +2263,9 @@
                 action: "tambah_jadwal",
                 hari: document.getElementById('tambahJadwalHari').value,
                 kelas: document.getElementById('tambahJadwalKelas').value,
-                jam: document.getElementById('tambahJadwalJam').value, // Mata Pelajaran (disimpan di kolom 3)
-                mapel: document.getElementById('tambahJadwalMapel').value, // Waktu (disimpan di kolom 4)
-                guru: document.getElementById('tambahJadwalGuru').value // Guru (disimpan di kolom 5)
+                jam: document.getElementById('tambahJadwalJam').value, 
+                mapel: document.getElementById('tambahJadwalMapel').value, 
+                guru: document.getElementById('tambahJadwalGuru').value 
             };
             fetch(SCRIPT_URL, {
                 method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
@@ -2279,9 +2300,9 @@
                 row_index: document.getElementById('editJadwalRowIndex').value,
                 hari: document.getElementById('editJadwalHari').value,
                 kelas: document.getElementById('editJadwalKelas').value,
-                jam: document.getElementById('editJadwalJam').value, // Mata Pelajaran (disimpan di kolom 3)
-                mapel: document.getElementById('editJadwalMapel').value, // Waktu (disimpan di kolom 4)
-                guru: document.getElementById('editJadwalGuru').value // Guru (disimpan di kolom 5)
+                jam: document.getElementById('editJadwalJam').value, 
+                mapel: document.getElementById('editJadwalMapel').value, 
+                guru: document.getElementById('editJadwalGuru').value 
             };
             fetch(SCRIPT_URL, {
                 method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
@@ -2293,7 +2314,6 @@
             }).catch(e => { alert("Data jadwal telah disimpan lokal."); fetchJadwalData(); });
         }
 
-        // Fetch Catatan Data (Admin) dengan Filter Bulan & Tahun
         function fetchCatatanData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
