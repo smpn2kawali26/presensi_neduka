@@ -736,7 +736,6 @@
         let currentPetugasLng = null;
         let loggedInSiswaNisn = null;
 
-        // Fungsi Pemformat Tanggal Ramah Indonesia (09 Agustus 2026, 07.00 WIB)
         function formatTanggalIndonesia(dateString) {
             if (!dateString) return "-";
             try {
@@ -753,7 +752,6 @@
             }
         }
 
-        // TEMA & PROFIL SEKOLAH
         const DEFAULT_THEME = { 
             primary: '#0f2027', secondary: '#203a43', font: "'Segoe UI', sans-serif", logo: 'logo.png', 
             profile: 'https://ui-avatars.com/api/?name=Admin&background=203a43&color=fff', 
@@ -1588,13 +1586,25 @@
 
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu dari pencarian (min. 3 huruf)!"); return; }
+            
+            const now = new Date();
+            const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            // --- VALIDASI JAM PULANG (MENCEGAH ABSEN PULANG SEBELUM WAKTUNYA) ---
+            let waktuPulang = document.getElementById('waktuPulang') ? document.getElementById('waktuPulang').value : "14:00";
+            if (tipe === 'PULANG') {
+                if (jamStr < waktuPulang) {
+                    alert("Belum waktunya pulang! Jam pulang minimal adalah pukul " + waktuPulang);
+                    return;
+                }
+            }
+            // -----------------------------------------------------------------
+
             const notif = document.getElementById('absenNotif');
             notif.className = "mt-3 alert alert-info text-center fw-bold";
             notif.innerText = "Mencatat absensi...";
             notif.classList.remove('d-none');
 
-            const now = new Date();
-            const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             let statusKehadiran = "Hadir";
             let fotoBase64 = null;
 
