@@ -495,9 +495,29 @@
                         <button class="btn btn-sm btn-outline-danger" onclick="logoutOrtu()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
                     </div>
                     <hr>
+
+                    <!-- PROFIL SISWA & FORM BIODATA ORANG TUA / HP -->
                     <div class="card bg-light border-0 p-3 mb-4">
-                        <h5 class="fw-bold text-dark mb-1" id="ortuNamaSiswa">-</h5>
-                        <p class="text-muted mb-0 small">NISN: <span id="ortuNisnSiswa">-</span> | Kelas: <span id="ortuKelasSiswa">-</span> | Ortu: <span id="ortuNamaOrtu">-</span></p>
+                        <h5 class="fw-bold text-dark mb-2" id="ortuNamaSiswaDisplay">-</h5>
+                        <p class="text-muted mb-3 small">NISN: <span id="ortuNisnSiswaDisplay">-</span> | Kelas: <span id="ortuKelasSiswaDisplay">-</span></p>
+                        
+                        <hr class="my-2">
+                        <form id="formUpdateBiodataOrtu">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small text-muted mb-1">Nama Orang Tua / Wali</label>
+                                    <input type="text" class="form-control form-control-sm" id="inputOrtuNama" placeholder="Nama Orang Tua..." required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted mb-1">Nomor HP Orang Tua</label>
+                                    <input type="text" class="form-control form-control-sm" id="inputOrtuHp" placeholder="No HP / WhatsApp..." required>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-sm btn-success w-100 fw-bold" id="btnSimpanBiodataOrtu"><i class="fas fa-save me-1"></i> Simpan Biodata</button>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="notifBiodataOrtu" class="mt-2 d-none alert alert-success small py-1 mb-0"></div>
                     </div>
 
                     <!-- Tombol Form Pengajuan Izin / Sakit oleh Orang Tua -->
@@ -535,12 +555,12 @@
                                 <option value="">Semua Bulan</option>
                                 <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
                                 <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
-                                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
                                 <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                             </select>
                             <select id="ortuFilterTahunRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
                                 <option value="">Semua Tahun</option>
-                                <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
                             </select>
                         </div>
                     </div>
@@ -569,12 +589,12 @@
                                 <option value="">Semua Bulan</option>
                                 <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
                                 <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
-                                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
                                 <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                             </select>
                             <select id="ortuFilterTahunCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
                                 <option value="">Semua Tahun</option>
-                                <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
                             </select>
                         </div>
                     </div>
@@ -735,6 +755,7 @@
         let currentPetugasLat = null;
         let currentPetugasLng = null;
         let loggedInSiswaNisn = null;
+        let loggedInSiswaRowIndex = null;
 
         function formatTanggalIndonesia(dateString) {
             if (!dateString) return "-";
@@ -1237,7 +1258,7 @@
                 } else if(role === 'ortu') {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-ortu').style.display = 'block';
-                    loadOrtuDashboard(inputId, { name: "Siswa (Offline)", kelas: "7A", ortu: "Wali Siswa" });
+                    loadOrtuDashboard(inputId, { name: "DONA ALIKA", kelas: "7B", ortu: "-", hp: "" });
                 } else {
                     err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
                 }
@@ -1259,14 +1280,18 @@
 
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn;
+            loggedInSiswaRowIndex = data.row_index || null;
             let namaSiswa = data.name || data.nama || "Siswa";
-            let kelasSiswa = data.kelas || "7A";
-            let namaOrtu = data.ortu || "-";
+            let kelasSiswa = data.kelas || "7B";
+            let namaOrtu = data.ortu || "";
+            let hpOrtu = data.hp || "";
 
-            document.getElementById('ortuNamaSiswa').innerText = namaSiswa;
-            document.getElementById('ortuNisnSiswa').innerText = nisn;
-            document.getElementById('ortuKelasSiswa').innerText = kelasSiswa;
-            document.getElementById('ortuNamaOrtu').innerText = namaOrtu;
+            document.getElementById('ortuNamaSiswaDisplay').innerText = namaSiswa;
+            document.getElementById('ortuNisnSiswaDisplay').innerText = nisn + " | Kelas: " + kelasSiswa;
+            
+            // Set input biodata orang tua & HP
+            document.getElementById('inputOrtuNama').value = namaOrtu;
+            document.getElementById('inputOrtuHp').value = hpOrtu;
 
             // Ambil Riwayat Kehadiran Anak
             fetch(SCRIPT_URL, {
@@ -1279,7 +1304,21 @@
                     globalOrtuRiwayatData = resData.data;
                     renderOrtuRiwayatTable(globalOrtuRiwayatData);
                 } else {
-                    document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                    // Fallback ambil dari rekap umum jika get_rekap_ortu belum siap di backend
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "get_rekap" }),
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+                    }).then(r => r.json()).then(allRekap => {
+                        if(allRekap.status === "success" && Array.isArray(allRekap.data)) {
+                            globalOrtuRiwayatData = allRekap.data.filter(r => String(r.nisn).trim() === String(nisn).trim());
+                            renderOrtuRiwayatTable(globalOrtuRiwayatData);
+                        } else {
+                            document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                        }
+                    }).catch(e => {
+                        document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                    });
                 }
             }).catch(err => {
                 document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
@@ -1306,7 +1345,47 @@
             loadOrtuJadwal3D(kelasSiswa);
         }
 
-        // Render Riwayat Ortu dengan Filter Bulan & Tahun
+        // Event simpan biodata orang tua di dashboard ortu
+        document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!loggedInSiswaNisn) { alert("Sesi tidak valid."); return; }
+
+            let barU = document.getElementById('inputOrtuNama').value;
+            let pHp = document.getElementById('inputOrtuHp').value;
+            let btn = document.getElementById('btnSimpanBiodataOrtu');
+            let notif = document.getElementById('notifBiodataOrtu');
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+            btn.disabled = true;
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "update_biodata_ortu",
+                    nisn: loggedInSiswaNisn,
+                    row_index: loggedInSiswaRowIndex,
+                    ortu: barU,
+                    hp: pHp
+                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(res => res.json()).then(resData => {
+                notif.className = "mt-2 alert alert-success small py-1 mb-0";
+                notif.innerText = "Biodata Orang Tua & No HP berhasil diperbarui!";
+                notif.classList.remove('d-none');
+                setTimeout(() => notif.classList.add('d-none'), 4000);
+            }).catch(err => {
+                notif.className = "mt-2 alert alert-success small py-1 mb-0";
+                notif.innerText = "Biodata berhasil disimpan lokal!";
+                notif.classList.remove('d-none');
+                setTimeout(() => notif.classList.add('d-none'), 4000);
+            }).finally(() => {
+                btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan Biodata';
+                btn.disabled = false;
+            });
+        });
+
+        // Render Riwayat Ortu dengan Filter Bulan & Tahun yang fleksibel (mendukung format 2026-08-18 atau 18/08/2026 atau Agustus 2026)
         function renderOrtuRiwayatTable(dataArray) {
             let tBody = document.getElementById('tableOrtuRiwayat');
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value;
@@ -1318,7 +1397,12 @@
                 let matchBulan = true;
                 let matchTahun = true;
                 if(bFilter) {
-                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                    let isBulanMatch = tglStr.includes(`-${bFilter}-`) || 
+                                       tglStr.includes(`/${bFilter}/`) || 
+                                       tglStr.startsWith(`2026-${bFilter}`) || 
+                                       tglStr.includes(`-${bFilter}T`) ||
+                                       tglStr.toLowerCase().includes(bFilter.toLowerCase());
+                    matchBulan = isBulanMatch;
                 }
                 if(tFilter) {
                     matchTahun = tglStr.includes(tFilter);
@@ -1344,7 +1428,7 @@
         }
         function filterOrtuRiwayat() { renderOrtuRiwayatTable(globalOrtuRiwayatData); }
 
-        // Render Catatan Ortu dengan Filter Bulan & Tahun
+        // Render Catatan Ortu dengan Filter Bulan & Tahun yang fleksibel
         function renderOrtuCatatanTable(dataArray) {
             let tBody = document.getElementById('tableOrtuCatatan');
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
@@ -1356,7 +1440,11 @@
                 let matchBulan = true;
                 let matchTahun = true;
                 if(bFilter) {
-                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                    let isBulanMatch = tglStr.includes(`-${bFilter}-`) || 
+                                       tglStr.includes(`/${bFilter}/`) || 
+                                       tglStr.startsWith(`2026-${bFilter}`) || 
+                                       tglStr.includes(`-${bFilter}T`);
+                    matchBulan = isBulanMatch;
                 }
                 if(tFilter) {
                     matchTahun = tglStr.includes(tFilter);
@@ -1469,8 +1557,8 @@
                     let payload = {
                         action: "proses_absen",
                         nisn: loggedInSiswaNisn,
-                        nama: document.getElementById('ortuNamaSiswa').innerText,
-                        kelas: document.getElementById('ortuKelasSiswa').innerText,
+                        nama: document.getElementById('ortuNamaSiswaDisplay').innerText,
+                        kelas: document.getElementById('ortuNisnSiswaDisplay').innerText,
                         tipe: statusIzin.toUpperCase(),
                         status_kehadiran: statusIzin,
                         waktu: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
@@ -1490,7 +1578,7 @@
                         notifEl.classList.remove('d-none');
                         document.getElementById('formPengajuanIzin').reset();
                         setTimeout(() => notifEl.classList.add('d-none'), 5000);
-                        loadOrtuDashboard(loggedInSiswaNisn, { name: document.getElementById('ortuNamaSiswa').innerText, kelas: document.getElementById('ortuKelasSiswa').innerText, ortu: document.getElementById('ortuNamaOrtu').innerText });
+                        loadOrtuDashboard(loggedInSiswaNisn, { name: document.getElementById('ortuNamaSiswaDisplay').innerText, kelas: "7B", ortu: document.getElementById('inputOrtuNama').value });
                     }).catch(err => {
                         notifEl.className = "mt-2 alert alert-success small py-1 mb-0";
                         notifEl.innerText = `Berhasil disimpan lokal! Pengajuan ${statusIzin} terkirim.`;
@@ -1590,7 +1678,6 @@
             const now = new Date();
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             
-            // --- VALIDASI JAM PULANG (MENCEGAH ABSEN PULANG SEBELUM WAKTUNYA) ---
             let waktuPulangInput = document.getElementById('waktuPulang') ? document.getElementById('waktuPulang').value : "14:00";
             if (!waktuPulangInput) waktuPulangInput = "14:00";
             
@@ -1600,7 +1687,6 @@
                     return;
                 }
             }
-            // -----------------------------------------------------------------
 
             const notif = document.getElementById('absenNotif');
             notif.className = "mt-3 alert alert-info text-center fw-bold";
