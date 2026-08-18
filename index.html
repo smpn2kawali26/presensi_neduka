@@ -1475,7 +1475,7 @@
         }
         function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
 
-        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari)
+        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari) - UPDATED FORMAT SATU BARIS
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
             container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal estetik rombel ${kelas}...</div>`;
@@ -1519,21 +1519,17 @@
                 if(jHari.length > 0) {
                     let itemsHtml = "";
                     jHari.forEach(item => {
+                        // PERUBAHAN DISINI: Format satu baris memanjang seperti yang Anda instruksikan
                         itemsHtml += `
-                            <div class="parchment-item">
-                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-                                    <span><i class="fas fa-clock me-1"></i> Jam Ke-${item.jam || '-'}</span>
-                                    <span>${item.waktu || ''}</span>
-                                </div>
-                                <div class="fw-bold text-dark mt-1" style="font-size: 0.95rem;">${item.mapel}</div>
-                                <div class="text-secondary small mt-1"><i class="fas fa-chalkboard-teacher me-1 text-info"></i> ${item.guru}</div>
+                            <div class="parchment-item text-dark fw-bold" style="font-size: 0.85rem; padding: 10px;">
+                                <i class="fas fa-check-circle text-success me-1"></i> JAM KE ${item.jam || '-'} : ${item.waktu || '-'} : ${item.mapel || '-'} - ${item.guru || '-'}
                             </div>
                         `;
                     });
 
                     container.innerHTML += `
                         <div class="schedule-parchment-card">
-                            <div class="parchment-header">${hari}</div>
+                            <div class="parchment-header">${hari.toUpperCase()}</div>
                             <div>${itemsHtml}</div>
                         </div>
                     `;
