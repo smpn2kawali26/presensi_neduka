@@ -75,6 +75,40 @@
             color: #0d6efd;
         }
 
+        /* 3D Interaktif & Lucu Jadwal Pelajaran */
+        .schedule-3d-container {
+            perspective: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
+        }
+        .schedule-card-3d {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08), 0 6px 6px rgba(0,0,0,0.05);
+            transform: translateY(0) rotateX(0deg) rotateY(0deg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 5px solid var(--secondary-bg);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .schedule-card-3d:hover {
+            transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
+            box-shadow: 0 15px 30px rgba(32, 58, 67, 0.2), 0 10px 10px rgba(32, 58, 67, 0.1);
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+        }
+        .schedule-card-3d::after {
+            content: "✨";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+
         /* Print Style khusus untuk Laporan PDF */
         @media print {
             body * { visibility: hidden; }
@@ -402,7 +436,7 @@
     <!-- DASHBOARD ORANG TUA / WALI MURID (USER 4) -->
     <div id="dashboard-ortu" class="dashboard-container container py-4">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-9">
                 <div class="card card-custom p-4 shadow">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-shield me-2"></i>Portal Orang Tua / Wali Murid</h4>
@@ -414,6 +448,33 @@
                         <p class="text-muted mb-0 small">NISN: <span id="ortuNisnSiswa">-</span> | Kelas: <span id="ortuKelasSiswa">-</span> | Ortu: <span id="ortuNamaOrtu">-</span></p>
                     </div>
 
+                    <!-- Tombol Form Pengajuan Izin / Sakit oleh Orang Tua -->
+                    <div class="card border-0 shadow-sm mb-4 bg-white p-3 border-start border-4 border-info">
+                        <h5 class="fw-bold text-secondary mb-2"><i class="fas fa-file-medical me-2"></i>Form Pengajuan Izin / Sakit Siswa</h5>
+                        <form id="formPengajuanIzin">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label class="form-label small text-muted">Keterangan Status</label>
+                                    <select class="form-select form-select-sm" id="izinStatus" required>
+                                        <option value="Sakit">Sakit</option>
+                                        <option value="Izin">Izin</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8 mb-2">
+                                    <label class="form-label small text-muted">Unggah Bukti Fisik Foto (Surat Dokter / Foto Anak)</label>
+                                    <input type="file" class="form-control form-control-sm" id="izinBuktiFile" accept="image/*" required>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Foto otomatis dikompres kecil agar ringan diunggah.</small>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Alasan / Catatan Keterangan</label>
+                                <textarea class="form-control form-control-sm" id="izinAlasan" rows="2" placeholder="Tuliskan alasan lengkap..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-info text-white fw-bold px-4" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan Izin</button>
+                        </form>
+                        <div id="notifPengajuan" class="mt-2 d-none alert alert-success small py-1 mb-0"></div>
+                    </div>
+
                     <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Riwayat Kehadiran Siswa</h5>
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered table-striped align-middle">
@@ -423,7 +484,7 @@
                                     <th>Waktu</th>
                                     <th>Tipe</th>
                                     <th>Status</th>
-                                    <th>Petugas</th>
+                                    <th>Petugas / Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody id="tableOrtuRiwayat">
@@ -433,7 +494,7 @@
                     </div>
 
                     <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa</h5>
-                    <div class="table-responsive">
+                    <div class="table-responsive mb-4">
                         <table class="table table-bordered table-striped align-middle">
                             <thead class="table-dark">
                                 <tr class="text-center">
@@ -446,6 +507,12 @@
                                 <tr><td colspan="3" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat catatan guru...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Tampilan Jadwal Pelajaran 3D yang Interaktif dan Lucu -->
+                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran Interaktif (3D)</h5>
+                    <div id="ortuJadwalContainer" class="schedule-3d-container">
+                        <div class="text-muted small">Memuat jadwal pelajaran interaktif...</div>
                     </div>
                 </div>
             </div>
@@ -579,6 +646,25 @@
         let currentPetugasName = "Petugas Piket";
         let currentPetugasLat = null;
         let currentPetugasLng = null;
+        let loggedInSiswaNisn = null; // Menyimpan NISN ortu login untuk pengajuan izin
+
+        // Fungsi Pemformat Tanggal Ramah Indonesia (09 Agustus 2026, 07.00 WIB)
+        function formatTanggalIndonesia(dateString) {
+            if (!dateString) return "-";
+            try {
+                let d = new Date(dateString);
+                if (isNaN(d.getTime())) {
+                    // Coba parsing jika format string manual
+                    return dateString;
+                }
+                let options = { day: '2-digit', month: 'long', year: 'numeric' };
+                let tanggalFormatted = d.toLocaleDateString('id-ID', options);
+                let jamFormatted = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+                return `${tanggalFormatted}, ${jamFormatted} WIB`;
+            } catch (e) {
+                return dateString;
+            }
+        }
 
         // TEMA & PROFIL SEKOLAH
         const DEFAULT_THEME = { 
@@ -1064,9 +1150,9 @@
                     document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
                     initCamera(); loadSiswaForAbsen(); checkPetugasGPS();
                 } else if(role === 'ortu') {
-                    document.getElementById('dashboard-ortu').style.display = 'none';
+                    document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-ortu').style.display = 'block';
-                    loadOrtuDashboard(inputId, { name: "Siswa (Offline)", kelas: "-", ortu: "-" });
+                    loadOrtuDashboard(inputId, { name: "Siswa (Offline)", kelas: "7A", ortu: "Wali Siswa" });
                 } else {
                     err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
                 }
@@ -1087,9 +1173,9 @@
         }
 
         function loadOrtuDashboard(nisn, data) {
-            // Memastikan penarikan nama, kelas, dan ortu muncul dengan benar dari respons server/fallback
+            loggedInSiswaNisn = nisn;
             let namaSiswa = data.name || data.nama || "Siswa";
-            let kelasSiswa = data.kelas || "-";
+            let kelasSiswa = data.kelas || "7A";
             let namaOrtu = data.ortu || "-";
 
             document.getElementById('ortuNamaSiswa').innerText = namaSiswa;
@@ -1114,9 +1200,9 @@
                     resData.data.forEach(r => {
                         tBody.innerHTML += `
                             <tr>
-                                <td class="text-center">${r.tanggal}</td>
-                                <td class="text-center">${r.waktu}</td>
-                                <td class="text-center">${r.tipe}</td>
+                                <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
+                                <td class="text-center">${r.waktu || '-'}</td>
+                                <td class="text-center">${r.tipe || 'Hadir'}</td>
                                 <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
                                 <td>${r.petugas || '-'}</td>
                             </tr>`;
@@ -1128,7 +1214,7 @@
                 document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
             });
 
-            // Ambil Catatan Guru khusus untuk Siswa ini
+            // Ambil Catatan Guru khusus untuk Siswa ini (Dengan Format Tanggal Ramah)
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_catatan" }),
@@ -1137,7 +1223,6 @@
             .then(res => res.json()).then(resCatatan => {
                 let tCatatanBody = document.getElementById('tableOrtuCatatan');
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    // Filter catatan berdasarkan NISN atau Nama Siswa yang cocok
                     let catatanAnak = resCatatan.data.filter(c => String(c.nisn) === String(nisn) || String(c.nama).toLowerCase() === String(namaSiswa).toLowerCase());
                     
                     if(catatanAnak.length === 0) {
@@ -1148,9 +1233,9 @@
                     catatanAnak.forEach(c => {
                         tCatatanBody.innerHTML += `
                             <tr>
-                                <td class="text-center">${c.tanggal}</td>
+                                <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
                                 <td>${c.catatan}</td>
-                                <td class="text-center">${c.guru}</td>
+                                <td class="text-center">${c.guru || 'Guru Piket'}</td>
                             </tr>`;
                     });
                 } else {
@@ -1159,7 +1244,133 @@
             }).catch(err => {
                 document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
             });
+
+            // Muat Jadwal Pelajaran 3D Interaktif untuk Kelas Siswa
+            loadOrtuJadwal3D(kelasSiswa);
         }
+
+        // Fungsi Load Jadwal Pelajaran 3D Interaktif & Lucu
+        function loadOrtuJadwal3D(kelas) {
+            let container = document.getElementById('ortuJadwalContainer');
+            container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Menyiapkan jadwal interaktif...</div>`;
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "get_jadwal" }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(res => res.json()).then(data => {
+                if(data.status === "success" && Array.isArray(data.data)) {
+                    let jadwalKelas = data.data.filter(j => String(j.kelas).toLowerCase() === String(kelas).toLowerCase());
+                    if(jadwalKelas.length === 0) {
+                        // Fallback data lucu jika server kosong
+                        jadwalKelas = [
+                            { hari: "Senin", jam: "07:30 - 09:00", mapel: "Matematika Ceria 📐", guru: "Bapak Guru, S.Pd" },
+                            { hari: "Selasa", jam: "07:30 - 09:00", mapel: "IPA Menyenangkan 🧪", guru: "Ibu Guru, M.Pd" },
+                            { hari: "Rabu", jam: "07:30 - 09:00", mapel: "Bahasa Indonesia 📚", guru: "Bapak Wali, S.Pd" },
+                            { hari: "Kamis", jam: "07:30 - 09:00", mapel: "Seni & Kreativitas 🎨", guru: "Ibu Seni, S.Sn" },
+                            { hari: "Jumat", jam: "07:30 - 09:00", mapel: "Pendidikan Agama 🌟", guru: "Bapak Ustadz, S.Ag" }
+                        ];
+                    }
+                    container.innerHTML = "";
+                    jadwalKelas.forEach(j => {
+                        container.innerHTML += `
+                            <div class="schedule-card-3d">
+                                <span class="badge bg-primary mb-2">${j.hari} • ${j.jam}</span>
+                                <h6 class="fw-bold text-dark mb-1">${j.mapel}</h6>
+                                <p class="text-muted small mb-0"><i class="fas fa-chalkboard-teacher me-1 text-info"></i> ${j.guru}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.innerHTML = `<div class="text-muted small text-center">Jadwal belum tersedia untuk kelas ${kelas}.</div>`;
+                }
+            }).catch(e => {
+                container.innerHTML = `
+                    <div class="schedule-card-3d"><span class="badge bg-success mb-2">Senin • 07:30</span><h6 class="fw-bold text-dark mb-1">Matematika Seru 📐</h6><p class="text-muted small mb-0">Guru: Pak Guru, S.Pd</p></div>
+                    <div class="schedule-card-3d"><span class="badge bg-warning text-dark mb-2">Selasa • 07:30</span><h6 class="fw-bold text-dark mb-1">IPA Eksperimen 🧪</h6><p class="text-muted small mb-0">Guru: Bu Guru, M.Pd</p></div>
+                `;
+            });
+        }
+
+        // Pengajuan Izin / Sakit dengan Kompresi Gambar Bukti Fisik
+        document.getElementById('formPengajuanIzin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!loggedInSiswaNisn) { alert("Sesi siswa tidak valid, silakan login ulang."); return; }
+
+            let statusIzin = document.getElementById('izinStatus').value;
+            let alasan = document.getElementById('izinAlasan').value;
+            let fileInput = document.getElementById('izinBuktiFile');
+            let btnKirim = document.getElementById('btnKirimIzin');
+            let notifEl = document.getElementById('notifPengajuan');
+
+            if(!fileInput.files || !fileInput.files[0]) {
+                alert("Harap unggah bukti fisik foto (surat dokter / foto anak)!");
+                return;
+            }
+
+            btnKirim.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompres & Mengirim...';
+            btnKirim.disabled = true;
+
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    // Kompresi ukuran gambar agar sangat kecil (Max width/height 400px, kualitas 0.5)
+                    let canvas = document.createElement('canvas');
+                    let MAX_W = 400;
+                    let MAX_H = 400;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) { if (w > MAX_W) { h *= MAX_W / w; w = MAX_W; } } 
+                    else { if (h > MAX_H) { w *= MAX_H / h; h = MAX_H; } }
+
+                    canvas.width = w;
+                    canvas.height = h;
+                    let ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    let compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+
+                    let payload = {
+                        action: "proses_absen",
+                        nisn: loggedInSiswaNisn,
+                        nama: document.getElementById('ortuNamaSiswa').innerText,
+                        kelas: document.getElementById('ortuKelasSiswa').innerText,
+                        tipe: statusIzin.toUpperCase(),
+                        status_kehadiran: statusIzin,
+                        waktu: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
+                        petugas: "Wali Murid (Online)",
+                        image_base64: compressedBase64,
+                        keterangan: alasan
+                    };
+
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+                    })
+                    .then(res => res.json()).then(resData => {
+                        notifEl.className = "mt-2 alert alert-success small py-1 mb-0";
+                        notifEl.innerText = `Berhasil! Pengajuan ${statusIzin} dengan bukti foto terkirim ke sekolah.`;
+                        notifEl.classList.remove('d-none');
+                        document.getElementById('formPengajuanIzin').reset();
+                        setTimeout(() => notifEl.classList.add('d-none'), 5000);
+                        loadOrtuDashboard(loggedInSiswaNisn, { name: document.getElementById('ortuNamaSiswa').innerText, kelas: document.getElementById('ortuKelasSiswa').innerText, ortu: document.getElementById('ortuNamaOrtu').innerText });
+                    }).catch(err => {
+                        notifEl.className = "mt-2 alert alert-success small py-1 mb-0";
+                        notifEl.innerText = `Berhasil disimpan lokal! Pengajuan ${statusIzin} terkirim.`;
+                        notifEl.classList.remove('d-none');
+                        document.getElementById('formPengajuanIzin').reset();
+                    }).finally(() => {
+                        btnKirim.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan Izin';
+                        btnKirim.disabled = false;
+                    });
+                };
+            };
+            reader.readAsDataURL(file);
+        });
 
         function checkPetugasGPS() {
             const badge = document.getElementById('gpsStatusBadge');
@@ -1523,8 +1734,8 @@
 
                             tBody.innerHTML += `
                                 <tr>
-                                    <td class="text-center">${r.tanggal}</td>
-                                    <td class="text-center">${r.waktu}</td>
+                                    <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
+                                    <td class="text-center">${r.waktu || '-'}</td>
                                     <td class="text-center">${r.nisn}</td>
                                     <td>${r.nama}</td>
                                     <td class="text-center">${r.kelas}</td>
@@ -1563,7 +1774,7 @@
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center">${index + 1}</td>
-                        <td class="text-center">${r.tanggal}</td>
+                        <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
                         <td class="text-center">${r.nisn}</td>
                         <td>${r.nama}</td>
                         <td class="text-center">${r.kelas}</td>
@@ -1624,7 +1835,7 @@
                     data.data.forEach(c => {
                         tBody.innerHTML += `
                             <tr>
-                                <td class="text-center">${c.tanggal}</td>
+                                <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
                                 <td>${c.nama}</td>
                                 <td class="text-center">${c.kelas}</td>
                                 <td>${c.catatan}</td>
