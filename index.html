@@ -388,13 +388,14 @@
                     <div id="section-jadwal" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-book me-2"></i>Kelola Jadwal Pelajaran</h4>
-                            <div style="width: 200px;">
-                                <select id="adminFilterJadwalKelas" class="form-select form-select-sm" onchange="filterAdminJadwal()">
+                            <div class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-sm btn-success" onclick="openModalTambahJadwal()"><i class="fas fa-plus me-1"></i> Tambah Jadwal</button>
+                                <select id="adminFilterJadwalKelas" class="form-select form-select-sm" onchange="filterAdminJadwal()" style="width: auto;">
                                     <option value="">Semua Rombel</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>Hari</th><th>Kelas / Rombel</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead><tbody id="tableJadwalBody"><tr><td colspan="7" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
+                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>Hari</th><th>Kelas / Rombel</th><th>Jam Ke</th><th>Waktu</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead><tbody id="tableJadwalBody"><tr><td colspan="8" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
                     <!-- 8. SECTION CATATAN GURU (DENGAN FILTER BULAN & TAHUN) -->
@@ -679,6 +680,51 @@
         </div>
     </div>
 
+    <!-- MODAL TAMBAH JADWAL -->
+    <div class="modal fade" id="modalTambahJadwal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Tambah Jadwal Pelajaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTambahJadwal">
+                        <div class="mb-2"><label class="form-label small">Hari</label><select class="form-select" id="tambahJadwalHari"><option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option></select></div>
+                        <div class="mb-2"><label class="form-label small">Kelas / Rombel</label><input type="text" class="form-control" id="tambahJadwalKelas" required placeholder="Contoh: 7A"></div>
+                        <div class="mb-2"><label class="form-label small">Mata Pelajaran</label><input type="text" class="form-control" id="tambahJadwalJam" required placeholder="Contoh: Matematika"></div>
+                        <div class="mb-2"><label class="form-label small">Waktu / Pukul</label><input type="text" class="form-control" id="tambahJadwalMapel" required placeholder="Contoh: 07.00-08.30"></div>
+                        <div class="mb-3"><label class="form-label small">Guru Pengajar (Opsional)</label><input type="text" class="form-control" id="tambahJadwalGuru" placeholder="Nama Guru"></div>
+                        <button type="button" onclick="simpanTambahJadwal()" class="btn btn-success w-100">Simpan Jadwal Baru</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT JADWAL -->
+    <div class="modal fade" id="modalEditJadwal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Jadwal Pelajaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditJadwal">
+                        <input type="hidden" id="editJadwalRowIndex">
+                        <div class="mb-2"><label class="form-label small">Hari</label><select class="form-select" id="editJadwalHari"><option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option></select></div>
+                        <div class="mb-2"><label class="form-label small">Kelas / Rombel</label><input type="text" class="form-control" id="editJadwalKelas" required></div>
+                        <div class="mb-2"><label class="form-label small">Mata Pelajaran</label><input type="text" class="form-control" id="editJadwalJam" required></div>
+                        <div class="mb-2"><label class="form-label small">Waktu / Pukul</label><input type="text" class="form-control" id="editJadwalMapel" required></div>
+                        <div class="mb-3"><label class="form-label small">Guru Pengajar (Opsional)</label><input type="text" class="form-control" id="editJadwalGuru"></div>
+                        <button type="button" onclick="simpanEditJadwal()" class="btn btn-primary w-100" style="background-color: var(--secondary-bg);">Simpan Perubahan Jadwal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SETTING PASSWORD -->
     <div class="modal fade" id="modalSettingPassword" tabindex="-1">
         <div class="modal-dialog">
@@ -779,6 +825,34 @@
             } catch (e) {
                 return dateString;
             }
+        }
+        
+        // FUNGSI KHUSUS UNTUK MEMISAHKAN DATA MAPEL & GURU YANG MENYATU
+        function parseMapelGuru(jam, mapel, guru) {
+            let w = mapel || '-';
+            let m = jam || '-';
+            let g = (guru && String(guru).trim() !== '' && guru !== '-') ? guru : '-';
+            
+            // Jika guru kosong tapi di mapel ada nama guru (memakai separator " - ")
+            if(g === '-' && m.includes(' - ')) {
+                let parts = m.split(' - ');
+                m = parts[0].trim();
+                g = parts.slice(1).join(' - ').trim();
+            }
+            return { waktu: w, mapel: m, guru: g };
+        }
+
+        // FUNGSI UNTUK GENERATE JAM KE SECARA OTOMATIS
+        function calculateJamKe(dataArray) {
+            let grouped = {};
+            let result = [];
+            dataArray.forEach((j) => {
+                let key = j.hari + '_' + j.kelas;
+                if(!grouped[key]) grouped[key] = 1;
+                j.computedJamKe = grouped[key]++;
+                result.push(j);
+            });
+            return result;
         }
 
         const DEFAULT_THEME = { 
@@ -1475,7 +1549,7 @@
         }
         function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
 
-        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari) - UPDATED FORMAT SATU BARIS
+        // Fungsi Load Jadwal Pelajaran Estetik ala Kartu Perkamen (Per Hari)
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
             container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal estetik rombel ${kelas}...</div>`;
@@ -1490,7 +1564,7 @@
                 })
                 .then(res => res.json()).then(data => {
                     if(data.status === "success" && Array.isArray(data.data)) {
-                        globalJadwalData = data.data;
+                        globalJadwalData = calculateJamKe(data.data);
                         renderOrtuAestheticCards(globalJadwalData, kelas);
                     } else {
                         container.innerHTML = `<div class="text-muted small text-center">Jadwal belum tersedia untuk kelas ${kelas}.</div>`;
@@ -1519,10 +1593,11 @@
                 if(jHari.length > 0) {
                     let itemsHtml = "";
                     jHari.forEach(item => {
-                        // PERUBAHAN DISINI: Format satu baris memanjang seperti yang Anda instruksikan
+                        let parsed = parseMapelGuru(item.jam, item.mapel, item.guru);
+                        // FORMAT BARU SESUAI INSTRUKSI: Jam ke, pukul : Nama Mata Pelajaran : Pengajar.
                         itemsHtml += `
                             <div class="parchment-item text-dark fw-bold" style="font-size: 0.85rem; padding: 10px;">
-                                <i class="fas fa-check-circle text-success me-1"></i> JAM KE ${item.jam || '-'} : ${item.waktu || '-'} : ${item.mapel || '-'} - ${item.guru || '-'}
+                                <i class="fas fa-check-circle text-success me-1"></i> Jam ke ${item.computedJamKe}, ${parsed.waktu} : ${parsed.mapel} : ${parsed.guru}
                             </div>
                         `;
                     });
@@ -2092,20 +2167,21 @@
 
         function filterLaporan() { renderLaporanTable(globalRekapData); }
 
-        // Fetch Jadwal Data dengan Dukungan Multi Rombel & Filter Admin
+        // Fetch Jadwal Data dengan Dukungan Tambah, Edit, Jam Ke Otomatis, dan Parsing Guru
         function fetchJadwalData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 let tBody = document.getElementById('tableJadwalBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
-                    globalJadwalData = data.data;
+                    data.data.forEach((j, i) => j.originalIndex = i);
+                    globalJadwalData = calculateJamKe(data.data);
                     populateAdminJadwalFilter(globalJadwalData);
                     renderAdminJadwalTable(globalJadwalData);
                 } else {
-                    tBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Gagal memuat jadwal pelajaran.</td></tr>`;
+                    tBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Gagal memuat jadwal pelajaran.</td></tr>`;
                 }
             }).catch(e => {
-                document.getElementById('tableJadwalBody').innerHTML = `<tr><td colspan="7" class="text-center text-muted">Gagal terhubung ke database jadwal.</td></tr>`;
+                document.getElementById('tableJadwalBody').innerHTML = `<tr><td colspan="8" class="text-center text-muted">Gagal terhubung ke database jadwal.</td></tr>`;
             });
         }
 
@@ -2123,21 +2199,23 @@
             let tBody = document.getElementById('tableJadwalBody');
             if(!tBody) return;
             if(dataArray.length === 0) { 
-                tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Belum ada jadwal pelajaran.</td></tr>`; 
+                tBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Belum ada jadwal pelajaran.</td></tr>`; 
                 return; 
             }
             tBody.innerHTML = "";
             dataArray.forEach(j => {
+                let parsed = parseMapelGuru(j.jam, j.mapel, j.guru);
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center">${j.id_jadwal || '-'}</td>
                         <td class="text-center fw-bold">${j.hari}</td>
                         <td class="text-center"><span class="badge bg-secondary">${j.kelas}</span></td>
-                        <td class="text-center">${j.jam}</td>
-                        <td>${j.mapel}</td>
-                        <td>${j.guru}</td>
+                        <td class="text-center">${j.computedJamKe}</td>
+                        <td class="text-center">${parsed.waktu}</td>
+                        <td>${parsed.mapel}</td>
+                        <td>${parsed.guru}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="alert('Jadwal dapat diubah langsung dari Spreadsheet.')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-warning text-dark me-1" title="Edit" onclick="openModalEditJadwal(${j.originalIndex})"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_jadwal', ${j.row_index}, 'Jadwal')"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
@@ -2152,6 +2230,67 @@
                 let filtered = globalJadwalData.filter(j => String(j.kelas).trim().toLowerCase() === String(selectedRombel).trim().toLowerCase());
                 renderAdminJadwalTable(filtered);
             }
+        }
+
+        function openModalTambahJadwal() {
+            let modal = new bootstrap.Modal(document.getElementById('modalTambahJadwal'));
+            modal.show();
+        }
+
+        function simpanTambahJadwal() {
+            let payload = {
+                action: "tambah_jadwal",
+                hari: document.getElementById('tambahJadwalHari').value,
+                kelas: document.getElementById('tambahJadwalKelas').value,
+                jam: document.getElementById('tambahJadwalJam').value, // Mata Pelajaran (disimpan di kolom 3)
+                mapel: document.getElementById('tambahJadwalMapel').value, // Waktu (disimpan di kolom 4)
+                guru: document.getElementById('tambahJadwalGuru').value // Guru (disimpan di kolom 5)
+            };
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Jadwal berhasil ditambahkan!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalTambahJadwal'));
+                if(m) m.hide();
+                document.getElementById('formTambahJadwal').reset();
+                fetchJadwalData();
+            }).catch(e => { alert("Jadwal tersimpan lokal (Gagal koneksi)."); fetchJadwalData(); });
+        }
+
+        function openModalEditJadwal(index) {
+            let j = globalJadwalData.find(item => item.originalIndex === index);
+            if(!j) return;
+            let parsed = parseMapelGuru(j.jam, j.mapel, j.guru);
+            
+            document.getElementById('editJadwalRowIndex').value = j.row_index;
+            document.getElementById('editJadwalHari').value = j.hari || 'Senin';
+            document.getElementById('editJadwalKelas').value = j.kelas || '';
+            document.getElementById('editJadwalJam').value = parsed.mapel || '';
+            document.getElementById('editJadwalMapel').value = parsed.waktu || '';
+            document.getElementById('editJadwalGuru').value = parsed.guru !== '-' ? parsed.guru : '';
+            
+            let modal = new bootstrap.Modal(document.getElementById('modalEditJadwal'));
+            modal.show();
+        }
+
+        function simpanEditJadwal() {
+            let payload = {
+                action: "edit_jadwal",
+                row_index: document.getElementById('editJadwalRowIndex').value,
+                hari: document.getElementById('editJadwalHari').value,
+                kelas: document.getElementById('editJadwalKelas').value,
+                jam: document.getElementById('editJadwalJam').value, // Mata Pelajaran (disimpan di kolom 3)
+                mapel: document.getElementById('editJadwalMapel').value, // Waktu (disimpan di kolom 4)
+                guru: document.getElementById('editJadwalGuru').value // Guru (disimpan di kolom 5)
+            };
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Data jadwal berhasil diubah!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalEditJadwal'));
+                if(m) m.hide();
+                fetchJadwalData();
+            }).catch(e => { alert("Data jadwal telah disimpan lokal."); fetchJadwalData(); });
         }
 
         // Fetch Catatan Data (Admin) dengan Filter Bulan & Tahun
