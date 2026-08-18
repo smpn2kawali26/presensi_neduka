@@ -1591,10 +1591,12 @@
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             
             // --- VALIDASI JAM PULANG (MENCEGAH ABSEN PULANG SEBELUM WAKTUNYA) ---
-            let waktuPulang = document.getElementById('waktuPulang') ? document.getElementById('waktuPulang').value : "14:00";
+            let waktuPulangInput = document.getElementById('waktuPulang') ? document.getElementById('waktuPulang').value : "14:00";
+            if (!waktuPulangInput) waktuPulangInput = "14:00";
+            
             if (tipe === 'PULANG') {
-                if (jamStr < waktuPulang) {
-                    alert("Belum waktunya pulang! Jam pulang minimal adalah pukul " + waktuPulang);
+                if (jamStr < waktuPulangInput) {
+                    alert("Belum waktunya pulang! Jam pulang minimal adalah pukul " + waktuPulangInput);
                     return;
                 }
             }
