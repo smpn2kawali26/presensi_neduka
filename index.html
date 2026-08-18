@@ -253,15 +253,28 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID Guru</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Tugas Tambahan</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tableGuruBody"><tr><td colspan="7" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 4. SECTION REKAP ABSEN -->
+                    <!-- 4. SECTION REKAP ABSEN (DENGAN FILTER BULAN & TAHUN) -->
                     <div id="section-rekap" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-calendar-check me-2"></i>Rekapitulasi Absensi</h4>
+                            <div class="d-flex gap-2">
+                                <select id="adminFilterBulanRekap" class="form-select form-select-sm" onchange="filterAdminRekap()">
+                                    <option value="">Semua Bulan</option>
+                                    <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                    <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                    <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                    <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                                </select>
+                                <select id="adminFilterTahunRekap" class="form-select form-select-sm" onchange="filterAdminRekap()">
+                                    <option value="">Semua Tahun</option>
+                                    <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead><tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 4.1 SECTION LAPORAN (CETAK PDF & EXCEL) -->
+                    <!-- 4.1 SECTION LAPORAN (DENGAN FILTER KELAS & BULAN/TAHUN) -->
                     <div id="section-laporan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-file-alt me-2"></i>Laporan Absensi Sekolah</h4>
@@ -277,11 +290,28 @@
                                 <p class="text-muted m-0 small" id="printAlamatSekolah">Laporan Resmi Rekapitulasi Kehadiran Siswa</p>
                             </div>
                             
-                            <div class="row mb-3 no-print">
+                            <div class="row mb-3 no-print g-2">
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Filter Berdasarkan Kelas:</label>
                                     <select id="filterKelas" class="form-select form-select-sm" onchange="filterLaporan()">
                                         <option value="">Semua Kelas</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Filter Bulan:</label>
+                                    <select id="filterBulanLaporan" class="form-select form-select-sm" onchange="filterLaporan()">
+                                        <option value="">Semua Bulan</option>
+                                        <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                        <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                        <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Filter Tahun:</label>
+                                    <select id="filterTahunLaporan" class="form-select form-select-sm" onchange="filterLaporan()">
+                                        <option value="">Semua Tahun</option>
+                                        <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                                     </select>
                                 </div>
                             </div>
@@ -346,7 +376,7 @@
                         </div></div>
                     </div>
 
-                    <!-- 7. SECTION JADWAL PELAJARAN (DENGAN FILTER KELAS / ROMBEL) -->
+                    <!-- 7. SECTION JADWAL PELAJARAN -->
                     <div id="section-jadwal" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-book me-2"></i>Kelola Jadwal Pelajaran</h4>
@@ -359,9 +389,24 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>Hari</th><th>Kelas / Rombel</th><th>Jam Pelajaran</th><th>Mata Pelajaran</th><th>Guru Pengajar</th><th>Aksi</th></tr></thead><tbody id="tableJadwalBody"><tr><td colspan="7" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
-                    <!-- 8. SECTION CATATAN GURU -->
+                    <!-- 8. SECTION CATATAN GURU (DENGAN FILTER BULAN & TAHUN) -->
                     <div id="section-catatan" class="content-section">
-                        <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4></div>
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4>
+                            <div class="d-flex gap-2">
+                                <select id="adminFilterBulanCatatan" class="form-select form-select-sm" onchange="filterAdminCatatan()">
+                                    <option value="">Semua Bulan</option>
+                                    <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                    <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                    <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                    <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                                </select>
+                                <select id="adminFilterTahunCatatan" class="form-select form-select-sm" onchange="filterAdminCatatan()">
+                                    <option value="">Semua Tahun</option>
+                                    <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Nama Siswa</th><th>Kelas</th><th>Catatan / Laporan</th><th>Guru Pelapor</th><th>Aksi</th></tr></thead><tbody id="tableCatatanBody"><tr><td colspan="6" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr></tbody></table></div></div></div>
                     </div>
 
@@ -482,7 +527,23 @@
                         <div id="notifPengajuan" class="mt-2 d-none alert alert-success small py-1 mb-0"></div>
                     </div>
 
-                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Riwayat Kehadiran Siswa</h5>
+                    <!-- Riwayat Kehadiran Siswa dengan Filter Bulan & Tahun -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-history me-2"></i>Riwayat Kehadiran Siswa</h5>
+                        <div class="d-flex gap-2">
+                            <select id="ortuFilterBulanRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                            </select>
+                            <select id="ortuFilterTahunRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
+                                <option value="">Semua Tahun</option>
+                                <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered table-striped align-middle">
                             <thead class="table-dark">
@@ -500,7 +561,23 @@
                         </table>
                     </div>
 
-                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa</h5>
+                    <!-- Catatan Guru dengan Filter Bulan & Tahun -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa</h5>
+                        <div class="d-flex gap-2">
+                            <select id="ortuFilterBulanCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                            </select>
+                            <select id="ortuFilterTahunCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
+                                <option value="">Semua Tahun</option>
+                                <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="table-responsive mb-4">
                         <table class="table table-bordered table-striped align-middle">
                             <thead class="table-dark">
@@ -648,7 +725,10 @@
         let globalRekapData = [];
         let globalSiswaData = [];
         let globalGuruData = [];
-        let globalJadwalData = []; // Menyimpan data jadwal mentah untuk filter admin & ortu
+        let globalJadwalData = [];
+        let globalCatatanData = [];
+        let globalOrtuRiwayatData = [];
+        let globalOrtuCatatanData = [];
         let barChartInstance = null;
         let radarChartInstance = null;
         let currentPetugasName = "Petugas Piket";
@@ -1197,56 +1277,28 @@
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
             })
             .then(res => res.json()).then(resData => {
-                let tBody = document.getElementById('tableOrtuRiwayat');
                 if(resData.status === "success" && Array.isArray(resData.data)) {
-                    if(resData.data.length === 0) {
-                        tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran.</td></tr>`;
-                        return;
-                    }
-                    tBody.innerHTML = "";
-                    resData.data.forEach(r => {
-                        tBody.innerHTML += `
-                            <tr>
-                                <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
-                                <td class="text-center">${r.waktu || '-'}</td>
-                                <td class="text-center">${r.tipe || 'Hadir'}</td>
-                                <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
-                                <td>${r.petugas || '-'}</td>
-                            </tr>`;
-                    });
+                    globalOrtuRiwayatData = resData.data;
+                    renderOrtuRiwayatTable(globalOrtuRiwayatData);
                 } else {
-                    tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                    document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
                 }
             }).catch(err => {
                 document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
             });
 
-            // Ambil Catatan Guru khusus untuk Siswa ini (Dengan Format Tanggal Ramah)
+            // Ambil Catatan Guru khusus untuk Siswa ini
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_catatan" }),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
             })
             .then(res => res.json()).then(resCatatan => {
-                let tCatatanBody = document.getElementById('tableOrtuCatatan');
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    let catatanAnak = resCatatan.data.filter(c => String(c.nisn) === String(nisn) || String(c.nama).toLowerCase() === String(namaSiswa).toLowerCase());
-                    
-                    if(catatanAnak.length === 0) {
-                        tCatatanBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Tidak ada catatan atau laporan guru untuk siswa ini.</td></tr>`;
-                        return;
-                    }
-                    tCatatanBody.innerHTML = "";
-                    catatanAnak.forEach(c => {
-                        tCatatanBody.innerHTML += `
-                            <tr>
-                                <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
-                                <td>${c.catatan}</td>
-                                <td class="text-center">${c.guru || 'Guru Piket'}</td>
-                            </tr>`;
-                    });
+                    globalOrtuCatatanData = resCatatan.data.filter(c => String(c.nisn) === String(nisn) || String(c.nama).toLowerCase() === String(namaSiswa).toLowerCase());
+                    renderOrtuCatatanTable(globalOrtuCatatanData);
                 } else {
-                    tCatatanBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Belum ada catatan guru.</td></tr>`;
+                    document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Belum ada catatan guru.</td></tr>`;
                 }
             }).catch(err => {
                 document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
@@ -1256,12 +1308,85 @@
             loadOrtuJadwal3D(kelasSiswa);
         }
 
-        // Fungsi Load Jadwal Pelajaran 3D Interaktif, Lucu & Menyesuaikan Rombel Kelas (Support 8+ Rombel)
+        // Render Riwayat Ortu dengan Filter Bulan & Tahun
+        function renderOrtuRiwayatTable(dataArray) {
+            let tBody = document.getElementById('tableOrtuRiwayat');
+            let bFilter = document.getElementById('ortuFilterBulanRiwayat').value;
+            let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
+
+            let filtered = dataArray.filter(r => {
+                if(!r.tanggal) return false;
+                let tglStr = String(r.tanggal);
+                let matchBulan = true;
+                let matchTahun = true;
+                if(bFilter) {
+                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                }
+                if(tFilter) {
+                    matchTahun = tglStr.includes(tFilter);
+                }
+                return matchBulan && matchTahun;
+            });
+
+            if(filtered.length === 0) {
+                tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Tidak ada riwayat kehadiran pada periode ini.</td></tr>`;
+                return;
+            }
+            tBody.innerHTML = "";
+            filtered.forEach(r => {
+                tBody.innerHTML += `
+                    <tr>
+                        <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
+                        <td class="text-center">${r.waktu || '-'}</td>
+                        <td class="text-center">${r.tipe || 'Hadir'}</td>
+                        <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
+                        <td>${r.petugas || '-'}</td>
+                    </tr>`;
+            });
+        }
+        function filterOrtuRiwayat() { renderOrtuRiwayatTable(globalOrtuRiwayatData); }
+
+        // Render Catatan Ortu dengan Filter Bulan & Tahun
+        function renderOrtuCatatanTable(dataArray) {
+            let tBody = document.getElementById('tableOrtuCatatan');
+            let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
+            let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
+
+            let filtered = dataArray.filter(c => {
+                if(!c.tanggal) return false;
+                let tglStr = String(c.tanggal);
+                let matchBulan = true;
+                let matchTahun = true;
+                if(bFilter) {
+                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                }
+                if(tFilter) {
+                    matchTahun = tglStr.includes(tFilter);
+                }
+                return matchBulan && matchTahun;
+            });
+
+            if(filtered.length === 0) {
+                tBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Tidak ada catatan guru pada periode ini.</td></tr>`;
+                return;
+            }
+            tBody.innerHTML = "";
+            filtered.forEach(c => {
+                tBody.innerHTML += `
+                    <tr>
+                        <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
+                        <td>${c.catatan}</td>
+                        <td class="text-center">${c.guru || 'Guru Piket'}</td>
+                    </tr>`;
+            });
+        }
+        function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
+
+        // Fungsi Load Jadwal Pelajaran 3D Interaktif, Lucu & Menyesuaikan Rombel Kelas
         function loadOrtuJadwal3D(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
             container.innerHTML = `<div class="text-center py-2 text-muted small"><i class="fas fa-spinner fa-spin"></i> Menyiapkan jadwal interaktif rombel ${kelas}...</div>`;
 
-            // Jika globalJadwalData sudah ada, gunakan langsung tanpa request berulang
             if(globalJadwalData.length > 0) {
                 renderOrtuJadwalCards(globalJadwalData, kelas);
             } else {
@@ -1285,7 +1410,6 @@
 
         function renderOrtuJadwalCards(dataJadwal, kelasSiswa) {
             let container = document.getElementById('ortuJadwalContainer');
-            // Filter sesuai rombel siswa (contoh: 7A, 7B, 8A, 8B, 8C, 9A, 9B, 9C, dst)
             let jadwalKelas = dataJadwal.filter(j => String(j.kelas).trim().toLowerCase() === String(kelasSiswa).trim().toLowerCase());
             
             if(jadwalKelas.length === 0) {
@@ -1726,62 +1850,105 @@
             }
         }
 
+        // Fetch Rekap Data (Admin) dengan Filter Bulan & Tahun
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                let tBody = document.getElementById('tableRekapBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
                     globalRekapData = data.data; 
                     let totalHadir = 0, totalTelat = 0, totalAlpa = 0;
-
-                    if(data.data.length === 0) { 
-                        tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Belum ada data rekap absensi.</td></tr>`; 
-                    } else {
-                        tBody.innerHTML = "";
-                        data.data.forEach(r => {
-                            if(r.status === 'Hadir') totalHadir++;
-                            else if(r.status === 'Terlambat') totalTelat++;
-                            else totalAlpa++;
-
-                            tBody.innerHTML += `
-                                <tr>
-                                    <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
-                                    <td class="text-center">${r.waktu || '-'}</td>
-                                    <td class="text-center">${r.nisn}</td>
-                                    <td>${r.nama}</td>
-                                    <td class="text-center">${r.kelas}</td>
-                                    <td class="text-center">${r.tipe}</td>
-                                    <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
-                                    <td>${r.petugas}</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>`;
-                        });
-                    }
+                    globalRekapData.forEach(r => {
+                        if(r.status === 'Hadir') totalHadir++;
+                        else if(r.status === 'Terlambat') totalTelat++;
+                        else totalAlpa++;
+                    });
                     
                     if(document.getElementById('dashTotalHadir')) document.getElementById('dashTotalHadir').innerText = totalHadir;
                     if(document.getElementById('dashTotalTelat')) document.getElementById('dashTotalTelat').innerText = totalTelat;
                     if(document.getElementById('dashTotalAlpa')) document.getElementById('dashTotalAlpa').innerText = totalAlpa;
 
                     renderDashboardCharts(globalRekapData);
+                    renderAdminRekapTable(globalRekapData);
                     renderLaporanTable(globalRekapData);
                     populateFilterKelas(globalRekapData);
                 } else {
-                    tBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Gagal memuat rekap absensi.</td></tr>`;
+                    document.getElementById('tableRekapBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger">Gagal memuat rekap absensi.</td></tr>`;
                 }
             });
         }
 
-        function renderLaporanTable(dataArray) {
-            let tBody = document.getElementById('tableLaporanBody');
-            if(!tBody) return;
-            if(dataArray.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data untuk laporan.</td></tr>`;
+        function renderAdminRekapTable(dataArray) {
+            let tBody = document.getElementById('tableRekapBody');
+            let bFilter = document.getElementById('adminFilterBulanRekap').value;
+            let tFilter = document.getElementById('adminFilterTahunRekap').value;
+
+            let filtered = dataArray.filter(r => {
+                if(!r.tanggal) return false;
+                let tglStr = String(r.tanggal);
+                let matchBulan = true;
+                let matchTahun = true;
+                if(bFilter) {
+                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                }
+                if(tFilter) {
+                    matchTahun = tglStr.includes(tFilter);
+                }
+                return matchBulan && matchTahun;
+            });
+
+            if(filtered.length === 0) { 
+                tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Tidak ada data rekap absensi pada periode ini.</td></tr>`; 
                 return;
             }
             tBody.innerHTML = "";
-            dataArray.forEach((r, index) => {
+            filtered.forEach(r => {
+                tBody.innerHTML += `
+                    <tr>
+                        <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
+                        <td class="text-center">${r.waktu || '-'}</td>
+                        <td class="text-center">${r.nisn}</td>
+                        <td>${r.nama}</td>
+                        <td class="text-center">${r.kelas}</td>
+                        <td class="text-center">${r.tipe}</td>
+                        <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
+                        <td>${r.petugas}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        function filterAdminRekap() { renderAdminRekapTable(globalRekapData); }
+
+        // Render Laporan Absensi (Admin) dengan Filter Kelas, Bulan & Tahun
+        function renderLaporanTable(dataArray) {
+            let tBody = document.getElementById('tableLaporanBody');
+            if(!tBody) return;
+
+            let kFilter = document.getElementById('filterKelas').value;
+            let bFilter = document.getElementById('filterBulanLaporan').value;
+            let tFilter = document.getElementById('filterTahunLaporan').value;
+
+            let filtered = dataArray.filter(r => {
+                let matchKelas = kFilter === "" || String(r.kelas) === String(kFilter);
+                let tglStr = String(r.tanggal || '');
+                let matchBulan = true;
+                let matchTahun = true;
+                if(bFilter) {
+                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                }
+                if(tFilter) {
+                    matchTahun = tglStr.includes(tFilter);
+                }
+                return matchKelas && matchBulan && matchTahun;
+            });
+
+            if(filtered.length === 0) {
+                tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Tidak ada data untuk laporan pada filter ini.</td></tr>`;
+                return;
+            }
+            tBody.innerHTML = "";
+            filtered.forEach((r, index) => {
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center">${index + 1}</td>
@@ -1803,11 +1970,7 @@
             kelasSet.forEach(kelas => { selectEl.innerHTML += `<option value="${kelas}">${kelas}</option>`; });
         }
 
-        function filterLaporan() {
-            let selectedKelas = document.getElementById('filterKelas').value;
-            if(selectedKelas === "") { renderLaporanTable(globalRekapData); } 
-            else { renderLaporanTable(globalRekapData.filter(item => item.kelas === selectedKelas)); }
-        }
+        function filterLaporan() { renderLaporanTable(globalRekapData); }
 
         // Fetch Jadwal Data dengan Dukungan Multi Rombel & Filter Admin
         function fetchJadwalData() {
@@ -1871,31 +2034,58 @@
             }
         }
 
+        // Fetch Catatan Data (Admin) dengan Filter Bulan & Tahun
         function fetchCatatanData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
-                let tBody = document.getElementById('tableCatatanBody');
                 if(data.status === "success" && Array.isArray(data.data)) {
-                    if(data.data.length === 0) { tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Belum ada catatan guru.</td></tr>`; return; }
-                    tBody.innerHTML = "";
-                    data.data.forEach(c => {
-                        tBody.innerHTML += `
-                            <tr>
-                                <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
-                                <td>${c.nama}</td>
-                                <td class="text-center">${c.kelas}</td>
-                                <td>${c.catatan}</td>
-                                <td>${c.guru}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>`;
-                    });
+                    globalCatatanData = data.data;
+                    renderAdminCatatanTable(globalCatatanData);
                 } else {
-                    tBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat catatan guru.</td></tr>`;
+                    document.getElementById('tableCatatanBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat catatan guru.</td></tr>`;
                 }
             });
         }
+
+        function renderAdminCatatanTable(dataArray) {
+            let tBody = document.getElementById('tableCatatanBody');
+            let bFilter = document.getElementById('adminFilterBulanCatatan').value;
+            let tFilter = document.getElementById('adminFilterTahunCatatan').value;
+
+            let filtered = dataArray.filter(c => {
+                if(!c.tanggal) return false;
+                let tglStr = String(c.tanggal);
+                let matchBulan = true;
+                let matchTahun = true;
+                if(bFilter) {
+                    matchBulan = tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.startsWith(`2026-${bFilter}`) || tglStr.includes(`-${bFilter}T`);
+                }
+                if(tFilter) {
+                    matchTahun = tglStr.includes(tFilter);
+                }
+                return matchBulan && matchTahun;
+            });
+
+            if(filtered.length === 0) { 
+                tBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Tidak ada catatan guru pada periode ini.</td></tr>`; 
+                return;
+            }
+            tBody.innerHTML = "";
+            filtered.forEach(c => {
+                tBody.innerHTML += `
+                    <tr>
+                        <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
+                        <td>${c.nama}</td>
+                        <td class="text-center">${c.kelas}</td>
+                        <td>${c.catatan}</td>
+                        <td>${c.guru}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        function filterAdminCatatan() { renderAdminCatatanTable(globalCatatanData); }
 
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
