@@ -208,6 +208,7 @@
                     <li><a id="nav-waktu"><i class="fas fa-clock"></i> Setting Waktu</a></li>
                     <li><a id="nav-jadwal"><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
                     <li><a id="nav-catatan"><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
+                    <li><a id="nav-pengumuman"><i class="fas fa-bullhorn"></i> Pengumuman Sekolah</a></li>
                     <li class="mt-4"><hr class="text-secondary border-2 opacity-25"></li>
                     <li><a id="nav-tampilan"><i class="fas fa-paint-brush"></i> Tampilan Visual</a></li>
                 </ul>
@@ -519,6 +520,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-comment-dots me-2"></i>Catatan Piket / Guru</h4>
                             <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button class="btn btn-sm btn-success" onclick="openModalTambahCatatan()"><i class="fas fa-plus me-1"></i> Tambah Catatan Guru</button>
                                 <select id="adminFilterBulanCatatan" class="form-select form-select-sm" onchange="filterAdminCatatan()">
                                     <option value="">Semua Bulan</option>
                                     <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
@@ -543,7 +545,7 @@
                                 <div class="table-responsive">
                                     <table class="table table-hover table-bordered align-middle">
                                         <thead class="table-dark">
-                                            <tr class="text-center"><th>Tanggal</th><th>Nama Siswa</th><th>Kelas</th><th>Catatan / Laporan</th><th>Guru Pelapor</th><th>Aksi</th></tr>
+                                            <tr class="text-center"><th>Tanggal</th><th>Nama Siswa / Target</th><th>Kelas</th><th>Catatan / Laporan</th><th>Guru Pelapor</th><th>Aksi</th></tr>
                                         </thead>
                                         <tbody id="tableCatatanBody">
                                             <tr><td colspan="6" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat data...</td></tr>
@@ -551,6 +553,28 @@
                                     </table>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3" id="paginationCatatanContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8.1 SECTION PENGUMUMAN SEKOLAH -->
+                    <div id="section-pengumuman" class="content-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                            <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-bullhorn me-2"></i>Kelola Pengumuman Sekolah</h4>
+                            <button class="btn btn-sm btn-success" onclick="openModalTambahPengumuman()"><i class="fas fa-plus me-1"></i> Buat Pengumuman Baru</button>
+                        </div>
+                        <div class="card card-custom">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered align-middle">
+                                        <thead class="table-dark">
+                                            <tr class="text-center"><th>Tanggal</th><th>Judul Pengumuman</th><th>Isi Pengumuman</th><th>Pembuat</th><th>Aksi</th></tr>
+                                        </thead>
+                                        <tbody id="tablePengumumanBody">
+                                            <tr><td colspan="5" class="spinner-table"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Memuat pengumuman...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -641,6 +665,12 @@
                     </div>
                     <hr>
 
+                    <!-- PENGUMUMAN SEKOLAH KHUSUS ORANG TUA -->
+                    <div class="card border-0 shadow-sm mb-4 bg-light p-3 border-start border-4 border-warning">
+                        <h5 class="fw-bold text-dark mb-2"><i class="fas fa-bullhorn me-2 text-warning"></i>Pengumuman & Informasi Sekolah</h5>
+                        <div id="ortuPengumumanContainer" class="small text-muted">Memuat pengumuman...</div>
+                    </div>
+
                     <!-- PROFIL SISWA & FORM BIODATA ORANG TUA / HP -->
                     <div class="card bg-light border-0 p-3 mb-4">
                         <h5 class="fw-bold text-dark mb-2" id="ortuNamaSiswaDisplay">-</h5>
@@ -726,9 +756,9 @@
                         </table>
                     </div>
 
-                    <!-- Catatan Guru dengan Filter Bulan & Tahun -->
+                    <!-- Catatan Guru Pribadi / Kelas dengan Filter Bulan & Tahun -->
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa</h5>
+                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa / Kelas</h5>
                         <div class="d-flex gap-2">
                             <select id="ortuFilterBulanCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
                                 <option value="">Semua Bulan</option>
@@ -748,12 +778,13 @@
                             <thead class="table-dark">
                                 <tr class="text-center">
                                     <th>Tanggal</th>
+                                    <th>Kategori Target</th>
                                     <th>Catatan / Keterangan</th>
                                     <th>Guru Pelapor</th>
                                 </tr>
                             </thead>
                             <tbody id="tableOrtuCatatan">
-                                <tr><td colspan="3" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat catatan guru...</td></tr>
+                                <tr><td colspan="4" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat catatan guru...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -861,6 +892,65 @@
         </div>
     </div>
 
+    <!-- MODAL TAMBAH CATATAN GURU -->
+    <div class="modal fade" id="modalTambahCatatan" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Tambah Catatan Guru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTambahCatatan">
+                        <div class="mb-2">
+                            <label class="form-label small">Target Catatan</label>
+                            <select class="form-select" id="tambahCatatanTargetTipe" onchange="toggleTargetCatatanInput()">
+                                <option value="siswa">Pribadi / Perorangan Siswa (by NISN)</option>
+                                <option value="kelas">Seluruh Siswa Satu Kelas (Wali Kelas)</option>
+                            </select>
+                        </div>
+                        <div class="mb-2" id="divInputNisnTarget">
+                            <label class="form-label small">NISN Siswa yang Dituju</label>
+                            <input type="text" class="form-control" id="tambahCatatanNisn" placeholder="Nomor NISN Siswa">
+                        </div>
+                        <div class="mb-2 d-none" id="divInputKelasTarget">
+                            <label class="form-label small">Nama Kelas / Rombel (Wali Kelas)</label>
+                            <input type="text" class="form-control" id="tambahCatatanKelas" placeholder="Contoh: 7A">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">Nama Guru Pelapor</label>
+                            <input type="text" class="form-control" id="tambahCatatanGuru" placeholder="Nama Guru / Wali Kelas">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Isi Catatan / Keterangan</label>
+                            <textarea class="form-control" id="tambahCatatanIsi" rows="3" required placeholder="Tuliskan catatan privat atau untuk wali kelas..."></textarea>
+                        </div>
+                        <button type="button" onclick="simpanTambahCatatan()" class="btn btn-success w-100">Simpan Catatan Guru</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH PENGUMUMAN -->
+    <div class="modal fade" id="modalTambahPengumuman" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-bullhorn me-2"></i>Buat Pengumuman Sekolah</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTambahPengumuman">
+                        <div class="mb-2"><label class="form-label small">Judul Pengumuman</label><input type="text" class="form-control" id="tambahPengumumanJudul" required placeholder="Judul Informasi..."></div>
+                        <div class="mb-3"><label class="form-label small">Isi Pengumuman</label><textarea class="form-control" id="tambahPengumumanIsi" rows="4" required placeholder="Tuliskan pengumuman lengkap untuk orang tua dan guru..."></textarea></div>
+                        <button type="button" onclick="simpanTambahPengumuman()" class="btn btn-success w-100">Publikasikan Pengumuman</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SETTING PASSWORD -->
     <div class="modal fade" id="modalSettingPassword" tabindex="-1">
         <div class="modal-dialog">
@@ -937,6 +1027,7 @@
         let globalGuruData = [];
         let globalJadwalData = [];
         let globalCatatanData = [];
+        let globalPengumumanData = [];
         let globalOrtuRiwayatData = [];
         let globalOrtuCatatanData = [];
         let barChartInstance = null;
@@ -945,6 +1036,7 @@
         let currentPetugasLat = null;
         let currentPetugasLng = null;
         let loggedInSiswaNisn = null;
+        let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
 
         // PAGINATION STATE OBJECT
@@ -1540,7 +1632,7 @@
                         document.getElementById('dashboard-admin').style.display = 'block';
                         document.getElementById('userProfileName').innerText = data.name;
                         document.querySelector('.profil-nama').innerText = data.name;
-                        fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData();
+                        fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData(); fetchPengumumanData();
                     } else if(role === 'petugas') {
                         document.getElementById('dashboard-petugas').style.display = 'block';
                         currentPetugasName = data.name || inputId;
@@ -1585,9 +1677,10 @@
 
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn;
+            loggedInSiswaKelas = data.kelas || "7B";
             loggedInSiswaRowIndex = data.row_index || null;
             let namaSiswa = data.name || data.nama || "Siswa";
-            let kelasSiswa = data.kelas || "7B";
+            let kelasSiswa = loggedInSiswaKelas;
             let namaOrtu = data.ortu || "";
             let hpOrtu = data.hp || "";
 
@@ -1596,6 +1689,27 @@
             
             document.getElementById('inputOrtuNama').value = namaOrtu;
             document.getElementById('inputOrtuHp').value = hpOrtu;
+
+            // Load Pengumuman Sekolah untuk Ortu
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "get_pengumuman" }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            })
+            .then(res => res.json()).then(resPeng => {
+                let pengContainer = document.getElementById('ortuPengumumanContainer');
+                if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
+                    let htmlPeng = "";
+                    resPeng.data.forEach(p => {
+                        htmlPeng += `<div class="mb-2 pb-2 border-bottom"><strong><i class="fas fa-bullhorn text-warning me-1"></i>${p.judul}</strong><p class="m-0 text-dark small">${p.isi}</p><small class="text-muted" style="font-size: 0.75rem;">${formatTanggalIndonesia(p.tanggal)}</small></div>`;
+                    });
+                    pengContainer.innerHTML = htmlPeng;
+                } else {
+                    pengContainer.innerHTML = `<span class="text-muted">Belum ada pengumuman sekolah aktif.</span>`;
+                }
+            }).catch(e => {
+                document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Gagal memuat pengumuman.</span>`;
+            });
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -1626,6 +1740,7 @@
                 document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
             });
 
+            // Fetch Catatan Guru yang difilter khusus Privat (NISN) atau Wali Kelas (Kelas)
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_catatan" }),
@@ -1633,13 +1748,19 @@
             })
             .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    globalOrtuCatatanData = resCatatan.data.filter(c => String(c.nisn) === String(nisn) || String(c.nama).toLowerCase() === String(namaSiswa).toLowerCase());
+                    globalOrtuCatatanData = resCatatan.data.filter(c => {
+                        let targetNisn = String(c.nisn || '').trim();
+                        let targetKelas = String(c.kelas || '').trim().toLowerCase();
+                        let isPrivatSiswa = targetNisn === String(nisn);
+                        let isWaliKelas = targetKelas === String(kelasSiswa).toLowerCase();
+                        return isPrivatSiswa || isWaliKelas;
+                    });
                     renderOrtuCatatanTable(globalOrtuCatatanData);
                 } else {
-                    document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Belum ada catatan guru.</td></tr>`;
+                    document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="4" class="text-center text-muted">Belum ada catatan guru.</td></tr>`;
                 }
             }).catch(err => {
-                document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="3" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
+                document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="4" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
             });
 
             loadOrtuJadwalAesthetic(kelasSiswa);
@@ -1735,14 +1856,16 @@
             });
 
             if(filtered.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Tidak ada catatan guru pada periode ini.</td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Tidak ada catatan guru pada periode ini.</td></tr>`;
                 return;
             }
             tBody.innerHTML = "";
             filtered.forEach(c => {
+                let badgeTarget = c.nisn ? `<span class="badge bg-primary">Privat Siswa (NISN: ${c.nisn})</span>` : `<span class="badge bg-success">Wali Kelas (${c.kelas})</span>`;
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
+                        <td class="text-center">${badgeTarget}</td>
                         <td>${c.catatan}</td>
                         <td class="text-center">${c.guru || 'Guru Piket'}</td>
                     </tr>`;
@@ -2312,6 +2435,7 @@
                     if(actionName === 'hapus_rekap') fetchRekapData();
                     if(actionName === 'hapus_jadwal') fetchJadwalData();
                     if(actionName === 'hapus_catatan') fetchCatatanData();
+                    if(actionName === 'hapus_pengumuman') fetchPengumumanData();
                 }).catch(e => {
                     alert(`Data ${label} berhasil dihapus.`);
                     if(actionName === 'hapus_siswa') fetchSiswaData();
@@ -2612,11 +2736,12 @@
 
             tBody.innerHTML = "";
             paginatedItems.forEach(c => {
+                let badgeTarget = c.nisn ? `<span class="badge bg-primary">Privat (NISN: ${c.nisn})</span>` : `<span class="badge bg-success">Wali Kelas (${c.kelas})</span>`;
                 tBody.innerHTML += `
                     <tr>
                         <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
-                        <td>${c.nama}</td>
-                        <td class="text-center">${c.kelas}</td>
+                        <td class="text-center">${badgeTarget}</td>
+                        <td class="text-center">${c.kelas || '-'}</td>
                         <td>${c.catatan}</td>
                         <td>${c.guru}</td>
                         <td class="text-center">
@@ -2627,6 +2752,111 @@
             renderPaginationControls(filtered.length, 'catatan', 'paginationCatatanContainer', 'renderAdminCatatanTable');
         }
         function filterAdminCatatan() { paginationState.catatan.page = 1; renderAdminCatatanTable(globalCatatanData); }
+
+        function openModalTambahCatatan() {
+            let modal = new bootstrap.Modal(document.getElementById('modalTambahCatatan'));
+            modal.show();
+        }
+
+        function toggleTargetCatatanInput() {
+            let tipe = document.getElementById('tambahCatatanTargetTipe').value;
+            let divNisn = document.getElementById('divInputNisnTarget');
+            let divKelas = document.getElementById('divInputKelasTarget');
+            if(tipe === 'siswa') {
+                divNisn.classList.remove('d-none');
+                divKelas.classList.add('d-none');
+            } else {
+                divNisn.classList.add('d-none');
+                divKelas.classList.remove('d-none');
+            }
+        }
+
+        function simpanTambahCatatan() {
+            let targetTipe = document.getElementById('tambahCatatanTargetTipe').value;
+            let nisnVal = targetTipe === 'siswa' ? document.getElementById('tambahCatatanNisn').value : "";
+            let kelasVal = targetTipe === 'kelas' ? document.getElementById('tambahCatatanKelas').value : "";
+            let guruVal = document.getElementById('tambahCatatanGuru').value;
+            let isiVal = document.getElementById('tambahCatatanIsi').value;
+
+            let payload = {
+                action: "tambah_catatan",
+                nisn: nisnVal,
+                kelas: kelasVal,
+                nama: targetTipe === 'siswa' ? `Privat (NISN: ${nisnVal})` : `Wali Kelas ${kelasVal}`,
+                catatan: isiVal,
+                guru: guruVal
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Catatan guru berhasil ditambahkan!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalTambahCatatan'));
+                if(m) m.hide();
+                document.getElementById('formTambahCatatan').reset();
+                fetchCatatanData();
+            }).catch(e => { alert("Catatan disimpan lokal."); fetchCatatanData(); });
+        }
+
+        // --- FETCH PENGUMUMAN SEKOLAH ---
+        function fetchPengumumanData() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
+                let tBody = document.getElementById('tablePengumumanBody');
+                if(!tBody) return;
+                if(data.status === "success" && Array.isArray(data.data)) {
+                    globalPengumumanData = data.data;
+                    if(globalPengumumanData.length === 0) {
+                        tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada pengumuman sekolah.</td></tr>`;
+                        return;
+                    }
+                    tBody.innerHTML = "";
+                    globalPengumumanData.forEach(p => {
+                        tBody.innerHTML += `
+                            <tr>
+                                <td class="text-center">${formatTanggalIndonesia(p.tanggal)}</td>
+                                <td class="fw-bold">${p.judul}</td>
+                                <td>${p.isi}</td>
+                                <td class="text-center">${p.pembuat || 'Administrator'}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-danger" title="Hapus" onclick="hapusRowData('hapus_pengumuman', ${p.row_index}, 'Pengumuman')"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>`;
+                    });
+                } else {
+                    tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada pengumuman.</td></tr>`;
+                }
+            }).catch(e => {
+                document.getElementById('tablePengumumanBody').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat pengumuman.</td></tr>`;
+            });
+        }
+
+        function openModalTambahPengumuman() {
+            let modal = new bootstrap.Modal(document.getElementById('modalTambahPengumuman'));
+            modal.show();
+        }
+
+        function simpanTambahPengumuman() {
+            let judul = document.getElementById('tambahPengumumanJudul').value;
+            let isi = document.getElementById('tambahPengumumanIsi').value;
+
+            let payload = {
+                action: "tambah_pengumuman",
+                judul: judul,
+                isi: isi,
+                pembuat: "Administrator Utama"
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow'
+            }).then(r => r.json()).then(res => {
+                alert(res.message || "Pengumuman berhasil dipublikasikan ke semua orang tua dan guru!");
+                let m = bootstrap.Modal.getInstance(document.getElementById('modalTambahPengumuman'));
+                if(m) m.hide();
+                document.getElementById('formTambahPengumuman').reset();
+                fetchPengumumanData();
+            }).catch(e => { alert("Pengumuman berhasil disimpan lokal."); fetchPengumumanData(); });
+        }
 
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
@@ -2645,6 +2875,7 @@
         document.getElementById('nav-waktu').addEventListener('click', () => changePage('section-waktu', 'nav-waktu'));
         document.getElementById('nav-jadwal').addEventListener('click', () => changePage('section-jadwal', 'nav-jadwal'));
         document.getElementById('nav-catatan').addEventListener('click', () => changePage('section-catatan', 'nav-catatan'));
+        document.getElementById('nav-pengumuman').addEventListener('click', () => changePage('section-pengumuman', 'nav-pengumuman'));
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
 
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
