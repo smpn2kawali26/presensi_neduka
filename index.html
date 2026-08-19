@@ -75,6 +75,39 @@
             color: #0d6efd;
         }
 
+        /* --- MOBILE BANKING CARD LIST STYLE (UNTUK ORTU) --- */
+        .mobile-card-list {
+            max-height: 380px; /* Batas tinggi, akan scroll di dalam jika lebih */
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .mobile-card-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .mobile-card-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .mobile-card-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .mobile-card-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        .mobile-card-item:last-child {
+            border-bottom: none;
+        }
+        .mobile-card-item:hover {
+            background-color: #f8f9fa;
+        }
+
         /* Tampilan Tab Hari untuk Jadwal Estetik */
         .schedule-tabs-container {
             display: flex;
@@ -103,10 +136,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         .schedule-content-box {
-            max-height: 420px;
+            max-height: 380px;
             overflow-y: auto;
             padding-right: 5px;
         }
+        .schedule-content-box::-webkit-scrollbar { width: 5px; }
+        .schedule-content-box::-webkit-scrollbar-track { background: transparent; }
+        .schedule-content-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .schedule-parchment-card {
             background: #fdfbf7;
@@ -138,7 +174,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.03);
         }
 
-        /* Print Style khusus untuk Laporan PDF */
         @media print {
             body * { visibility: hidden; }
             #section-laporan, #section-laporan * { visibility: visible; }
@@ -246,7 +281,6 @@
                             <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3 id="dashTotalAlpa">0</h3></div></div>
                         </div>
 
-                        <!-- TABEL RINCIAN REKAP ABSENSI PER KELAS -->
                         <div class="card card-custom p-4 mt-4">
                             <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-table me-2"></i>Rincian Rekap Absensi Per Kelas (Hari Ini)</h5>
                             <div class="table-responsive">
@@ -274,7 +308,6 @@
                             </div>
                         </div>
 
-                        <!-- GRAFIK REKAP ABSEN PER KELAS -->
                         <div class="row mt-4">
                             <div class="col-md-6 mb-4">
                                 <div class="card card-custom p-4 h-100">
@@ -614,7 +647,6 @@
                         </div>
                     </div>
 
-                    <!-- Autocomplete 3 Huruf -->
                     <div class="mb-3 position-relative">
                         <label class="form-label fw-bold small">Cari Siswa (Ketik Nama / NISN min 3 huruf):</label>
                         <input type="text" class="form-control" id="searchSiswaInput" placeholder="Ketik minimal 3 huruf nama siswa..." autocomplete="off">
@@ -625,7 +657,6 @@
                         <strong>Terpilih:</strong> <span id="txtNamaSiswa"></span> | <strong>Kelas:</strong> <span id="txtKelasSiswa"></span> | <strong>NISN:</strong> <span id="txtNisnSiswa"></span>
                     </div>
 
-                    <!-- Kamera & Kompresi Pintar -->
                     <div class="text-center mb-3">
                         <div id="video-container" class="mb-2 shadow border">
                             <video id="cameraVideo" autoplay playsinline></video>
@@ -634,14 +665,12 @@
                         <button class="btn btn-sm btn-secondary mb-3" onclick="switchCamera()"><i class="fas fa-sync-alt me-1"></i> Putar Kamera</button>
                     </div>
 
-                    <!-- Tombol Masuk & Pulang -->
                     <div class="row">
                         <div class="col-6"><button class="btn btn-success w-100 py-2 fw-bold" onclick="prosesAbsen('MASUK')"><i class="fas fa-sign-in-alt me-1"></i> ABSEN MASUK</button></div>
                         <div class="col-6"><button class="btn btn-primary w-100 py-2 fw-bold" onclick="prosesAbsen('PULANG')" style="background-color: var(--secondary-bg);"><i class="fas fa-sign-out-alt me-1"></i> ABSEN PULANG</button></div>
                     </div>
                     <div id="absenNotif" class="mt-3 alert d-none text-center fw-bold"></div>
 
-                    <!-- Keterangan Rekap Kehadiran Real-Time Per Kelas -->
                     <div class="mt-4 pt-3 border-top">
                         <h6 class="fw-bold text-secondary mb-2"><i class="fas fa-chart-pie me-2"></i>Status Masuk Hari Ini Per Kelas:</h6>
                         <div id="realtimeKelasSummary" class="row g-2">
@@ -654,24 +683,24 @@
     </div>
 
 
-    <!-- DASHBOARD ORANG TUA / WALI MURID (USER 4) -->
+    <!-- DASHBOARD ORANG TUA / WALI MURID (USER 4) - DESAIN MOBILE BANKING -->
     <div id="dashboard-ortu" class="dashboard-container container py-4">
         <div class="row justify-content-center">
             <div class="col-md-9">
                 <div class="card card-custom p-4 shadow">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-shield me-2"></i>Portal Orang Tua / Wali Murid</h4>
+                        <h4 class="fw-bold m-0" style="color: var(--secondary-bg);"><i class="fas fa-user-shield me-2"></i>Portal Orang Tua</h4>
                         <button class="btn btn-sm btn-outline-danger" onclick="logoutOrtu()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
                     </div>
                     <hr>
 
-                    <!-- PENGUMUMAN SEKOLAH KHUSUS ORANG TUA -->
+                    <!-- PENGUMUMAN SEKOLAH -->
                     <div class="card border-0 shadow-sm mb-4 bg-light p-3 border-start border-4 border-warning">
-                        <h5 class="fw-bold text-dark mb-2"><i class="fas fa-bullhorn me-2 text-warning"></i>Pengumuman & Informasi Sekolah</h5>
+                        <h5 class="fw-bold text-dark mb-2"><i class="fas fa-bullhorn me-2 text-warning"></i>Pengumuman Sekolah</h5>
                         <div id="ortuPengumumanContainer" class="small text-muted">Memuat pengumuman...</div>
                     </div>
 
-                    <!-- PROFIL SISWA & FORM BIODATA ORANG TUA / HP -->
+                    <!-- PROFIL SISWA -->
                     <div class="card bg-light border-0 p-3 mb-4">
                         <h5 class="fw-bold text-dark mb-2" id="ortuNamaSiswaDisplay">-</h5>
                         <p class="text-muted mb-3 small">NISN: <span id="ortuNisnSiswaDisplay">-</span> | Kelas: <span id="ortuKelasSiswaDisplay">-</span></p>
@@ -684,47 +713,46 @@
                                     <input type="text" class="form-control form-control-sm" id="inputOrtuNama" placeholder="Nama Orang Tua..." required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small text-muted mb-1">Nomor HP Orang Tua</label>
+                                    <label class="form-label small text-muted mb-1">Nomor HP</label>
                                     <input type="text" class="form-control form-control-sm" id="inputOrtuHp" placeholder="No HP / WhatsApp..." required>
                                 </div>
                                 <div class="col-md-3">
-                                    <button type="submit" class="btn btn-sm btn-success w-100 fw-bold" id="btnSimpanBiodataOrtu"><i class="fas fa-save me-1"></i> Simpan Biodata</button>
+                                    <button type="submit" class="btn btn-sm btn-success w-100 fw-bold" id="btnSimpanBiodataOrtu"><i class="fas fa-save me-1"></i> Simpan</button>
                                 </div>
                             </div>
                         </form>
                         <div id="notifBiodataOrtu" class="mt-2 d-none alert alert-success small py-1 mb-0"></div>
                     </div>
 
-                    <!-- Tombol Form Pengajuan Izin / Sakit oleh Orang Tua -->
+                    <!-- PENGATURAN IZIN / SAKIT -->
                     <div class="card border-0 shadow-sm mb-4 bg-white p-3 border-start border-4 border-info">
-                        <h5 class="fw-bold text-secondary mb-2"><i class="fas fa-file-medical me-2"></i>Form Pengajuan Izin / Sakit Siswa</h5>
+                        <h5 class="fw-bold text-secondary mb-2"><i class="fas fa-file-medical me-2"></i>Form Pengajuan Izin / Sakit</h5>
                         <form id="formPengajuanIzin">
                             <div class="row">
                                 <div class="col-md-4 mb-2">
-                                    <label class="form-label small text-muted">Keterangan Status</label>
+                                    <label class="form-label small text-muted">Keterangan</label>
                                     <select class="form-select form-select-sm" id="izinStatus" required>
                                         <option value="Sakit">Sakit</option>
                                         <option value="Izin">Izin</option>
                                     </select>
                                 </div>
                                 <div class="col-md-8 mb-2">
-                                    <label class="form-label small text-muted">Unggah Bukti Fisik Foto (Surat Dokter / Foto Anak)</label>
+                                    <label class="form-label small text-muted">Unggah Foto (Surat Dokter / Anak)</label>
                                     <input type="file" class="form-control form-control-sm" id="izinBuktiFile" accept="image/*" required>
-                                    <small class="text-muted" style="font-size: 0.75rem;">Foto otomatis dikompres kecil agar ringan diunggah.</small>
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small text-muted">Alasan / Catatan Keterangan</label>
-                                <textarea class="form-control form-control-sm" id="izinAlasan" rows="2" placeholder="Tuliskan alasan lengkap..." required></textarea>
+                                <label class="form-label small text-muted">Alasan Lengkap</label>
+                                <textarea class="form-control form-control-sm" id="izinAlasan" rows="2" placeholder="Tuliskan alasan..." required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-sm btn-info text-white fw-bold px-4" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan Izin</button>
+                            <button type="submit" class="btn btn-sm btn-info text-white fw-bold px-4" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan</button>
                         </form>
                         <div id="notifPengajuan" class="mt-2 d-none alert alert-success small py-1 mb-0"></div>
                     </div>
 
-                    <!-- Riwayat Kehadiran Siswa dengan Filter Bulan & Tahun -->
+                    <!-- RIWAYAT KEHADIRAN (CARD LIST STYLE) -->
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-history me-2"></i>Riwayat Kehadiran Siswa</h5>
+                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-history me-2 text-primary"></i>Riwayat Kehadiran</h5>
                         <div class="d-flex gap-2">
                             <select id="ortuFilterBulanRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
                                 <option value="">Semua Bulan</option>
@@ -739,26 +767,14 @@
                             </select>
                         </div>
                     </div>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered table-striped align-middle">
-                            <thead class="table-dark">
-                                <tr class="text-center">
-                                    <th>Tanggal</th>
-                                    <th>Waktu</th>
-                                    <th>Tipe</th>
-                                    <th>Status</th>
-                                    <th>Petugas / Keterangan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableOrtuRiwayat">
-                                <tr><td colspan="5" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat anak...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- WADAH CARD LIST UNTUK RIWAYAT -->
+                    <div id="listOrtuRiwayat" class="mobile-card-list mb-4">
+                        <div class="text-center p-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>Memuat riwayat anak...</div>
                     </div>
 
-                    <!-- Catatan Guru Pribadi / Kelas dengan Filter Bulan & Tahun -->
+                    <!-- CATATAN GURU (CARD LIST STYLE) -->
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-comment-dots me-2"></i>Catatan / Laporan Guru untuk Siswa / Kelas</h5>
+                        <h5 class="fw-bold text-secondary m-0"><i class="fas fa-comment-dots me-2 text-success"></i>Catatan Guru</h5>
                         <div class="d-flex gap-2">
                             <select id="ortuFilterBulanCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
                                 <option value="">Semua Bulan</option>
@@ -773,24 +789,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered table-striped align-middle">
-                            <thead class="table-dark">
-                                <tr class="text-center">
-                                    <th>Tanggal</th>
-                                    <th>Kategori Target</th>
-                                    <th>Catatan / Keterangan</th>
-                                    <th>Guru Pelapor</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableOrtuCatatan">
-                                <tr><td colspan="4" class="spinner-table"><i class="fas fa-spinner fa-spin"></i> Memuat catatan guru...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- WADAH CARD LIST UNTUK CATATAN -->
+                    <div id="listOrtuCatatan" class="mobile-card-list mb-4">
+                        <div class="text-center p-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>Memuat catatan guru...</div>
                     </div>
 
-                    <!-- Tampilan Jadwal Pelajaran Estetik dengan Tab Hari Interaktif -->
-                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran Estetik</h5>
+                    <!-- JADWAL PELAJARAN ESTETIK -->
+                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-calendar-alt me-2 text-warning"></i>Jadwal Pelajaran</h5>
                     <div id="ortuJadwalContainer">
                         <div class="text-muted small">Memuat jadwal pelajaran rombel kelas...</div>
                     </div>
@@ -891,7 +896,7 @@
         </div>
     </div>
 
-    <!-- MODAL TAMBAH CATATAN GURU LENGKAP DROPDOWN SISWA -->
+    <!-- MODAL TAMBAH CATATAN GURU -->
     <div class="modal fade" id="modalTambahCatatan" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -909,7 +914,6 @@
                             </select>
                         </div>
                         
-                        <!-- Input Pilih Siswa (Hanya tampil jika target siswa) -->
                         <div class="mb-2" id="divInputSiswaTarget">
                             <label class="form-label small">Pilih Siswa yang Dituju</label>
                             <select class="form-select" id="tambahCatatanSelectSiswa">
@@ -917,7 +921,6 @@
                             </select>
                         </div>
                         
-                        <!-- Input Nama Kelas (Hanya tampil jika target kelas) -->
                         <div class="mb-2 d-none" id="divInputKelasTarget">
                             <label class="form-label small">Nama Kelas / Rombel (Wali Kelas)</label>
                             <input type="text" class="form-control" id="tambahCatatanKelas" placeholder="Contoh: 7A">
@@ -1046,7 +1049,6 @@
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
 
-        // PAGINATION STATE OBJECT
         let paginationState = {
             siswa: { page: 1, limit: 10 },
             guru: { page: 1, limit: 10 },
@@ -1107,9 +1109,7 @@
                 let d = new Date(dateString);
                 if (isNaN(d.getTime())) return dateString;
                 let options = { day: '2-digit', month: 'long', year: 'numeric' };
-                let tanggalFormatted = d.toLocaleDateString('id-ID', options);
-                let jamFormatted = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
-                return `${tanggalFormatted}, ${jamFormatted} WIB`;
+                return d.toLocaleDateString('id-ID', options);
             } catch (e) {
                 return dateString;
             }
@@ -1276,7 +1276,7 @@
             if (fileInput.files && fileInput.files[0]) {
                 let file = fileInput.files[0];
                 let btn = document.getElementById('btnUploadFoto');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompres & Mengunggah...'; 
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompres...'; 
                 btn.disabled = true;
 
                 let reader = new FileReader();
@@ -1313,7 +1313,7 @@
                                 alert("Gagal mengunggah foto: " + res.message);
                             }
                         }).catch(err => {
-                            alert("Terjadi kesalahan jaringan saat mengirim data.");
+                            alert("Terjadi kesalahan jaringan.");
                         }).finally(() => {
                             btn.innerHTML = 'Unggah & Perbarui Foto'; 
                             btn.disabled = false;
@@ -1428,7 +1428,7 @@
         function downloadExcelLaporan() {
             let selectedKelas = document.getElementById('filterKelas').value;
             if(!selectedKelas) {
-                alert("Silakan pilih salah satu KELAS terlebih dahulu dari menu dropdown filter untuk mengunduh format matriks!");
+                alert("Silakan pilih salah satu KELAS terlebih dahulu dari menu dropdown filter!");
                 return;
             }
 
@@ -1662,7 +1662,7 @@
                 } else if(role === 'ortu') {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('dashboard-ortu').style.display = 'block';
-                    loadOrtuDashboard(inputId, { name: "DONA ALIKA", kelas: "7B", ortu: "-", hp: "" });
+                    loadOrtuDashboard(inputId, { name: "Nama Siswa (Mode Offline)", kelas: "-", ortu: "-", hp: "" });
                 } else {
                     err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
                 }
@@ -1684,7 +1684,7 @@
 
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn;
-            loggedInSiswaKelas = data.kelas || "7B";
+            loggedInSiswaKelas = data.kelas || "-";
             loggedInSiswaRowIndex = data.row_index || null;
             let namaSiswa = data.name || data.nama || "Siswa";
             let kelasSiswa = loggedInSiswaKelas;
@@ -1692,7 +1692,8 @@
             let hpOrtu = data.hp || "";
 
             document.getElementById('ortuNamaSiswaDisplay').innerText = namaSiswa;
-            document.getElementById('ortuNisnSiswaDisplay').innerText = nisn + " | Kelas: " + kelasSiswa;
+            document.getElementById('ortuNisnSiswaDisplay').innerText = nisn;
+            document.getElementById('ortuKelasSiswaDisplay').innerText = kelasSiswa;
             
             document.getElementById('inputOrtuNama').value = namaOrtu;
             document.getElementById('inputOrtuHp').value = hpOrtu;
@@ -1708,7 +1709,7 @@
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
                     let htmlPeng = "";
                     resPeng.data.forEach(p => {
-                        htmlPeng += `<div class="mb-2 pb-2 border-bottom"><strong><i class="fas fa-bullhorn text-warning me-1"></i>${p.judul}</strong><p class="m-0 text-dark small">${p.isi}</p><small class="text-muted" style="font-size: 0.75rem;">${formatTanggalIndonesia(p.tanggal)}</small></div>`;
+                        htmlPeng += `<div class="mb-2 pb-2 border-bottom"><strong><i class="fas fa-info-circle text-warning me-1"></i>${p.judul}</strong><p class="m-0 text-dark small">${p.isi}</p><small class="text-muted" style="font-size: 0.75rem;">${formatTanggalIndonesia(p.tanggal)}</small></div>`;
                     });
                     pengContainer.innerHTML = htmlPeng;
                 } else {
@@ -1718,6 +1719,7 @@
                 document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Gagal memuat pengumuman.</span>`;
             });
 
+            // Load Riwayat Kehadiran Ortu
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }),
@@ -1726,7 +1728,7 @@
             .then(res => res.json()).then(resData => {
                 if(resData.status === "success" && Array.isArray(resData.data)) {
                     globalOrtuRiwayatData = resData.data;
-                    renderOrtuRiwayatTable(globalOrtuRiwayatData);
+                    renderOrtuRiwayatList(globalOrtuRiwayatData);
                 } else {
                     fetch(SCRIPT_URL, {
                         method: 'POST',
@@ -1735,16 +1737,16 @@
                     }).then(r => r.json()).then(allRekap => {
                         if(allRekap.status === "success" && Array.isArray(allRekap.data)) {
                             globalOrtuRiwayatData = allRekap.data.filter(r => String(r.nisn).trim() === String(nisn).trim());
-                            renderOrtuRiwayatTable(globalOrtuRiwayatData);
+                            renderOrtuRiwayatList(globalOrtuRiwayatData);
                         } else {
-                            document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                            document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted"><i class="fas fa-box-open fa-2x mb-2 d-block"></i>Belum ada riwayat kehadiran tercatat.</div>`;
                         }
                     }).catch(e => {
-                        document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                        document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted">Gagal memuat riwayat data anak.</div>`;
                     });
                 }
             }).catch(err => {
-                document.getElementById('tableOrtuRiwayat').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Gagal memuat riwayat data anak.</td></tr>`;
+                document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted">Gagal memuat riwayat data anak.</div>`;
             });
 
             // Fetch Catatan Guru yang difilter khusus Privat (NISN) atau Wali Kelas (Kelas)
@@ -1762,12 +1764,12 @@
                         let isWaliKelas = targetKelas === String(kelasSiswa).toLowerCase();
                         return isPrivatSiswa || isWaliKelas;
                     });
-                    renderOrtuCatatanTable(globalOrtuCatatanData);
+                    renderOrtuCatatanList(globalOrtuCatatanData);
                 } else {
-                    document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="4" class="text-center text-muted">Belum ada catatan guru.</td></tr>`;
+                    document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted"><i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>Belum ada catatan guru.</div>`;
                 }
             }).catch(err => {
-                document.getElementById('tableOrtuCatatan').innerHTML = `<tr><td colspan="4" class="text-center text-muted">Gagal memuat catatan guru.</td></tr>`;
+                document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted">Gagal memuat catatan guru.</div>`;
             });
 
             loadOrtuJadwalAesthetic(kelasSiswa);
@@ -1803,17 +1805,18 @@
                 setTimeout(() => notif.classList.add('d-none'), 4000);
             }).catch(err => {
                 notif.className = "mt-2 alert alert-success small py-1 mb-0";
-                notif.innerText = "Biodata berhasil dikirim dan disimpan!";
+                notif.innerText = "Biodata berhasil dikirim dan disimpan lokal!";
                 notif.classList.remove('d-none');
                 setTimeout(() => notif.classList.add('d-none'), 4000);
             }).finally(() => {
-                btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan Biodata';
+                btn.innerHTML = '<i class="fas fa-save me-1"></i> Simpan';
                 btn.disabled = false;
             });
         });
 
-        function renderOrtuRiwayatTable(dataArray) {
-            let tBody = document.getElementById('tableOrtuRiwayat');
+        // --- RENDER MOBILE CARD UNTUK RIWAYAT ABSEN ---
+        function renderOrtuRiwayatList(dataArray) {
+            let container = document.getElementById('listOrtuRiwayat');
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value;
             let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
 
@@ -1829,25 +1832,44 @@
             });
 
             if(filtered.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Tidak ada riwayat kehadiran pada periode ini.</td></tr>`;
+                container.innerHTML = `<div class="text-center p-4 text-muted"><i class="fas fa-box-open fa-2x mb-2 d-block"></i>Tidak ada riwayat kehadiran pada periode ini.</div>`;
                 return;
             }
-            tBody.innerHTML = "";
+            container.innerHTML = "";
             filtered.forEach(r => {
-                tBody.innerHTML += `
-                    <tr>
-                        <td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td>
-                        <td class="text-center">${r.waktu || '-'}</td>
-                        <td class="text-center">${r.tipe || 'Hadir'}</td>
-                        <td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td>
-                        <td>${r.petugas || '-'}</td>
-                    </tr>`;
+                let statusStr = String(r.status).toLowerCase();
+                let iconClass = 'fa-check text-success';
+                let badgeClass = 'bg-success';
+                
+                if(statusStr.includes('terlambat')) { iconClass = 'fa-clock text-warning'; badgeClass = 'bg-warning text-dark'; }
+                else if(statusStr.includes('sakit')) { iconClass = 'fa-briefcase-medical text-danger'; badgeClass = 'bg-danger'; }
+                else if(statusStr.includes('izin')) { iconClass = 'fa-envelope-open-text text-info'; badgeClass = 'bg-info text-dark'; }
+                else if(statusStr.includes('alpa')) { iconClass = 'fa-times text-danger'; badgeClass = 'bg-danger'; }
+
+                container.innerHTML += `
+                    <div class="mobile-card-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-light d-flex justify-content-center align-items-center me-3 border" style="width: 45px; height: 45px;">
+                                <i class="fas ${iconClass} fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.95rem;">${r.tipe || 'Kehadiran'}</h6>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;"><i class="far fa-calendar-alt me-1"></i>${formatTanggalIndonesia(r.tanggal)}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;"><i class="far fa-user me-1"></i>Pencatat: ${r.petugas || '-'}</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.95rem;">${r.waktu || '-'}</h6>
+                            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${r.status}</span>
+                        </div>
+                    </div>`;
             });
         }
-        function filterOrtuRiwayat() { renderOrtuRiwayatTable(globalOrtuRiwayatData); }
+        function filterOrtuRiwayat() { renderOrtuRiwayatList(globalOrtuRiwayatData); }
 
-        function renderOrtuCatatanTable(dataArray) {
-            let tBody = document.getElementById('tableOrtuCatatan');
+        // --- RENDER MOBILE CARD UNTUK CATATAN GURU ---
+        function renderOrtuCatatanList(dataArray) {
+            let container = document.getElementById('listOrtuCatatan');
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
 
@@ -1863,22 +1885,35 @@
             });
 
             if(filtered.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Tidak ada catatan guru pada periode ini.</td></tr>`;
+                container.innerHTML = `<div class="text-center p-4 text-muted"><i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>Tidak ada catatan guru pada periode ini.</div>`;
                 return;
             }
-            tBody.innerHTML = "";
+            container.innerHTML = "";
             filtered.forEach(c => {
-                let badgeTarget = c.nisn ? `<span class="badge bg-primary">Privat Siswa (NISN: ${c.nisn})</span>` : `<span class="badge bg-success">Wali Kelas (${c.kelas})</span>`;
-                tBody.innerHTML += `
-                    <tr>
-                        <td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td>
-                        <td class="text-center">${badgeTarget}</td>
-                        <td>${c.catatan}</td>
-                        <td class="text-center">${c.guru || 'Guru Piket'}</td>
-                    </tr>`;
+                let isPrivat = !!c.nisn;
+                let badgeTarget = isPrivat ? `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary" style="font-size: 0.65rem;">Privat Siswa</span>` : `<span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size: 0.65rem;">Informasi Kelas</span>`;
+
+                container.innerHTML += `
+                    <div class="mobile-card-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center me-2 border" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-chalkboard-teacher text-secondary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.85rem;">${c.guru || 'Guru Piket'}</h6>
+                                    ${badgeTarget}
+                                </div>
+                            </div>
+                            <small class="text-muted text-end" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</small>
+                        </div>
+                        <div class="p-2 mt-2 bg-light rounded text-dark" style="font-size: 0.85rem; border-left: 3px solid var(--secondary-bg);">
+                            ${c.catatan}
+                        </div>
+                    </div>`;
             });
         }
-        function filterOrtuCatatan() { renderOrtuCatatanTable(globalOrtuCatatanData); }
+        function filterOrtuCatatan() { renderOrtuCatatanList(globalOrtuCatatanData); }
 
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer');
@@ -1921,7 +1956,7 @@
             listHari.forEach((hari, idx) => {
                 let jHari = jadwalKelas.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
                 if(jHari.length > 0) {
-                    let isActive = (hari === activeDay || (idx === 0)) ? 'active' : '';
+                    let isActive = (hari === activeDay || (idx === 0 && !activeDay.includes('Senin'))) ? 'active' : '';
                     if(isActive) activeDay = hari;
                     tabsHtml += `<button class="schedule-tab-btn ${isActive}" onclick="switchScheduleTab('${hari}', this)">${hari}</button>`;
                 }
@@ -1983,7 +2018,7 @@
                 return;
             }
 
-            btnKirim.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompres & Mengirim...';
+            btnKirim.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
             btnKirim.disabled = true;
 
             let file = fileInput.files[0];
@@ -2007,7 +2042,7 @@
                         action: "ajukan_izin_ortu",
                         nisn: loggedInSiswaNisn,
                         nama: document.getElementById('ortuNamaSiswaDisplay').innerText,
-                        kelas: document.getElementById('ortuNisnSiswaDisplay').innerText,
+                        kelas: document.getElementById('ortuKelasSiswaDisplay').innerText,
                         tipe: statusIzin.toUpperCase(),
                         status_kehadiran: statusIzin,
                         waktu: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
@@ -2023,18 +2058,18 @@
                     })
                     .then(res => res.json()).then(resData => {
                         notifEl.className = "mt-2 alert alert-success small py-1 mb-0";
-                        notifEl.innerText = `Berhasil! Pengajuan ${statusIzin} dengan bukti foto terkirim ke sekolah.`;
+                        notifEl.innerText = `Berhasil! Pengajuan ${statusIzin} terkirim.`;
                         notifEl.classList.remove('d-none');
                         document.getElementById('formPengajuanIzin').reset();
                         setTimeout(() => notifEl.classList.add('d-none'), 5000);
-                        loadOrtuDashboard(loggedInSiswaNisn, { name: document.getElementById('ortuNamaSiswaDisplay').innerText, kelas: "7B", ortu: document.getElementById('inputOrtuNama').value });
+                        loadOrtuDashboard(loggedInSiswaNisn, { name: document.getElementById('ortuNamaSiswaDisplay').innerText, kelas: document.getElementById('ortuKelasSiswaDisplay').innerText, ortu: document.getElementById('inputOrtuNama').value });
                     }).catch(err => {
                         notifEl.className = "mt-2 alert alert-success small py-1 mb-0";
-                        notifEl.innerText = `Berhasil disimpan lokal! Pengajuan ${statusIzin} terkirim.`;
+                        notifEl.innerText = `Tersimpan lokal! Pengajuan ${statusIzin} terkirim.`;
                         notifEl.classList.remove('d-none');
                         document.getElementById('formPengajuanIzin').reset();
                     }).finally(() => {
-                        btnKirim.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan Izin';
+                        btnKirim.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan';
                         btnKirim.disabled = false;
                     });
                 };
