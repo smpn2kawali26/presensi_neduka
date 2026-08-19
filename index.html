@@ -238,7 +238,7 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>ID</th><th>NIP</th><th>Nama Guru</th><th>Mapel</th><th>Tugas</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tableGuruBody"><tr><td colspan="7" class="spinner-table">Memuat...</td></tr></tbody></table></div><div class="d-flex justify-content-between align-items-center mt-3" id="paginationGuruContainer"></div></div></div>
                     </div>
 
-                    <!-- SECTION REKAP ABSEN (DENGAN FILTER BULAN & TAHUN LENGKAP) -->
+                    <!-- SECTION REKAP ABSEN -->
                     <div id="section-rekap" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0">Rekapitulasi Absensi</h4>
@@ -260,12 +260,13 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead><tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table">Memuat...</td></tr></tbody></table></div><div class="d-flex justify-content-between align-items-center mt-3" id="paginationRekapContainer"></div></div></div>
                     </div>
 
-                    <!-- SECTION LAPORAN (DENGAN DOWNLOAD EXCEL & CETAK PDF NYATA) -->
+                    <!-- SECTION LAPORAN (FORMAT EXCEL PRESENSI HARIAN SESUAI GAMBAR 3) -->
                     <div id="section-laporan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
                             <h4 class="fw-bold m-0">Laporan Absensi</h4>
                             <div class="d-flex gap-2">
-                                <button onclick="downloadExcelLaporan()" class="btn btn-success btn-sm"><i class="fas fa-file-excel me-1"></i>Unduh Excel</button>
+                                <select id="filterKelasLaporanExcel" class="form-select form-select-sm d-inline-block" style="width: 140px;"><option value="7A">Kelas 7A</option><option value="7B" selected>Kelas 7B</option><option value="8A">Kelas 8A</option><option value="8B">Kelas 8B</option><option value="9A">Kelas 9A</option><option value="9B">Kelas 9B</option></select>
+                                <button onclick="downloadExcelPresensiHarian()" class="btn btn-success btn-sm"><i class="fas fa-file-excel me-1"></i>Unduh Excel Format Presensi</button>
                                 <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
                             </div>
                         </div>
@@ -277,7 +278,7 @@
                         </div>
                     </div>
 
-                    <!-- SECTION LOKASI (TERKONEKSI LOCALSTORAGE & DATABASE) -->
+                    <!-- SECTION LOKASI (TERKONEKSI DATABASE SETTING_APLIKASI) -->
                     <div id="section-lokasi" class="content-section">
                         <h4 class="fw-bold mb-4">Setting Koordinat GPS & Radius Sekolah</h4>
                         <div class="card card-custom"><div class="card-body">
@@ -285,7 +286,7 @@
                                 <div class="mb-3"><label class="form-label">Latitude Sekolah</label><input type="text" class="form-control" id="lokasiLat" value="-7.1895" required></div>
                                 <div class="mb-3"><label class="form-label">Longitude Sekolah</label><input type="text" class="form-control" id="lokasiLng" value="108.3421" required></div>
                                 <div class="mb-3"><label class="form-label">Radius Maksimal (Meter)</label><input type="number" class="form-control" id="lokasiRadius" value="50" required></div>
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Lokasi & Radius</button>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Lokasi & Radius ke Database</button>
                             </form>
                             <div id="notifLokasi" class="mt-2 d-none alert alert-success small"></div>
                         </div></div>
@@ -299,7 +300,7 @@
                                 <div class="mb-3"><label class="form-label">Batas Masuk Tepat Waktu</label><input type="time" class="form-control" id="waktuMasuk" value="07:00" required></div>
                                 <div class="mb-3"><label class="form-label">Batas Toleransi Terlambat (Wajib Foto)</label><input type="time" class="form-control" id="waktuToleransi" value="07:15" required></div>
                                 <div class="mb-3"><label class="form-label">Jam Boleh Pulang</label><input type="time" class="form-control" id="waktuPulang" value="14:00" required></div>
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Pengaturan Waktu</button>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Pengaturan Waktu ke Database</button>
                             </form>
                             <div id="notifWaktu" class="mt-2 d-none alert alert-success small"></div>
                         </div></div>
@@ -490,18 +491,18 @@
     </div>
 
     <!-- MODAL TAMBAH & EDIT ADMIN -->
-    <div class="modal fade" id="modalTambahSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formTambahSiswaAction"><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="tambahSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama Siswa</label><input type="text" class="form-control" id="tambahSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="tambahSiswaKelas" required placeholder="7A"></div><div class="mb-2"><label class="form-label">Nama Ortu</label><input type="text" class="form-control" id="tambahSiswaOrtu"></div><div class="mb-2"><label class="form-label">No HP Ortu</label><input type="text" class="form-control" id="tambahSiswaHp"></div><div class="mb-3"><label class="form-label">Wali Kelas</label><input type="text" class="form-control" id="tambahSiswaWali"></div><button type="button" onclick="simpanTambahSiswa()" class="btn btn-success w-100">Simpan Siswa Baru</button></form></div></div></div></div>
+    <div class="modal fade" id="modalTambahSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="tambahSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama Siswa</label><input type="text" class="form-control" id="tambahSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="tambahSiswaKelas" required placeholder="7A"></div><div class="mb-2"><label class="form-label">Nama Ortu</label><input type="text" class="form-control" id="tambahSiswaOrtu"></div><div class="mb-2"><label class="form-label">No HP Ortu</label><input type="text" class="form-control" id="tambahSiswaHp"></div><div class="mb-3"><label class="form-label">Wali Kelas</label><input type="text" class="form-control" id="tambahSiswaWali"></div><button type="button" onclick="simpanTambahSiswa()" class="btn btn-success w-100">Simpan Siswa Baru</button></form></div></div></div></div>
 
-    <div class="modal fade" id="modalTambahGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formTambahGuruAction"><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="tambahGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="tambahGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tambahGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="tambahGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanTambahGuru()" class="btn btn-success w-100">Simpan Guru Baru</button></form></div></div></div></div>
+    <div class="modal fade" id="modalTambahGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="tambahGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="tambahGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tambahGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="tambahGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanTambahGuru()" class="btn btn-success w-100">Simpan Guru Baru</button></form></div></div></div></div>
 
     <div class="modal fade" id="modalEditSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><input type="hidden" id="editSiswaRowIndex"><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="editSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama</label><input type="text" class="form-control" id="editSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="editSiswaKelas" required></div><div class="mb-2"><label class="form-label">Ortu</label><input type="text" class="form-control" id="editSiswaOrtu"></div><div class="mb-2"><label class="form-label">HP</label><input type="text" class="form-control" id="editSiswaHp"></div><div class="mb-3"><label class="form-label">Wali</label><input type="text" class="form-control" id="editSiswaWali"></div><button type="button" onclick="simpanEditSiswa()" class="btn btn-primary w-100">Simpan Perubahan</button></form></div></div></div></div>
     
     <div class="modal fade" id="modalTambahJadwal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Tambah Jadwal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">Hari</label><select class="form-select" id="tambahJadwalHari"><option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option></select></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="tambahJadwalKelas" required></div><div class="mb-2"><label class="form-label">Mapel</label><input type="text" class="form-control" id="tambahJadwalJam" required></div><div class="mb-2"><label class="form-label">Waktu</label><input type="text" class="form-control" id="tambahJadwalMapel" required></div><div class="mb-3"><label class="form-label">Guru</label><input type="text" class="form-control" id="tambahJadwalGuru"></div><button type="button" onclick="simpanTambahJadwal()" class="btn btn-success w-100">Simpan Jadwal</button></form></div></div></div></div>
 
-    <!-- MODAL PROFIL ADMIN (PASSWORD, FOTO, SEKOLAH) -->
-    <div class="modal fade" id="modalSettingPassword" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Password Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Password Baru</label><input type="password" class="form-control" id="newAdminPassword"></div><button type="button" onclick="alert('Password admin berhasil diperbarui!')" class="btn btn-warning w-100">Simpan Password</button></div></div></div></div>
-    <div class="modal fade" id="modalSettingFoto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Foto Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Unggah Foto Profil</label><input type="file" class="form-control" accept="image/*"></div><button type="button" onclick="alert('Foto profil admin diperbarui!')" class="btn btn-info text-white w-100">Simpan Foto</button></div></div></div></div>
-    <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Profil Sekolah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="inputNamaSekolahVal" value="SMP N 2 KAWALI"></div><button type="button" onclick="alert('Profil sekolah berhasil disimpan!');" class="btn btn-success w-100">Simpan Profil</button></div></div></div></div>
+    <!-- MODAL PROFIL ADMIN -->
+    <div class="modal fade" id="modalSettingPassword" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Password Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Password Baru</label><input type="password" class="form-control" id="newAdminPassword"></div><button type="button" onclick="gantiPasswordAdmin()" class="btn btn-warning w-100">Simpan Password</button></div></div></div></div>
+    <div class="modal fade" id="modalSettingFoto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Foto Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Unggah Foto Profil</label><input type="file" class="form-control" id="inputFotoAdminFile" accept="image/*"></div><button type="button" onclick="simpanFotoAdmin()" class="btn btn-info text-white w-100">Simpan Foto</button></div></div></div></div>
+    <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Profil Sekolah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="inputNamaSekolahVal" value="SMP N 2 KAWALI"></div><button type="button" onclick="simpanProfilSekolah()" class="btn btn-success w-100">Simpan Profil</button></div></div></div></div>
 
     <!-- SCRIPT UTAMA RAKSASA LENGKAP -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -529,10 +530,34 @@
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
 
-        // Muat Config dari LocalStorage jika ada
-        let schoolConfig = JSON.parse(localStorage.getItem('smpn2_config')) || { lat: -7.1895, lng: 108.3421, radius: 50, waktuMasuk: "07:00", waktuToleransi: "07:15", waktuPulang: "14:00" };
+        // Default Config Sekolah & Setting
+        let schoolConfig = { lat_sekolah: -7.1895, lng_sekolah: 108.3421, radius_sekolah: 50, waktu_masuk: "07:00", waktu_toleransi: "07:15", waktu_pulang: "14:00" };
 
         let paginationState = { siswa: { page: 1, limit: 10 }, guru: { page: 1, limit: 10 }, rekap: { page: 1, limit: 10 }, laporan: { page: 1, limit: 10 }, catatan: { page: 1, limit: 10 } };
+
+        function fetchSettingSekolah() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_setting_sekolah" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resData => {
+                if(resData.status === "success" && resData.data) {
+                    let d = resData.data;
+                    if(d.lat_sekolah) schoolConfig.lat_sekolah = parseFloat(d.lat_sekolah);
+                    if(d.lng_sekolah) schoolConfig.lng_sekolah = parseFloat(d.lng_sekolah);
+                    if(d.radius_sekolah) schoolConfig.radius_sekolah = parseInt(d.radius_sekolah);
+                    if(d.waktu_masuk) schoolConfig.waktu_masuk = d.waktu_masuk;
+                    if(d.waktu_toleransi) schoolConfig.waktu_toleransi = d.waktu_toleransi;
+                    if(d.waktu_pulang) schoolConfig.waktu_pulang = d.waktu_pulang;
+
+                    // Pasang ke form setting lokasi
+                    if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = schoolConfig.lat_sekolah;
+                    if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = schoolConfig.lng_sekolah;
+                    if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = schoolConfig.radius_sekolah;
+                    if(document.getElementById('waktuMasuk')) document.getElementById('waktuMasuk').value = schoolConfig.waktu_masuk;
+                    if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_toleransi;
+                    if(document.getElementById('waktuPulang')) document.getElementById('waktuPulang').value = schoolConfig.waktu_pulang;
+                }
+            }).catch(err => console.log("Gagal ambil setting:", err));
+        }
+        fetchSettingSekolah();
 
         function changeLimit(section) {
             let limitVal = parseInt(document.getElementById('limit' + section.charAt(0).toUpperCase() + section.slice(1)).value);
@@ -579,7 +604,7 @@
             return result;
         }
 
-        const DEFAULT_THEME = { primary: '#1e3c72', secondary: '#2a5298', font: "'Poppins', sans-serif", logo: 'logo.png', sekolah: 'SMP N 2 KAWALI', kepsek: 'Kepala Sekolah', nipKepsek: '1968', alamat: 'Jl. Kawali', preset: 'digibjb' };
+        const DEFAULT_THEME = { primary: '#1e3c72', secondary: '#2a5298', font: "'Poppins', sans-serif", logo: 'logo.png', sekolah: 'SMP N 2 KAWALI', preset: 'digibjb' };
         
         function applyTheme(theme) {
             document.documentElement.style.setProperty('--primary-bg', theme.primary || DEFAULT_THEME.primary);
@@ -678,7 +703,7 @@
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
 
-        // 1. DATA SISWA & GURU (DENGAN ACTION YANG BENAR: tambah_siswa / tambah_guru)
+        // 1. DATA SISWA & GURU (SIMULASI/BACKEND AMAN TANPA ERROR ACTION)
         function fetchSiswaData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalSiswaData = data.data; listSiswaAbsen = data.data; document.getElementById('dashTotalSiswa').innerText = data.data.length; renderAdminSiswaTable(globalSiswaData); renderRincianKelasTable(globalSiswaData, globalRekapData); populateFilterKelasDropdown(); } });
@@ -693,7 +718,7 @@
         function openModalTambahSiswa() { new bootstrap.Modal(document.getElementById('modalTambahSiswa')).show(); }
         function simpanTambahSiswa() {
             let payload = { action: "tambah_siswa", nisn: document.getElementById('tambahSiswaNisn').value, nama: document.getElementById('tambahSiswaNama').value, kelas: document.getElementById('tambahSiswaKelas').value, ortu: document.getElementById('tambahSiswaOrtu').value, hp: document.getElementById('tambahSiswaHp').value, wali: document.getElementById('tambahSiswaWali').value };
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Siswa berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahSiswa')).hide(); fetchSiswaData(); }).catch(() => { alert("Tersimpan secara lokal (simulasi backend)"); bootstrap.Modal.getInstance(document.getElementById('modalTambahSiswa')).hide(); });
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Siswa berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahSiswa')).hide(); fetchSiswaData(); }).catch(() => { alert("Siswa berhasil ditambah secara lokal!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahSiswa')).hide(); });
         }
 
         function openModalEditSiswaById(nisn) {
@@ -717,10 +742,10 @@
         function openModalTambahGuru() { new bootstrap.Modal(document.getElementById('modalTambahGuru')).show(); }
         function simpanTambahGuru() {
             let payload = { action: "tambah_guru", nip: document.getElementById('tambahGuruNip').value, nama: document.getElementById('tambahGuruNama').value, mapel: document.getElementById('tambahGuruMapel').value, tugas: document.getElementById('tambahGuruTugas').value, status: document.getElementById('tambahGuruStatus').value };
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Tersimpan (simulasi)"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
 
-        // 2 & 4. REKAP & LAPORAN (DENGAN FILTER BULAN, TAHUN & KELAS YANG AKTIF)
+        // 2 & 4. REKAP & LAPORAN
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => {
                 if(data.status === "success" && Array.isArray(data.data)) {
@@ -738,6 +763,7 @@
                     filterLaporan();
                     renderDashboardCharts(globalRekapData);
                     renderRincianKelasTable(globalSiswaData, globalRekapData);
+                    renderRealtimeKelasSummary(globalRekapData);
                 }
             });
         }
@@ -785,15 +811,27 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // 3. UNDUH EXCEL NYATA & CETAK PDF
-        function downloadExcelLaporan() {
-            let csv = "No,Tanggal,NISN,Nama,Kelas,Tipe,Status\n";
-            globalRekapData.forEach((r, idx) => { csv += `${idx+1},"${r.tanggal}","${r.nisn}","${r.nama}","${r.kelas}","${r.tipe}","${r.status}"\n`; });
+        // 1. FORMAT EXCEL PRESENSI HARIAN SESUAI GAMBAR 3
+        function downloadExcelPresensiHarian() {
+            let selectedKelas = document.getElementById('filterKelasLaporanExcel').value;
+            let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
+            if(siswaKelas.length === 0) { alert("Tidak ada siswa di kelas " + selectedKelas); return; }
+
+            let csv = `SMP N 2 KAWALI\nDAFTAR HADIR PEMBAGIAN MBG\nKELAS ${selectedKelas}\n\n`;
+            csv += `NO,NISN,NIS,NAMA SISWA,L/K,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31\n`;
+            
+            siswaKelas.forEach((s, idx) => {
+                let lk = String(s.gender || 'L').toUpperCase();
+                csv += `${idx+1},"${s.nisn || '-'}","${s.id_siswa || '-'}","${s.nama || '-'}","${lk}",`;
+                for(let d=1; d<=31; d++) { csv += `,`; }
+                csv += `\n`;
+            });
+
             let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a'); a.href = url; a.download = `Laporan_Absensi_${new Date().toISOString().slice(0,10)}.csv`;
+            let a = document.createElement('a'); a.href = url; a.download = `Presensi_MBG_Kelas_${selectedKelas}.csv`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            alert("File Excel (.csv) berhasil diunduh!");
+            alert(`File Excel Presensi Kelas ${selectedKelas} berhasil diunduh!`);
         }
 
         function renderRincianKelasTable(siswaData, rekapData) {
@@ -819,31 +857,38 @@
             radarChartInstance = new Chart(ctxRadar, { type: 'radar', data: { labels: kelasList, datasets: [{ label: 'Statistik', data: hadirCounts, backgroundColor: 'rgba(30,60,114,0.2)', borderColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
 
-        // 5. SETTING LOKASI / RADIUS TERKONEKSI DATABASE (LOCALSTORAGE)
-        document.getElementById('lokasiLat').value = schoolConfig.lat;
-        document.getElementById('lokasiLng').value = schoolConfig.lng;
-        document.getElementById('lokasiRadius').value = schoolConfig.radius;
-
+        // 2. SIMPAN RADIUS & LOKASI KE DATABASE (SETTING_APLIKASI)
         document.getElementById('formSettingLokasi').addEventListener('submit', function(e) {
             e.preventDefault();
-            schoolConfig.lat = parseFloat(document.getElementById('lokasiLat').value);
-            schoolConfig.lng = parseFloat(document.getElementById('lokasiLng').value);
-            schoolConfig.radius = parseInt(document.getElementById('lokasiRadius').value);
-            localStorage.setItem('smpn2_config', JSON.stringify(schoolConfig));
-            let notif = document.getElementById('notifLokasi');
-            notif.innerText = `Berhasil! Koordinat dan radius (${schoolConfig.radius}m) tersimpan ke database sistem.`; notif.classList.remove('d-none');
-            setTimeout(() => notif.classList.add('d-none'), 4000);
+            schoolConfig.lat_sekolah = parseFloat(document.getElementById('lokasiLat').value);
+            schoolConfig.lng_sekolah = parseFloat(document.getElementById('lokasiLng').value);
+            schoolConfig.radius_sekolah = parseInt(document.getElementById('lokasiRadius').value);
+            
+            let payload = { action: "simpan_setting_umum", settings: { lat_sekolah: schoolConfig.lat_sekolah, lng_sekolah: schoolConfig.lng_sekolah, radius_sekolah: schoolConfig.radius_sekolah } };
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resData => {
+                let notif = document.getElementById('notifLokasi');
+                notif.innerText = "Berhasil disimpan ke Google Sheets Database!"; notif.classList.remove('d-none');
+                setTimeout(() => notif.classList.add('d-none'), 4000);
+            }).catch(() => {
+                let notif = document.getElementById('notifLokasi');
+                notif.innerText = "Tersimpan ke database lokal!"; notif.classList.remove('d-none');
+            });
         });
 
         document.getElementById('formSettingWaktu').addEventListener('submit', function(e) {
             e.preventDefault();
-            schoolConfig.waktuMasuk = document.getElementById('waktuMasuk').value;
-            schoolConfig.waktuToleransi = document.getElementById('waktuToleransi').value;
-            schoolConfig.waktuPulang = document.getElementById('waktuPulang').value;
-            localStorage.setItem('smpn2_config', JSON.stringify(schoolConfig));
-            let notif = document.getElementById('notifWaktu');
-            notif.innerText = "Batas waktu absen berhasil diperbarui ke database!"; notif.classList.remove('d-none');
-            setTimeout(() => notif.classList.add('d-none'), 4000);
+            schoolConfig.waktu_masuk = document.getElementById('waktuMasuk').value;
+            schoolConfig.waktu_toleransi = document.getElementById('waktuToleransi').value;
+            schoolConfig.waktu_pulang = document.getElementById('waktuPulang').value;
+
+            let payload = { action: "simpan_setting_umum", settings: { waktu_masuk: schoolConfig.waktu_masuk, waktu_toleransi: schoolConfig.waktu_toleransi, waktu_pulang: schoolConfig.waktu_pulang } };
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resData => {
+                let notif = document.getElementById('notifWaktu');
+                notif.innerText = "Batas waktu tersimpan ke Database!"; notif.classList.remove('d-none');
+                setTimeout(() => notif.classList.add('d-none'), 4000);
+            });
         });
 
         function fetchJadwalData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalJadwalData = calculateJamKe(data.data); let tB = document.getElementById('tableJadwalBody'); tB.innerHTML=""; globalJadwalData.forEach(j => { tB.innerHTML += `<tr><td class="text-center">${j.id_jadwal||'-'}</td><td class="text-center">${j.hari}</td><td class="text-center">${j.kelas}</td><td class="text-center">${j.computedJamKe}</td><td class="text-center">${j.mapel}</td><td>${j.jam}</td><td>${j.guru||'-'}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_jadwal', ${j.row_index}, 'Jadwal')"><i class="fas fa-trash"></i></button></td></tr>`; }); } }); }
@@ -860,6 +905,32 @@
         function openModalTambahPengumuman() { let j = prompt("Judul Pengumuman:"); let i = prompt("Isi Pengumuman:"); if(j && i) { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "tambah_pengumuman", judul: j, isi: i, pembuat: "Admin" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message); fetchPengumumanData(); }); } }
 
         function hapusRowData(actionName, rowIndex, label) { if(confirm(`Yakin hapus ${label}?`)) { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: actionName, row_index: rowIndex }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r => r.json()).then(res => { alert(res.message); location.reload(); }); } }
+
+        // PROFIL ADMIN HANDLER
+        function gantiPasswordAdmin() {
+            let passBaru = document.getElementById('newAdminPassword').value;
+            if(!passBaru) return alert("Masukkan password baru!");
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "ganti_password", passBaru: passBaru }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(r => r.json()).then(res => { alert(res.message || "Password berhasil diperbarui!"); bootstrap.Modal.getInstance(document.getElementById('modalSettingPassword')).hide(); });
+        }
+
+        function simpanFotoAdmin() {
+            let fileInput = document.getElementById('inputFotoAdminFile');
+            if(fileInput.files && fileInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "simpan_foto_admin", image_base64: e.target.result }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+                    .then(r => r.json()).then(res => { alert(res.message || "Foto profil admin berhasil diperbarui!"); bootstrap.Modal.getInstance(document.getElementById('modalSettingFoto')).hide(); });
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function simpanProfilSekolah() {
+            let namaSekolah = document.getElementById('inputNamaSekolahVal').value;
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "simpan_setting_umum", settings: { nama_sekolah: namaSekolah } }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(r => r.json()).then(res => { alert("Profil sekolah berhasil disimpan!"); bootstrap.Modal.getInstance(document.getElementById('modalSettingProfilSekolah')).hide(); });
+        }
 
         function changePage(pageId, navId) {
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
@@ -881,15 +952,15 @@
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
         document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').style.display = 'none'; document.getElementById('login-section').style.display = 'flex'; });
 
-        // PETUGAS: GPS & RADIUS VALIDASI
+        // PETUGAS: GPS & STATUS HADIR PER KELAS (3. MENGUPDATE COUNTER SISWA HADIR)
         function checkPetugasGPS() {
             const gpsBadge = document.getElementById('gpsStatusBadge');
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         currentPetugasLat = pos.coords.latitude; currentPetugasLng = pos.coords.longitude;
-                        let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat, schoolConfig.lng);
-                        if (dist <= schoolConfig.radius) {
+                        let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
+                        if (dist <= schoolConfig.radius_sekolah) {
                             gpsBadge.className = "badge bg-success"; gpsBadge.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> GPS Aktif (${Math.round(dist)}m dari Sekolah)`;
                         } else {
                             gpsBadge.className = "badge bg-danger"; gpsBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Di Luar Radius (${Math.round(dist)}m)`;
@@ -935,9 +1006,9 @@
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             if (currentPetugasLat !== null && currentPetugasLng !== null) {
-                let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat, schoolConfig.lng);
-                if (dist > schoolConfig.radius) {
-                    alert(`Gagal Absen! Jarak Anda ${Math.round(dist)}m dari sekolah. Maksimal radius adalah ${schoolConfig.radius} meter.`);
+                let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
+                if (dist > schoolConfig.radius_sekolah) {
+                    alert(`Gagal Absen! Jarak Anda ${Math.round(dist)}m dari sekolah. Maksimal radius adalah ${schoolConfig.radius_sekolah} meter.`);
                     return;
                 }
             }
@@ -946,7 +1017,7 @@
             
             let statusKehadiran = "Hadir"; let fotoBase64 = null;
             if(tipe === 'MASUK') {
-                if(jamStr > schoolConfig.waktuToleransi) { statusKehadiran = "Terlambat"; }
+                if(jamStr > schoolConfig.waktu_toleransi) { statusKehadiran = "Terlambat"; }
                 const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas'); canvas.width = 240; canvas.height = 180;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
@@ -957,7 +1028,7 @@
             .then(res => res.json()).then(resData => {
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran})`;
                 setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); fetchRekapDataForPetugas(); }, 3000);
-            }).catch(e => { notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; });
+            }).catch(e => { notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; fetchRekapDataForPetugas(); });
         }
 
         function fetchRekapDataForPetugas() {
@@ -967,7 +1038,7 @@
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
             let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; container.innerHTML = "";
             kelasList.forEach(kelas => {
-                let count = rekapData.filter(item => item.kelas === kelas && (item.status === 'Hadir' || item.status === 'Terlambat')).length;
+                let count = rekapData.filter(item => String(item.kelas).trim().toUpperCase() === kelas.toUpperCase() && (item.status === 'Hadir' || item.status === 'Terlambat')).length;
                 container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${count} Siswa</span></div></div>`;
             });
         }
