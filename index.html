@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL)
+     FILE: index.html (FULL 100% FINAL - USER PETUGAS & ADMIN)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -574,10 +574,9 @@
         let loggedInSiswaNisn = null;
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
-        let schoolConfig = { lat_sekolah: -7.1895, lng_sekolah: 108.3421, radius_sekolah: 50, waktu_masuk: "07:00", waktu_toleransi: "07:15", waktu_pulang: "14:00" };
+        let schoolConfig = { lat_sekolah: -7.1895, lng_sekolah: 108.3421, radius_sekolah: 200, waktu_masuk: "07:00", waktu_toleransi: "07:15", waktu_pulang: "14:00" };
         let paginationState = { siswa: { page: 1, limit: 10 }, guru: { page: 1, limit: 10 }, rekap: { page: 1, limit: 10 }, laporan: { page: 1, limit: 10 }, catatan: { page: 1, limit: 10 } };
         
-        // Set default date picker untuk input absensi admin hari ini
         if(document.getElementById('inputTanggalAbsen')) {
             document.getElementById('inputTanggalAbsen').value = new Date().toISOString().split('T')[0];
         }
@@ -738,7 +737,7 @@
                 if(role === 'petugas') {
                     document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     currentPetugasName = inputId; document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
-                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS();
+                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
                 } else if(role === 'ortu') {
                     document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     loadOrtuDashboard(inputId, { name: "Aliya Nurhasanah", kelas: "7A", ortu: "Wali Murid", hp: "08123456789" });
@@ -894,7 +893,6 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // PERBAIKAN PADA FUNGSI UNDUH EXCEL PRESENSI HARIAN AGAR TERCETAK OTOMATIS
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -927,7 +925,6 @@
                     let dayStr = d.toString().padStart(2, '0');
                     let targetDateNum = parseInt(dayStr);
                     
-                    // Mencocokkan data dari globalRekapData dengan akurat berdasarkan NISN, Tanggal/Bulan/Tahun
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         let tglVal = String(r.tanggal || '');
@@ -1090,7 +1087,6 @@
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
         document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; });
 
-        // FUNGSI UNTUK INPUT ABSEN ADMIN DUA ARAH
         function loadSiswaForAdminInput() {
             let k = document.getElementById('filterInputKelas').value;
             let tBody = document.getElementById('tableInputAbsenBody');
@@ -1109,7 +1105,6 @@
             let tglSelect = document.getElementById('inputTanggalAbsen').value;
 
             siswaKelas.forEach((s) => {
-                // Periksa apakah siswa sudah memiliki data absen pada tanggal tersebut di globalRekapData
                 let existingAbsen = globalRekapData.find(r => {
                     let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                     let matchTgl = String(r.tanggal).includes(tglSelect) || String(r.tanggal).includes(new Date(tglSelect).toLocaleDateString('id-ID'));
@@ -1171,7 +1166,7 @@
                         if (dist <= schoolConfig.radius_sekolah) {
                             gpsBadge.className = "badge bg-success"; gpsBadge.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> GPS Aktif (${Math.round(dist)}m dari Sekolah)`;
                         } else {
-                            gpsBadge.className = "badge bg-danger"; gpsBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Di Luar Radius (${Math.round(dist)}m)`;
+                            gpsBadge.className = "badge bg-warning text-dark"; gpsBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Di Luar Radius (${Math.round(dist)}m)`;
                         }
                     },
                     (err) => { gpsBadge.className = "badge bg-warning text-dark"; gpsBadge.innerText = "GPS Tidak Aktif"; }, { enableHighAccuracy: true }
@@ -1235,19 +1230,25 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran})`;
-                setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); fetchRekapDataForPetugas(); }, 3000);
-            }).catch(e => { notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; fetchRekapDataForPetugas(); });
+                fetchRekapDataForPetugas(); // Refresh rekap kelas real-time
+                setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
+            }).catch(e => { 
+                notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
+                notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; 
+                fetchRekapDataForPetugas(); 
+            });
         }
 
         function fetchRekapDataForPetugas() {
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) renderRealtimeKelasSummary(data.data); });
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalRekapData = data.data; renderRealtimeKelasSummary(data.data); } });
         }
 
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
             let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; container.innerHTML = "";
             kelasList.forEach(kelas => {
-                let count = rekapData.filter(item => String(item.kelas).trim().toUpperCase() === kelas.toUpperCase() && (item.status === 'Hadir' || item.status === 'Terlambat')).length;
+                let count = rekapData.filter(item => String(item.kelas).trim().toUpperCase() === kelas.toUpperCase() && (String(item.status).trim() === 'Hadir' || String(item.status).trim() === 'Terlambat')).length;
                 container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${count} Siswa</span></div></div>`;
             });
         }
