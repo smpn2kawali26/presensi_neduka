@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIX RADIUS & REALTIME KELAS)
+     FILE: index.html (FULL 100% FINAL - PETUGAS PIKET & ADMIN)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -596,7 +596,7 @@
                     if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = schoolConfig.lng_sekolah;
                     if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = schoolConfig.radius_sekolah;
                     if(document.getElementById('waktuMasuk')) document.getElementById('waktuMasuk').value = schoolConfig.waktu_masuk;
-                    if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_pulang;
+                    if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_toleransi;
                     if(document.getElementById('waktuPulang')) document.getElementById('waktuPulang').value = schoolConfig.waktu_pulang;
                 }
             }).catch(err => console.log("Gagal ambil setting:", err));
@@ -1164,7 +1164,6 @@
                         currentPetugasLat = pos.coords.latitude; currentPetugasLng = pos.coords.longitude;
                         let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
                         
-                        // Mode toleransi otomatis jika koordinat sekolah belum diset akurat
                         if (isNaN(dist) || dist > 1000000) {
                             gpsBadge.className = "badge bg-success"; 
                             gpsBadge.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> GPS Aktif (Mode Fleksibel)`;
@@ -1226,6 +1225,7 @@
 
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
+            
             if (currentPetugasLat !== null && currentPetugasLng !== null) {
                 let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
                 if (!isNaN(dist) && dist <= 1000000 && dist > schoolConfig.radius_sekolah) {
@@ -1233,7 +1233,31 @@
                     return;
                 }
             }
-            const now = new Date(); const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            const now = new Date(); 
+            const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const todayStr = now.toISOString().split('T')[0];
+
+            // 1. Validasi Jam Pulang (Tidak boleh absen pulang sebelum waktunya)
+            if (tipe === 'PULANG' && jamStr < schoolConfig.waktu_pulang) {
+                alert(`Belum waktunya pulang! Jam pulang sekolah diatur pada pukul ${schoolConfig.waktu_pulang}.`);
+                return;
+            }
+
+            // 2. Validasi Duplikasi Absen (Cek apakah siswa sudah melakukan absen tipe yang sama hari ini di database)
+            let isAlreadyAbsen = globalRekapData.some(r => {
+                let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
+                let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
+                let tglVal = String(r.tanggal || '');
+                let isToday = tglVal.includes(todayStr) || tglVal.includes(now.getDate().toString().padStart(2, '0') + ' ' + ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][now.getMonth()]);
+                return matchNisn && matchTipe && isToday;
+            });
+
+            if (isAlreadyAbsen) {
+                alert(`Siswa ${selectedSiswaData.nama} sudah melakukan absensi ${tipe} hari ini!`);
+                return;
+            }
+
             const notif = document.getElementById('absenNotif'); notif.className = "mt-2 alert alert-info text-center fw-bold py-1 small"; notif.innerText = "Memproses Absensi..."; notif.classList.remove('d-none');
             
             let statusKehadiran = "Hadir"; let fotoBase64 = null;
@@ -1243,10 +1267,11 @@
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
             let payload = { action: "proses_absen", nisn: selectedSiswaData.nisn, nama: selectedSiswaData.nama, kelas: selectedSiswaData.kelas, tipe: tipe, status_kehadiran: statusKehadiran, waktu: jamStr, petugas: currentPetugasName, image_base64: fotoBase64 };
+            
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
-                notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${statusKehadiran})`;
-                fetchRekapDataForPetugas(); // Refresh rekap kelas real-time
+                notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${tipe === 'MASUK' ? statusKehadiran : 'Pulang'})`;
+                fetchRekapDataForPetugas(); // Refresh rekap data real-time langsung dari database
                 setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
             }).catch(e => { 
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
@@ -1257,8 +1282,14 @@
 
         function fetchRekapDataForPetugas() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
-            .then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalRekapData = data.data; renderRealtimeKelasSummary(data.data); } });
+            .then(res => res.json()).then(data => { 
+                if(data.status === "success" && Array.isArray(data.data)) { 
+                    globalRekapData = data.data; 
+                    renderRealtimeKelasSummary(globalRekapData); 
+                } 
+            }).catch(err => console.log("Gagal sync rekap petugas:", err));
         }
+        setInterval(fetchRekapDataForPetugas, 15000); // Sinkronisasi otomatis real-time ke database tiap 15 detik
 
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
@@ -1266,11 +1297,12 @@
             let today = new Date();
             
             kelasList.forEach(kelas => {
-                // Hanya menghitung siswa yang sudah absen (Hadir / Terlambat) hari ini di kelas tersebut secara real-time
-                let count = rekapData.filter(item => {
-                    let matchKelas = String(item.kelas).trim().toUpperCase() === kelas.toUpperCase();
+                let uniqueSiswaHadir = new Set();
+                rekapData.forEach(item => {
+                    let matchKelas = String(item.kelas || '').trim().toUpperCase() === kelas.toUpperCase();
                     let st = String(item.status || item.status_kehadiran || '').trim().toLowerCase();
-                    let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h';
+                    let tp = String(item.tipe || '').trim().toUpperCase();
+                    let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h' || tp === 'MASUK';
                     
                     let tglStr = String(item.tanggal || '');
                     let dItem = new Date(tglStr);
@@ -1281,10 +1313,12 @@
                         isToday = true;
                     }
                     
-                    return matchKelas && isHadir && (isToday || tglStr.length === 0);
-                }).length;
+                    if(matchKelas && isHadir && (isToday || tglStr.length === 0)) {
+                        uniqueSiswaHadir.add(String(item.nisn).trim());
+                    }
+                });
 
-                container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${count} Siswa</span></div></div>`;
+                container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${uniqueSiswaHadir.size} Siswa</span></div></div>`;
             });
         }
 
