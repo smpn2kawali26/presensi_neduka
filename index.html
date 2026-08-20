@@ -551,7 +551,7 @@
                     if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = schoolConfig.lng_sekolah;
                     if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = schoolConfig.radius_sekolah;
                     if(document.getElementById('waktuMasuk')) document.getElementById('waktuMasuk').value = schoolConfig.waktu_masuk;
-                    if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_toleransi;
+                    if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_pulang;
                     if(document.getElementById('waktuPulang')) document.getElementById('waktuPulang').value = schoolConfig.waktu_pulang;
                 }
             }).catch(err => console.log("Gagal ambil setting:", err));
@@ -743,6 +743,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
 
+        // ---- PERBAIKAN 1: Logika Alpa/Izin (Cek data database dengan akurat) ----
         function fetchRekapData() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => {
                 if(data.status === "success" && Array.isArray(data.data)) {
@@ -751,7 +752,7 @@
                         let st = String(r.status || '').toLowerCase();
                         if(st.includes('hadir')) totalH++;
                         else if(st.includes('terlambat')) totalT++;
-                        else totalA++;
+                        else if(st.includes('alpa') || st.includes('izin') || st.includes('sakit')) totalA++; // PERBAIKAN: Hanya menghitung Alpa/Izin/Sakit yang valid
                     });
                     document.getElementById('dashTotalHadir').innerText = totalH;
                     document.getElementById('dashTotalTelat').innerText = totalT;
@@ -822,7 +823,7 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // FUNGSI UNDUH EXCEL (.XLS HTML TABLE) DENGAN KETERANGAN BULAN & TAHUN
+        // ---- PERBAIKAN 2: FUNGSI UNDUH EXCEL DENGAN KOLOM % DAN KET ----
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -840,26 +841,27 @@
             html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: center; font-family: Arial, sans-serif; font-size: 11pt; } .nama { text-align: left; } .title-main { font-size: 14pt; font-weight: bold; border: none; } .title-sub { font-size: 12pt; font-weight: bold; border: none; } .title-info { font-size: 11pt; border: none; text-align: left; font-weight: bold; }</style></head>`;
             html += `<body>`;
             html += `<table>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" class="title-main">SMP N 2 KAWALI</td></tr>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" class="title-sub">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 6}" class="title-main">SMP N 2 KAWALI</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 6}" class="title-sub">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
             
             html += `<tr>`;
             html += `<td colspan="3" class="title-info">BULAN</td>`;
-            html += `<td colspan="${2 + daysInMonth + 4}" class="title-info">: ${activeMonthName.toUpperCase()}</td>`;
+            html += `<td colspan="${2 + daysInMonth + 6}" class="title-info">: ${activeMonthName.toUpperCase()}</td>`;
             html += `</tr>`;
             html += `<tr>`;
             html += `<td colspan="3" class="title-info">TAHUN</td>`;
-            html += `<td colspan="${2 + daysInMonth + 4}" class="title-info">: ${activeYear}</td>`;
+            html += `<td colspan="${2 + daysInMonth + 6}" class="title-info">: ${activeYear}</td>`;
             html += `</tr>`;
 
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="border: none;"></td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 6}" style="border: none;"></td></tr>`;
 
             html += `<tr style="background-color: #d9d9d9; font-weight: bold;">`;
             html += `<th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
             for(let d = 1; d <= 31; d++) {
                 html += `<th>${d <= daysInMonth ? d : ''}</th>`;
             }
-            html += `<th>H</th><th>S</th><th>I</th><th>A</th>`;
+            // PERBAIKAN: Menambahkan header AO (%) dan AP (KET)
+            html += `<th>H</th><th>S</th><th>I</th><th>A</th><th>AO (%)</th><th>AP (KET)</th>`;
             html += `</tr>`;
 
             siswaKelas.forEach((s, idx) => {
@@ -900,7 +902,12 @@
                     }
                     html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
-                html += `<td><b>${countH}</b></td><td><b>${countS}</b></td><td><b>${countI}</b></td><td><b>${countA}</b></td>`;
+                
+                // PERBAIKAN: Menghitung persentase dan keterangan untuk dimasukkan ke tabel
+                let totalHadirHariIni = countH + countS + countI + countA;
+                let persentase = totalHadirHariIni > 0 ? ((countH / (totalHadirHariIni == 0 ? 1 : totalHadirHariIni)) * 100).toFixed(1) : 0;
+                
+                html += `<td><b>${countH}</b></td><td><b>${countS}</b></td><td><b>${countI}</b></td><td><b>${countA}</b></td><td><b>${persentase}%</b></td><td><b>${persentase < 80 ? 'Kurang' : 'Baik'}</b></td>`;
                 html += `</tr>`;
             });
 
