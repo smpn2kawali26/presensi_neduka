@@ -702,10 +702,7 @@
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
 
-        function fetchSiswaData() {
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
-            .then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalSiswaData = data.data; listSiswaAbsen = data.data; document.getElementById('dashTotalSiswa').innerText = data.data.length; renderAdminSiswaTable(globalSiswaData); renderRincianKelasTable(globalSiswaData, globalRekapData); populateFilterKelasDropdown(); populateModalDropdowns(); } });
-        }
+        function fetchSiswaData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalSiswaData = data.data; listSiswaAbsen = data.data; document.getElementById('dashTotalSiswa').innerText = data.data.length; renderAdminSiswaTable(globalSiswaData); renderRincianKelasTable(globalSiswaData, globalRekapData); populateFilterKelasDropdown(); populateModalDropdowns(); } }); }
         function renderAdminSiswaTable(dataArray) {
             let tBody = document.getElementById('tableSiswaBody'); if(!tBody) return;
             let state = paginationState.siswa; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
@@ -743,46 +740,12 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
 
-        // ---- PERBAIKAN 1: Logika Alpa/Izin (Cek data database dengan akurat) ----
-        function fetchRekapData() {
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => {
-                if(data.status === "success" && Array.isArray(data.data)) {
-                    globalRekapData = data.data; let totalH = 0, totalT = 0, totalA = 0;
-                    globalRekapData.forEach(r => {
-                        let st = String(r.status || '').toLowerCase();
-                        if(st.includes('hadir')) totalH++;
-                        else if(st.includes('terlambat')) totalT++;
-                        else if(st.includes('alpa') || st.includes('izin') || st.includes('sakit')) totalA++; // PERBAIKAN: Hanya menghitung Alpa/Izin/Sakit yang valid
-                    });
-                    document.getElementById('dashTotalHadir').innerText = totalH;
-                    document.getElementById('dashTotalTelat').innerText = totalT;
-                    document.getElementById('dashTotalAlpa').innerText = totalA;
-                    filterAdminRekap();
-                    filterLaporan();
-                    renderDashboardCharts(globalRekapData);
-                    renderRincianKelasTable(globalSiswaData, globalRekapData);
-                    renderRealtimeKelasSummary(globalRekapData);
-                }
-            });
-        }
-
-        function filterAdminRekap() {
-            let b = document.getElementById('adminFilterBulanRekap').value;
-            let th = document.getElementById('adminFilterTahunRekap').value;
-            let filtered = globalRekapData.filter(r => {
-                let tgl = String(r.tanggal || '');
-                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08';
-                let matchTh = !th || tgl.includes(th);
-                return matchB && matchTh;
-            });
-            renderAdminRekapTable(filtered);
-        }
-
+        function fetchRekapData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalRekapData = data.data; let totalH = 0, totalT = 0; globalRekapData.forEach(r => { if(r.status === 'Hadir') totalH++; else if(r.status === 'Terlambat') totalT++; }); document.getElementById('dashTotalHadir').innerText = totalH; document.getElementById('dashTotalTelat').innerText = totalT; document.getElementById('dashTotalAlpa').innerText = globalSiswaData.length - (totalH + totalT); filterAdminRekap(); filterLaporan(); renderDashboardCharts(globalRekapData); renderRincianKelasTable(globalSiswaData, globalRekapData); renderRealtimeKelasSummary(globalRekapData); } }); }
+        function filterAdminRekap() { let b = document.getElementById('adminFilterBulanRekap').value; let th = document.getElementById('adminFilterTahunRekap').value; let filtered = globalRekapData.filter(r => { let tgl = String(r.tanggal || ''); let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08'; let matchTh = !th || tgl.includes(th); return matchB && matchTh; }); renderAdminRekapTable(filtered); }
         function renderAdminRekapTable(dataArray) {
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            if(paginatedItems.length === 0) { tBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-3">Tidak ada data rekap pada filter ini.</td></tr>`; return; }
             paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.waktu || '-'}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
             renderPaginationControls(dataArray.length, 'rekap', 'paginationRekapContainer');
         }
@@ -808,12 +771,7 @@
             }
         }
 
-        function filterLaporan() {
-            let kFilter = document.getElementById('filterKelasLaporan').value;
-            let filtered = globalRekapData.filter(r => !kFilter || String(r.kelas).trim().toLowerCase() === kFilter.toLowerCase());
-            renderLaporanTable(filtered);
-        }
-
+        function filterLaporan() { let kFilter = document.getElementById('filterKelasLaporan').value; let filtered = globalRekapData.filter(r => !kFilter || String(r.kelas).trim().toLowerCase() === kFilter.toLowerCase()); renderLaporanTable(filtered); }
         function renderLaporanTable(dataArray) {
             let tBody = document.getElementById('tableLaporanBody'); if(!tBody) return;
             let state = paginationState.laporan; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
@@ -823,14 +781,13 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // ---- PERBAIKAN 2: FUNGSI UNDUH EXCEL DENGAN KOLOM % DAN KET ----
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
             if(siswaKelas.length === 0) { alert("Tidak ada siswa di kelas " + selectedKelas); return; }
 
-            let activeMonthNum = document.getElementById('adminFilterBulanRekap') ? document.getElementById('adminFilterBulanRekap').value : "08";
-            let activeYear = document.getElementById('adminFilterTahunRekap') ? document.getElementById('adminFilterTahunRekap').value : "2026";
+            let activeMonthNum = document.getElementById('adminFilterBulanRekap').value;
+            let activeYear = document.getElementById('adminFilterTahunRekap').value;
             
             const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             let activeMonthName = monthNames[parseInt(activeMonthNum) - 1] || "Agustus";
@@ -838,84 +795,56 @@
             let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonthNum), 0).getDate();
 
             let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-            html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: center; font-family: Arial, sans-serif; font-size: 11pt; } .nama { text-align: left; } .title-main { font-size: 14pt; font-weight: bold; border: none; } .title-sub { font-size: 12pt; font-weight: bold; border: none; } .title-info { font-size: 11pt; border: none; text-align: left; font-weight: bold; }</style></head>`;
-            html += `<body>`;
-            html += `<table>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 6}" class="title-main">SMP N 2 KAWALI</td></tr>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 6}" class="title-sub">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; } th, td { border: 1px solid black; padding: 5px; text-align: center; } .nama { text-align: left; }</style></head>`;
+            html += `<body><table>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-weight:bold; font-size:14pt;">SMP N 2 KAWALI</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-weight:bold;">DAFTAR HADIR KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="3">BULAN</td><td colspan="5">: ${activeMonthName.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="3">TAHUN</td><td colspan="5">: ${activeYear}</td></tr><tr><td></td></tr>`;
             
-            html += `<tr>`;
-            html += `<td colspan="3" class="title-info">BULAN</td>`;
-            html += `<td colspan="${2 + daysInMonth + 6}" class="title-info">: ${activeMonthName.toUpperCase()}</td>`;
-            html += `</tr>`;
-            html += `<tr>`;
-            html += `<td colspan="3" class="title-info">TAHUN</td>`;
-            html += `<td colspan="${2 + daysInMonth + 6}" class="title-info">: ${activeYear}</td>`;
-            html += `</tr>`;
-
-            html += `<tr><td colspan="${5 + daysInMonth + 6}" style="border: none;"></td></tr>`;
-
-            html += `<tr style="background-color: #d9d9d9; font-weight: bold;">`;
-            html += `<th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
-            for(let d = 1; d <= 31; d++) {
-                html += `<th>${d <= daysInMonth ? d : ''}</th>`;
-            }
-            // PERBAIKAN: Menambahkan header AO (%) dan AP (KET)
-            html += `<th>H</th><th>S</th><th>I</th><th>A</th><th>AO (%)</th><th>AP (KET)</th>`;
-            html += `</tr>`;
+            html += `<tr style="background-color: #d9d9d9;"><th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
+            for(let d=1; d<=31; d++) html += `<th>${d <= daysInMonth ? d : ''}</th>`;
+            html += `<th>H</th><th>S</th><th>I</th><th>A</th></tr>`;
 
             siswaKelas.forEach((s, idx) => {
-                let lk = String(s.gender || 'L').toUpperCase();
-                html += `<tr>`;
-                html += `<td>${idx + 1}</td>`;
-                html += `<td>&nbsp;${s.nisn || '-'}</td>`;
-                html += `<td>&nbsp;${s.id_siswa || '-'}</td>`;
-                html += `<td class="nama">${s.nama || '-'}</td>`;
-                html += `<td>${lk}</td>`;
-
+                let lk = String(s.gender || s.l_k || 'L').toUpperCase(); // PERBAIKAN 1: Coba 'gender' atau 'l_k' untuk data Sheets
+                html += `<tr><td>${idx+1}</td><td>&nbsp;${s.nisn||'-'}</td><td>&nbsp;${s.id_siswa||'-'}</td><td class="nama">${s.nama||'-'}</td><td>${lk}</td>`;
+                
                 let countH = 0, countS = 0, countI = 0, countA = 0;
 
-                for(let d = 1; d <= 31; d++) {
+                for(let d=1; d<=31; d++) {
                     let dayStr = d.toString().padStart(2, '0');
-                    let targetDatePattern = `${dayStr} ${activeMonthName} ${activeYear}`;
-                    
+                    let targetDatePattern = `${dayStr} ${activeMonthName} ${activeYear}`; // Format: '01 Agustus 2026'
+
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
+                        // Masalah 1: `r.tanggal` mungkin dalam format yang berbeda (misalnya, objek Tanggal JS, atau format DD/MM/YYYY dari Google Sheets, atau format formatTanggalIndonesia)
+                        // Masalah 2: `targetDatePattern` adalah format Indonesia yang dibuat secara manual.
+
+                        // Asumsi: `r.tanggal` yang dikembalikan dari `get_rekap` mungkin dalam format formatTanggalIndonesia karena formatTanggalIndonesia() dipanggil di tempat lain.
+                        // Format formatTanggalIndonesia(): 'Senin, 01 Agustus 2026'
+                        
                         let matchTgl = String(r.tanggal).includes(dayStr) || String(r.tanggal).includes(targetDatePattern);
                         return matchNisn && matchTgl;
                     });
 
                     let statusKode = "";
                     if(absenMatch && d <= daysInMonth) {
-                        let st = String(absenMatch.status || '').toLowerCase();
-                        let tipeAbsen = String(absenMatch.tipe || '').toLowerCase();
-                        
-                        if(st.includes('hadir') || st.includes('terlambat')) {
-                            statusKode = "H"; countH++;
-                        } else if(st.includes('izin') || tipeAbsen.includes('izin')) {
-                            statusKode = "I"; countI++;
-                        } else if(st.includes('sakit') || tipeAbsen.includes('sakit')) {
-                            statusKode = "S"; countS++;
-                        } else {
-                            statusKode = "H"; countH++;
-                        }
+                        if(absenMatch.status === 'Hadir' || absenMatch.status === 'Terlambat') { statusKode = "H"; countH++; }
+                        else if(absenMatch.tipe === 'IZIN') { statusKode = "I"; countI++; }
+                        else if(absenMatch.tipe === 'SAKIT') { statusKode = "S"; countS++; }
                     }
                     html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
                 
-                // PERBAIKAN: Menghitung persentase dan keterangan untuk dimasukkan ke tabel
-                let totalHadirHariIni = countH + countS + countI + countA;
-                let persentase = totalHadirHariIni > 0 ? ((countH / (totalHadirHariIni == 0 ? 1 : totalHadirHariIni)) * 100).toFixed(1) : 0;
-                
-                html += `<td><b>${countH}</b></td><td><b>${countS}</b></td><td><b>${countI}</b></td><td><b>${countA}</b></td><td><b>${persentase}%</b></td><td><b>${persentase < 80 ? 'Kurang' : 'Baik'}</b></td>`;
-                html += `</tr>`;
+                html += `<td>${countH}</td><td>${countS}</td><td>${countI}</td><td>${countA}</td></tr>`;
             });
 
             html += `</table></body></html>`;
 
             let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a'); a.href = url; a.download = `Presensi_Harian_Kelas_${selectedKelas}_${activeMonthName}_${activeYear}.xls`;
+            let a = document.createElement('a'); a.href = url; a.download = `Presensi_${selectedKelas}_${activeMonthName}.xls`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
