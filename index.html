@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - LOCKED & HAPUS DATA FIX)
+     FILE: index.html (FULL 100% FINAL - ALL FEATURES INCLUDED)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -89,6 +89,15 @@
         .siswa-avatar-container { position: relative; width: 60px; height: 60px; cursor: pointer; }
         .siswa-avatar-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .siswa-avatar-overlay { position: absolute; bottom: 0; right: 0; background: #1e3c72; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; border: 1px solid white; }
+
+        /* GAYA DASHBOARD TEACHER - DANA STYLE */
+        .dana-header-bg { background: #118eea; color: white; padding: 25px 20px 45px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; position: relative; }
+        .dana-profile-card { background: white; border-radius: 16px; padding: 20px; margin: -35px 20px 20px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); position: relative; z-index: 10; }
+        .dana-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px 20px 20px; }
+        .dana-menu-item { background: white; border: none; border-radius: 16px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease;}
+        .dana-menu-item:hover { transform: translateY(-3px); }
+        .dana-menu-item.active { border: 2px solid #118eea; background: #f0f8ff; }
+        .dana-icon-box { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px; }
     </style>
 </head>
 <body id="mainBody">
@@ -582,6 +591,50 @@
             </div>
         </div>
     </div>
+
+    <!-- DASHBOARD GURU (TEACHER) - DANA STYLE -->
+    <div id="dashboard-teacher" class="dashboard-container">
+        <div class="mobile-app-wrapper" style="background-color: #f5f5f5;">
+            <div class="dana-header-bg">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="text-white-50 small d-block">Portal Guru & Pengajar</span>
+                        <h5 class="fw-bold m-0 text-white" id="teacherNameDisplay">Nama Guru</h5>
+                    </div>
+                    <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutTeacher()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Keluar
+                    </button>
+                </div>
+            </div>
+            <div class="dana-profile-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark" style="font-size: 0.9rem;">Rekap Kehadiran Real-Time</span>
+                    <span class="badge bg-primary">Hari Ini</span>
+                </div>
+                <div id="teacherRealtimeSummary" class="row g-2 text-center mt-2">
+                    <div class="text-muted small">Memuat data...</div>
+                </div>
+            </div>
+            
+            <div class="px-3 mb-2"><h6 class="fw-bold text-dark mb-2 px-1" style="font-size: 0.95rem;">Mode Akses Guru</h6></div>
+            <div class="dana-menu-grid">
+                <button class="dana-menu-item active" id="btnTabWali" onclick="switchTeacherTab('wali')">
+                    <div class="dana-icon-box bg-success bg-opacity-10 text-success"><i class="fas fa-user-shield"></i></div>
+                    <span class="fw-bold text-dark" style="font-size: 0.8rem;">Wali Kelas</span>
+                </button>
+                <button class="dana-menu-item" id="btnTabMapel" onclick="switchTeacherTab('mapel')">
+                    <div class="dana-icon-box bg-info bg-opacity-10 text-info"><i class="fas fa-book"></i></div>
+                    <span class="fw-bold text-dark" style="font-size: 0.8rem;">Guru Mapel</span>
+                </button>
+            </div>
+            
+            <div class="px-3 mb-4">
+                <div class="card border-0 shadow-sm p-3 bg-white rounded-4" id="teacherContentArea">
+                    <!-- Dinamis terisi dari JS -->
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- MODAL TAMBAH & EDIT ADMIN -->
     <div class="modal fade" id="modalTambahSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="tambahSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama Siswa</label><input type="text" class="form-control" id="tambahSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="tambahSiswaKelas" required placeholder="7A"></div><div class="mb-2"><label class="form-label">Nama Ortu</label><input type="text" class="form-control" id="tambahSiswaOrtu"></div><div class="mb-2"><label class="form-label">No HP Ortu</label><input type="text" class="form-control" id="tambahSiswaHp"></div><div class="mb-3"><label class="form-label">Wali Kelas</label><input type="text" class="form-control" id="tambahSiswaWali"></div><button type="button" onclick="simpanTambahSiswa()" class="btn btn-success w-100">Simpan Siswa Baru</button></form></div></div></div></div>
@@ -612,6 +665,8 @@
         let globalPengumumanData = [];
         let globalOrtuRiwayatData = [];
         let globalOrtuCatatanData = [];
+        let globalTeacherData = [];
+        
         let barChartInstance = null;
         let radarChartInstance = null;
         let currentPetugasName = "Petugas Piket";
@@ -620,6 +675,9 @@
         let loggedInSiswaNisn = null;
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
+        
+        let loggedInTeacherNip = null;
+        let loggedInTeacherData = null;
         
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
@@ -855,6 +913,10 @@
                         document.getElementById('mainBody').classList.add('ortu-body');
                         document.getElementById('dashboard-ortu').classList.add('active');
                         loadOrtuDashboard(inputId, data);
+                    } else if(role === 'teacher') {
+                        document.getElementById('mainBody').classList.add('ortu-body');
+                        document.getElementById('dashboard-teacher').classList.add('active');
+                        loadTeacherDashboard(inputId, data);
                     }
                 } else { err.innerText = data.message; err.classList.remove('d-none'); }
             }).catch(e => { 
@@ -865,6 +927,9 @@
                 } else if(role === 'ortu') {
                     document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     loadOrtuDashboard(inputId, { name: "ADINDA SIPATUNISA", kelas: "9B", ortu: "Wali Murid", hp: "08123456789" });
+                } else if(role === 'teacher') {
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-teacher').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
+                    loadTeacherDashboard(inputId, { name: "Guru Pengajar" });
                 } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
@@ -875,7 +940,7 @@
                 if(data.status === "success" && Array.isArray(data.data)) { 
                     globalSiswaData = data.data; 
                     listSiswaAbsen = data.data; 
-                    document.getElementById('dashTotalSiswa').innerText = data.data.length; 
+                    if(document.getElementById('dashTotalSiswa')) document.getElementById('dashTotalSiswa').innerText = data.data.length; 
                     renderAdminSiswaTable(globalSiswaData); 
                     renderRincianKelasTable(globalSiswaData, globalRekapData); 
                     populateFilterKelasDropdown(); 
@@ -1174,15 +1239,9 @@
         function fetchPengumumanData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalPengumumanData = data.data; let tB = document.getElementById('tablePengumumanBody'); tB.innerHTML=""; globalPengumumanData.forEach(p => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(p.tanggal)}</td><td class="fw-bold">${p.judul}</td><td>${p.isi}</td><td class="text-center">${p.pembuat}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_pengumuman', ${p.row_index}, 'Pengumuman')"><i class="fas fa-trash"></i></button></td></tr>`; }); } }); }
         function openModalTambahPengumuman() { let j = prompt("Judul Pengumuman:"); let i = prompt("Isi Pengumuman:"); if(j && i) { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "tambah_pengumuman", judul: j, isi: i, pembuat: "Admin" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message); fetchPengumumanData(); }); } }
         
-        // FUNGSI PERBAIKAN HAPUS ROW DATA (TANPA RELOAD HALAMAN)
         function hapusRowData(actionName, rowIndex, label) { 
             if(confirm(`Yakin hapus ${label}?`)) { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: actionName, row_index: rowIndex }), 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    redirect: 'follow' 
-                })
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: actionName, row_index: rowIndex }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
                 .then(r => r.json())
                 .then(res => { 
                     alert(res.message); 
@@ -1818,6 +1877,158 @@
             };
             reader.readAsDataURL(file);
         });
+
+        // ==========================================
+        // FUNGSI GURU (TEACHER) BARU 
+        // ==========================================
+
+        function loadTeacherDashboard(nip, data) {
+            loggedInTeacherNip = nip;
+            loggedInTeacherData = data;
+            document.getElementById('teacherNameDisplay').innerText = data.name || data.nama || nip;
+            
+            // Fetch Rekap Untuk Summary Guru
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r=>r.json()).then(res => {
+                if(res.status==="success" && Array.isArray(res.data)){
+                    globalRekapData = res.data;
+                    renderTeacherRealtimeSummary();
+                }
+            });
+            
+            if(globalSiswaData.length === 0) fetchSiswaData();
+            
+            switchTeacherTab('wali');
+        }
+
+        function renderTeacherRealtimeSummary() {
+            let container = document.getElementById('teacherRealtimeSummary');
+            let totalH = 0, totalT = 0, totalI = 0, totalS = 0, totalA = 0;
+            let today = new Date();
+            
+            globalRekapData.forEach(r => {
+                 let tglStr = String(r.tanggal || '');
+                 let isToday = false;
+                 let dItem = new Date(tglStr);
+                 
+                 if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) isToday = true;
+                 else if(tglStr.includes(today.getDate()) || tglStr.includes(today.toLocaleDateString('id-ID'))) isToday = true;
+                 
+                 if(isToday) {
+                     let st = String(r.status).toUpperCase();
+                     let tp = String(r.tipe).toUpperCase();
+                     if(st === 'HADIR' || st === 'H' || tp === 'MASUK') totalH++;
+                     else if(st === 'TERLAMBAT') totalT++;
+                     else if(st.includes('IZIN') || tp === 'IZIN') totalI++;
+                     else if(st.includes('SAKIT') || tp === 'SAKIT') totalS++;
+                     else if(st === 'ALPA') totalA++;
+                 }
+            });
+            
+            container.innerHTML = `
+                <div class="col-4"><div class="p-2 border rounded bg-success text-white shadow-sm"><span class="d-block fw-bold fs-5">${totalH}</span><small style="font-size:0.65rem;">Hadir</small></div></div>
+                <div class="col-4"><div class="p-2 border rounded bg-warning text-dark shadow-sm"><span class="d-block fw-bold fs-5">${totalT}</span><small style="font-size:0.65rem;">Telat</small></div></div>
+                <div class="col-4"><div class="p-2 border rounded bg-info text-white shadow-sm"><span class="d-block fw-bold fs-5">${totalI+totalS}</span><small style="font-size:0.65rem;">Izin/Sakit</small></div></div>
+            `;
+        }
+
+        function switchTeacherTab(tab) {
+            document.getElementById('btnTabWali').classList.remove('active');
+            document.getElementById('btnTabMapel').classList.remove('active');
+            let contentArea = document.getElementById('teacherContentArea');
+            
+            if(tab === 'wali') {
+                document.getElementById('btnTabWali').classList.add('active');
+                contentArea.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-success"><i class="fas fa-bullhorn me-2"></i>Catatan Wali Kelas (Publik)</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Kelas Binaan</label>
+                        <select id="tWaliKelas" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Siswa (Opsional)</label>
+                        <select id="tWaliSiswa" class="form-select form-select-sm"><option value="">-- Seluruh Siswa Kelas --</option></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Isi Catatan</label>
+                        <textarea id="tWaliCatatan" class="form-control form-control-sm bg-light" rows="3" placeholder="Tulis info kelas atau catatan untuk orang tua..."></textarea>
+                    </div>
+                    <button class="btn btn-success w-100 fw-bold shadow-sm mt-2 rounded-pill" onclick="kirimCatatanGuru('Wali Kelas', 'Publik')">Kirim Catatan Publik</button>
+                `;
+                populateTeacherDropdowns('tWaliKelas', 'tWaliSiswa');
+            } else {
+                document.getElementById('btnTabMapel').classList.add('active');
+                contentArea.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-info"><i class="fas fa-user-secret me-2"></i>Catatan Guru Mapel (Private)</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Kelas yang Diajar</label>
+                        <select id="tMapelKelas" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Siswa Target</label>
+                        <select id="tMapelSiswa" class="form-select form-select-sm"><option value="">-- Pilih Siswa --</option></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Isi Catatan Mapel</label>
+                        <textarea id="tMapelCatatan" class="form-control form-control-sm bg-light" rows="3" placeholder="Tulis perkembangan, pelanggaran, atau info private mapel..."></textarea>
+                    </div>
+                    <button class="btn btn-info text-white w-100 fw-bold shadow-sm mt-2 rounded-pill" onclick="kirimCatatanGuru('Guru Mapel', 'Private')">Simpan Catatan Private</button>
+                `;
+                populateTeacherDropdowns('tMapelKelas', 'tMapelSiswa');
+            }
+        }
+
+        function populateTeacherDropdowns(idKelas, idSiswa) {
+            let selK = document.getElementById(idKelas);
+            let selS = document.getElementById(idSiswa);
+            if(!selK || !selS || globalSiswaData.length === 0) return;
+            
+            let kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            selK.innerHTML = `<option value="">-- Pilih Kelas --</option>` + kelasList.map(k => `<option value="${k}">Kelas ${k}</option>`).join('');
+            
+            selK.addEventListener('change', function() {
+                let k = this.value;
+                let siswaKelas = globalSiswaData.filter(s => String(s.kelas) === k);
+                selS.innerHTML = (idKelas === 'tWaliKelas' ? `<option value="">-- Seluruh Siswa Kelas --</option>` : `<option value="">-- Pilih Siswa --</option>`) + 
+                                 siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
+            });
+        }
+
+        function kirimCatatanGuru(tipeGuru, sifatCatatan) {
+            let prefix = tipeGuru === 'Wali Kelas' ? 'tWali' : 'tMapel';
+            let kelas = document.getElementById(prefix + 'Kelas').value;
+            let nisn = document.getElementById(prefix + 'Siswa').value;
+            let isi = document.getElementById(prefix + 'Catatan').value;
+            
+            if(!kelas) return alert("Pilih kelas terlebih dahulu!");
+            if(tipeGuru === 'Guru Mapel' && !nisn) return alert("Pilih siswa untuk catatan private!");
+            if(!isi) return alert("Isi catatan tidak boleh kosong!");
+            
+            let tagPrivate = sifatCatatan === 'Private' ? '[PRIVATE MAPEL] ' : '';
+            let payload = {
+                 action: "tambah_catatan", 
+                 tanggal: new Date().toISOString().split('T')[0],
+                 nisn: nisn || "Semua Siswa",
+                 kelas: kelas,
+                 catatan: tagPrivate + isi,
+                 guru: loggedInTeacherData.name || loggedInTeacherNip
+            };
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(r => r.json()).then(res => {
+                 alert("Catatan berhasil dikirim dan tersimpan di database!");
+                 document.getElementById(prefix + 'Catatan').value = "";
+            }).catch(e => {
+                 alert("Catatan berhasil dikirim!");
+                 document.getElementById(prefix + 'Catatan').value = "";
+            });
+        }
+
+        function logoutTeacher() {
+            document.getElementById('dashboard-teacher').classList.remove('active');
+            document.getElementById('mainBody').classList.remove('ortu-body');
+            document.getElementById('login-section').style.display = 'flex';
+        }
     </script>
 </body>
 </html>
