@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - ADMIN, PETUGAS DENGAN AUDIO, & ORTU)
+     FILE: index.html (FULL 100% FINAL - FIXED ORTU RIWAYAT & AUDIO PETUGAS)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -593,7 +593,7 @@
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nada tinggi (A5)
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
                 oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.15);
                 gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
@@ -1293,12 +1293,12 @@
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
-                playSuccessBeep(); // Bunyi beep penanda sukses tersimpan
+                playSuccessBeep();
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${tipe === 'MASUK' ? statusKehadiran : 'Pulang'})`;
                 fetchRekapDataForPetugas();
                 setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
             }).catch(e => { 
-                playSuccessBeep(); // Bunyi beep penanda sukses tersimpan
+                playSuccessBeep();
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
                 notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; 
                 fetchRekapDataForPetugas(); 
@@ -1380,11 +1380,11 @@
                 }
             });
 
-            // 2. Ambil Riwayat Kehadiran Siswa
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            // 2. Ambil Riwayat Kehadiran Siswa (Langsung dari get_rekap & filter NISN)
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 if(resData.status === "success" && Array.isArray(resData.data)) {
-                    globalOrtuRiwayatData = resData.data; 
+                    globalOrtuRiwayatData = resData.data.filter(r => String(r.nisn).trim() === String(nisn).trim()); 
                     renderOrtuRiwayatList(globalOrtuRiwayatData);
                 } else {
                     document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted small">Belum ada riwayat kehadiran tercatat.</div>`;
