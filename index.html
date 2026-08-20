@@ -30,6 +30,7 @@
         .login-card-floating { background: white; border-radius: 20px; padding: 30px 20px; margin: -40px 20px 20px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); position: relative; z-index: 10; }
 
         .dashboard-container { display: none; }
+        .dashboard-container.active { display: block; }
         #wrapper { display: flex; transition: all 0.3s ease-in-out; }
         
         #sidebar { min-width: 250px; max-width: 250px; background: var(--primary-bg); color: var(--text-light); min-height: 100vh; transition: all 0.3s; }
@@ -260,7 +261,7 @@
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Waktu</th><th>NISN</th><th>Nama</th><th>Kelas</th><th>Tipe</th><th>Status</th><th>Petugas</th><th>Aksi</th></tr></thead><tbody id="tableRekapBody"><tr><td colspan="9" class="spinner-table">Memuat...</td></tr></tbody></table></div><div class="d-flex justify-content-between align-items-center mt-3" id="paginationRekapContainer"></div></div></div>
                     </div>
 
-                    <!-- SECTION LAPORAN (OTOMATIS BERUBAH SESUAI PILIHAN KELAS FILTER) -->
+                    <!-- SECTION LAPORAN -->
                     <div id="section-laporan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
                             <h4 class="fw-bold m-0">Laporan Absensi</h4>
@@ -291,7 +292,7 @@
                         </div></div>
                     </div>
 
-                    <!-- SECTION WAKTU (LENGKAP DENGAN JAM BATAS PULANG) -->
+                    <!-- SECTION WAKTU -->
                     <div id="section-waktu" class="content-section">
                         <h4 class="fw-bold mb-4">Setting Waktu Absen & Batas Masuk</h4>
                         <div class="card card-custom"><div class="card-body">
@@ -673,29 +674,29 @@
                     document.getElementById('login-section').style.display = 'none';
                     if(role === 'admin') {
                         document.getElementById('mainBody').classList.remove('ortu-body');
-                        document.getElementById('dashboard-admin').style.display = 'block';
+                        document.getElementById('dashboard-admin').classList.add('active');
                         document.getElementById('userProfileName').innerText = data.name;
                         document.querySelector('.profil-nama').innerText = data.name;
                         fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData(); fetchPengumumanData();
                     } else if(role === 'petugas') {
                         document.getElementById('mainBody').classList.add('ortu-body');
-                        document.getElementById('dashboard-petugas').style.display = 'block';
+                        document.getElementById('dashboard-petugas').classList.add('active');
                         currentPetugasName = data.name || inputId;
                         document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
                         initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
                     } else if(role === 'ortu') {
                         document.getElementById('mainBody').classList.add('ortu-body');
-                        document.getElementById('dashboard-ortu').style.display = 'block';
+                        document.getElementById('dashboard-ortu').classList.add('active');
                         loadOrtuDashboard(inputId, data);
                     }
                 } else { err.innerText = data.message; err.classList.remove('d-none'); }
             }).catch(e => { 
                 if(role === 'petugas') {
-                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').style.display = 'block'; document.getElementById('mainBody').classList.add('ortu-body');
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     currentPetugasName = inputId; document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
                     initCamera(); loadSiswaForAbsen(); checkPetugasGPS();
                 } else if(role === 'ortu') {
-                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').style.display = 'block'; document.getElementById('mainBody').classList.add('ortu-body');
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     loadOrtuDashboard(inputId, { name: "Aliya Nurhasanah", kelas: "7A", ortu: "Wali Murid", hp: "08123456789" });
                 } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
@@ -792,7 +793,6 @@
             kelasList.forEach(k => { select.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
         }
 
-        // POPULATE DROPDOWN KELAS & GURU DI MODAL JADWAL
         function populateModalDropdowns() {
             let selKelas = document.getElementById('tambahJadwalKelas');
             let selGuru = document.getElementById('tambahJadwalGuru');
@@ -807,7 +807,6 @@
             }
         }
 
-        // FILTER LAPORAN BERJALAN OTOMATIS SESUAI PILIHAN KELAS
         function filterLaporan() {
             let kFilter = document.getElementById('filterKelasLaporan').value;
             let filtered = globalRekapData.filter(r => !kFilter || String(r.kelas).trim().toLowerCase() === kFilter.toLowerCase());
@@ -823,27 +822,69 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // FORMAT EXCEL PRESENSI HARIAN (JUDUL DIGANTI & FORMAT TABEL PRESENSI)
+        // FITUR UNDUH EXCEL PRESENSI HARIAN OTOMATIS (TERISI KODE H, I, S)
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
             if(siswaKelas.length === 0) { alert("Tidak ada siswa di kelas " + selectedKelas); return; }
 
+            let activeMonth = document.getElementById('adminFilterBulanRekap') ? document.getElementById('adminFilterBulanRekap').value : "08";
+            let activeYear = document.getElementById('adminFilterTahunRekap') ? document.getElementById('adminFilterTahunRekap').value : "2026";
+            let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonth), 0).getDate();
+
             let csv = `SMP N 2 KAWALI\nDAFTAR HADIR PRESENSI HARIAN\nKELAS ${selectedKelas.toUpperCase()}\n\n`;
-            csv += `NO,NISN,NIS,NAMA SISWA,L/K,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31\n`;
+            
+            let headerRow = ["NO", "NISN", "NIS", "NAMA SISWA", "L/K"];
+            for(let d = 1; d <= 31; d++) {
+                headerRow.push(d <= daysInMonth ? d : "");
+            }
+            csv += headerRow.join(",") + "\n";
             
             siswaKelas.forEach((s, idx) => {
                 let lk = String(s.gender || 'L').toUpperCase();
-                csv += `${idx+1},"${s.nisn || '-'}","${s.id_siswa || '-'}","${s.nama || '-'}","${lk}",`;
-                for(let d=1; d<=31; d++) { csv += `,`; }
-                csv += `\n`;
+                let rowData = [
+                    idx + 1,
+                    `"${s.nisn || '-'}"`,
+                    `"${s.id_siswa || '-'}"`,
+                    `"${s.nama || '-'}"`,
+                    `"${lk}"`
+                ];
+
+                for(let d = 1; d <= 31; d++) {
+                    let dayStr = d.toString().padStart(2, '0');
+                    let targetDatePattern = `${dayStr} Agustus ${activeYear}`;
+                    
+                    let absenMatch = globalRekapData.find(r => {
+                        let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
+                        let matchTgl = String(r.tanggal).includes(dayStr) || String(r.tanggal).includes(targetDatePattern);
+                        return matchNisn && matchTgl;
+                    });
+
+                    let statusKode = "";
+                    if(absenMatch) {
+                        let st = String(absenMatch.status || '').toLowerCase();
+                        let tipeAbsen = String(absenMatch.tipe || '').toLowerCase();
+                        
+                        if(st.includes('hadir') || st.includes('terlambat')) {
+                            statusKode = "H";
+                        } else if(st.includes('izin') || tipeAbsen.includes('izin')) {
+                            statusKode = "I";
+                        } else if(st.includes('sakit') || tipeAbsen.includes('sakit')) {
+                            statusKode = "S";
+                        } else {
+                            statusKode = "H";
+                        }
+                    }
+                    rowData.push(d <= daysInMonth ? statusKode : "");
+                }
+                csv += rowData.join(",") + "\n";
             });
 
             let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a'); a.href = url; a.download = `Presensi_Harian_Kelas_${selectedKelas}.csv`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            alert(`File Excel Format Presensi Harian Kelas ${selectedKelas} berhasil diunduh!`);
+            alert(`File Excel Presensi Harian Kelas ${selectedKelas} berhasil diunduh dengan data otomatis (H, I, S)!`);
         }
 
         function renderRincianKelasTable(siswaData, rekapData) {
@@ -887,7 +928,6 @@
             });
         });
 
-        // SIMPAN SETTING WAKTU LENGKAP DENGAN JAM BATAS PULANG
         document.getElementById('formSettingWaktu').addEventListener('submit', function(e) {
             e.preventDefault();
             schoolConfig.waktu_masuk = document.getElementById('waktuMasuk').value;
@@ -961,7 +1001,7 @@
         document.getElementById('nav-pengumuman').addEventListener('click', () => changePage('section-pengumuman', 'nav-pengumuman'));
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
-        document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').style.display = 'none'; document.getElementById('login-section').style.display = 'flex'; });
+        document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; });
 
         function checkPetugasGPS() {
             const gpsBadge = document.getElementById('gpsStatusBadge');
@@ -1052,9 +1092,9 @@
                 container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${count} Siswa</span></div></div>`;
             });
         }
-        function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').style.display = 'none'; document.getElementById('login-section').style.display = 'flex'; }
+        function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; }
 
-        function logoutOrtu() { document.getElementById('dashboard-ortu').style.display = 'none'; document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
+        function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn; loggedInSiswaKelas = data.kelas || "7A"; loggedInSiswaRowIndex = data.row_index || null;
             document.getElementById('ortuNamaWaliHeader').innerText = data.ortu || "Wali Murid";
