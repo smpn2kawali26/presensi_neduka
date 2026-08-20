@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIX TABEL JAM, BEL SEPEDA, TOMBOL PETUGAS & IZIN SAKIT PISAH)
+     FILE: index.html (FULL 100% FINAL - FIX TABEL MATRIKS MASUK & PULANG, BEL SEPEDA, TOMBOL PETUGAS)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -520,7 +520,7 @@
                     </div>
                 </div>
                 
-                <!-- IDE 2: STATISTIK RINGKAS BULANAN (Izin & Sakit Terpisah) -->
+                <!-- STATISTIK RINGKAS BULANAN (Izin & Sakit Terpisah) -->
                 <div class="row g-2 mb-3" id="ortuStatistikRingkasan">
                     <div class="col"><div class="p-2 bg-success text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0" id="statHadir">0</h5></div></div>
                     <div class="col"><div class="p-2 bg-warning text-dark rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Telat</span><h5 class="fw-bold m-0" id="statTelat">0</h5></div></div>
@@ -529,7 +529,7 @@
                     <div class="col"><div class="p-2 bg-danger text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Alpa</span><h5 class="fw-bold m-0" id="statAlpa">0</h5></div></div>
                 </div>
                 
-                <!-- IDE 2: TABEL MATRIKS BULANAN RINGKAS -->
+                <!-- TABEL MATRIKS BULANAN RINGKAS -->
                 <div class="card border-0 shadow-sm bg-white rounded-4 overflow-hidden">
                     <div class="table-responsive" style="max-height: 60vh;">
                         <table class="table table-bordered table-striped align-middle mb-0 text-center" style="font-size: 0.8rem;">
@@ -621,7 +621,6 @@
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
         
-        // KONFIGURASI DEFAULT WAKTU ABSEN
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
             lng_sekolah: 108.3421, 
@@ -658,7 +657,6 @@
                     osc1.start(time); osc1.stop(time + 0.15);
                     osc2.start(time); osc2.stop(time + 0.15);
                 }
-                // Dua kali dentingan seperti bel sepeda
                 ring(audioCtx.currentTime);
                 ring(audioCtx.currentTime + 0.12);
             } catch(e) {
@@ -726,13 +724,10 @@
             try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
         }
         
-        // FUNGSI UNTUK MENAMPILKAN HANYA JAM SAJA
         function extractTime(timeStr) {
             if (!timeStr || timeStr === '-') return '-';
-            // Jika format bawaan Google Sheet 1899-12-30T07:26:48.000Z
             let matchISO = String(timeStr).match(/T(\d{2}:\d{2})/);
             if (matchISO && matchISO[1]) return matchISO[1];
-            // Jika format standar HH:MM:SS
             let timeMatch = String(timeStr).match(/(\d{2}:\d{2})/);
             if (timeMatch && timeMatch[1]) return timeMatch[1];
             return String(timeStr).substring(0, 5);
@@ -795,7 +790,6 @@
             }
         });
 
-        // JAM DIGITAL & KONTROL AKTIVASI TOMBOL PETUGAS
         function updateClock() {
             const now = new Date();
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -806,7 +800,6 @@
             if(document.getElementById('tanggalDigitalLogin')) document.getElementById('tanggalDigitalLogin').innerText = dateStr;
             if(document.getElementById('jamDigitalDashboard')) document.getElementById('jamDigitalDashboard').innerText = timeStr;
 
-            // KONTROL TOMBOL ABSEN DI DASHBOARD PETUGAS
             if(document.getElementById('dashboard-petugas').classList.contains('active')) {
                 const btnM = document.getElementById('btnPetugasMasuk');
                 const btnP = document.getElementById('btnPetugasPulang');
@@ -980,7 +973,6 @@
                     renderRincianKelasTable(globalSiswaData, globalRekapData); 
                     renderRealtimeKelasSummary(globalRekapData); 
                     
-                    // Update juga rekap ortu jika sedang login
                     if(loggedInSiswaNisn) {
                         let filteredOrtu = globalRekapData.filter(r => String(r.nisn).trim() === String(loggedInSiswaNisn).trim());
                         globalOrtuRiwayatData = filteredOrtu;
@@ -1144,7 +1136,6 @@
             });
         });
 
-        // SIMPAN SETTING WAKTU PETUGAS BARU KE DATABASE
         document.getElementById('formSettingWaktu').addEventListener('submit', function(e) {
             e.preventDefault();
             schoolConfig.waktu_mulai_masuk = document.getElementById('waktuMulaiMasuk').value;
@@ -1375,7 +1366,6 @@
             });
         });
 
-        // VALIDASI ABSEN HANYA 1X SEHARI (MASUK/PULANG)
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1473,9 +1463,6 @@
         function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; }
         function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
 
-        // ==========================================
-        // FITUR DASHBOARD ORANG TUA (IDE 2: TABEL MATRIKS BULANAN)
-        // ==========================================
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn; 
             loggedInSiswaKelas = data.kelas || "9B"; 
@@ -1494,7 +1481,6 @@
                 document.getElementById('ortuFotoSiswaDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Siswa')}&background=1e3c72&color=fff&size=60`;
             }
 
-            // 1. Ambil Pengumuman Sekolah
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resPeng => {
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
@@ -1503,7 +1489,6 @@
                 }
             });
 
-            // 2. Ambil Rekap Absensi Siswa
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 if(resData.status === "success" && Array.isArray(resData.data)) {
@@ -1516,7 +1501,6 @@
                 document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Gagal memuat data kehadiran.</td></tr>`;
             });
 
-            // 3. Ambil Catatan Guru
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
@@ -1529,11 +1513,9 @@
                 document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Gagal memuat catatan guru.</div>`;
             });
 
-            // 4. Ambil Jadwal Pelajaran Berdasarkan Kelas Siswa
             loadOrtuJadwalAesthetic(loggedInSiswaKelas);
         }
 
-        // Simpan Biodata Nama Ortu & No HP ke Database
         document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
             e.preventDefault(); 
             if(!loggedInSiswaNisn) return alert("Data siswa belum dimuat!");
@@ -1562,7 +1544,6 @@
             });
         });
 
-        // Upload Foto Profil Siswa oleh Ortu
         function uploadFotoSiswa(inputElement) {
             if (inputElement.files && inputElement.files[0]) {
                 let file = inputElement.files[0]; 
@@ -1587,7 +1568,7 @@
             }
         }
 
-        // RENDER IDE 2: TABEL MATRIKS BULANAN (1 Baris per Tanggal: Masuk & Pulang Digabung)
+        // RENDER TABEL MATRIKS BULANAN (FIX PEMISAHAN MASUK & PULANG SECARA AKURAT)
         function renderOrtuMatriksRiwayat(dataArray) {
             let tbody = document.getElementById('tableOrtuMatriksBody'); 
             if(!tbody) return;
@@ -1609,7 +1590,6 @@
                 filtered = dataArray;
             }
 
-            // Kelompokkan data berdasarkan tanggal yang sama
             let groupedByDate = {};
             filtered.forEach(item => {
                 let cleanDate = String(item.tanggal || '').trim();
@@ -1620,14 +1600,13 @@
                 let waktuVal = String(item.waktu || '-');
                 let statusVal = String(item.status || '-');
 
-                if(tipe.includes('MASUK') || tipe.includes('HADIR') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
+                if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL') || (!tipe.includes('PULANG') && groupedByDate[cleanDate].masuk === '-')) {
                     groupedByDate[cleanDate].masuk = extractTime(waktuVal);
-                    groupedByDate[cleanDate].status = statusVal;
-                } else if(tipe.includes('PULANG')) {
+                    if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
+                }
+                
+                if (tipe.includes('PULANG')) {
                     groupedByDate[cleanDate].pulang = extractTime(waktuVal);
-                } else {
-                    if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = extractTime(waktuVal);
-                    groupedByDate[cleanDate].status = statusVal;
                 }
             });
 
@@ -1662,7 +1641,6 @@
                 });
             }
 
-            // Update Statistik Kartu Ringkasan (Izin & Sakit Terpisah)
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
             if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
             if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
@@ -1743,7 +1721,6 @@
             if(targetPane) targetPane.style.display = 'block';
         }
 
-        // Pengajuan Form Izin / Sakit oleh Ortu
         document.getElementById('formPengajuanIzin').addEventListener('submit', function(e) {
             e.preventDefault(); 
             if(!loggedInSiswaNisn) return alert("Sesi siswa tidak valid!");
