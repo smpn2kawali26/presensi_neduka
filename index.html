@@ -822,7 +822,7 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // FITUR UNDUH EXCEL PRESENSI HARIAN OTOMATIS (TERISI KODE H, I, S)
+        // FITUR UNDUH EXCEL FORMAT PRESENSI HARIAN BENTUK TABEL (1-31 KESAMPING)
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -832,12 +832,13 @@
             let activeYear = document.getElementById('adminFilterTahunRekap') ? document.getElementById('adminFilterTahunRekap').value : "2026";
             let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonth), 0).getDate();
 
-            let csv = `SMP N 2 KAWALI\nDAFTAR HADIR PRESENSI HARIAN\nKELAS ${selectedKelas.toUpperCase()}\n\n`;
+            let csv = `SMP N 2 KAWALI\nDAFTAR HADIR PRESENSI HARIAN SISWA\nKELAS,${selectedKelas.toUpperCase()}\n\n`;
             
-            let headerRow = ["NO", "NISN", "NIS", "NAMA SISWA", "L/K"];
+            let headerRow = ["NO", "NISN", "NIS", "NAMA SISWA", "L/P"];
             for(let d = 1; d <= 31; d++) {
                 headerRow.push(d <= daysInMonth ? d : "");
             }
+            headerRow.push("H", "S", "I", "A");
             csv += headerRow.join(",") + "\n";
             
             siswaKelas.forEach((s, idx) => {
@@ -850,6 +851,8 @@
                     `"${lk}"`
                 ];
 
+                let countH = 0, countS = 0, countI = 0, countA = 0;
+
                 for(let d = 1; d <= 31; d++) {
                     let dayStr = d.toString().padStart(2, '0');
                     let targetDatePattern = `${dayStr} Agustus ${activeYear}`;
@@ -861,30 +864,31 @@
                     });
 
                     let statusKode = "";
-                    if(absenMatch) {
+                    if(absenMatch && d <= daysInMonth) {
                         let st = String(absenMatch.status || '').toLowerCase();
                         let tipeAbsen = String(absenMatch.tipe || '').toLowerCase();
                         
                         if(st.includes('hadir') || st.includes('terlambat')) {
-                            statusKode = "H";
+                            statusKode = "H"; countH++;
                         } else if(st.includes('izin') || tipeAbsen.includes('izin')) {
-                            statusKode = "I";
+                            statusKode = "I"; countI++;
                         } else if(st.includes('sakit') || tipeAbsen.includes('sakit')) {
-                            statusKode = "S";
+                            statusKode = "S"; countS++;
                         } else {
-                            statusKode = "H";
+                            statusKode = "H"; countH++;
                         }
                     }
                     rowData.push(d <= daysInMonth ? statusKode : "");
                 }
+                rowData.push(countH, countS, countI, countA);
                 csv += rowData.join(",") + "\n";
             });
 
             let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a'); a.href = url; a.download = `Presensi_Harian_Kelas_${selectedKelas}.csv`;
+            let a = document.createElement('a'); a.href = url; a.download = `Format_Presensi_Harian_Kelas_${selectedKelas}.csv`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            alert(`File Excel Presensi Harian Kelas ${selectedKelas} berhasil diunduh dengan data otomatis (H, I, S)!`);
+            alert(`File Excel Format Presensi Harian Kelas ${selectedKelas} berhasil diunduh dalam bentuk tabel (1-31 ke samping) dengan rekap otomatis (H, S, I, A)!`);
         }
 
         function renderRincianKelasTable(siswaData, rekapData) {
