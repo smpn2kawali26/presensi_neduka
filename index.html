@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED ORTU RIWAYAT & AUDIO PETUGAS)
+     FILE: index.html (FULL 100% FINAL - IDE 2 RIWAYAT ORTU TABEL RINGKAS & AUDIO PETUGAS)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -497,15 +497,51 @@
             <div id="page-riwayat" class="sub-page">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-riwayat')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
-                    <h5 class="fw-bold m-0 text-primary">Riwayat Kehadiran</h5><div style="width: 70px;"></div>
+                    <h5 class="fw-bold m-0 text-primary">Rekap Kehadiran Bulanan</h5><div style="width: 70px;"></div>
                 </div>
                 <div class="card border-0 shadow-sm p-3 mb-3 bg-white rounded-4">
                     <div class="row g-2">
-                        <div class="col-6"><select id="ortuFilterBulanRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()"><option value="">Semua Bulan</option><option value="08" selected>Agustus</option></select></div>
-                        <div class="col-6"><select id="ortuFilterTahunRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()"><option value="2026" selected>2026</option></select></div>
+                        <div class="col-6">
+                            <select id="ortuFilterBulanRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
+                                <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select id="ortuFilterTahunRiwayat" class="form-select form-select-sm" onchange="filterOrtuRiwayat()">
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div id="listOrtuRiwayat" class="mobile-card-list"><div class="text-center p-4 text-muted">Memuat riwayat...</div></div>
+                <!-- STATISTIK RINGKAS BULANAN -->
+                <div class="row g-2 mb-3" id="ortuStatistikRingkasan">
+                    <div class="col-3"><div class="p-2 bg-success text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Hadir</span><h5 class="fw-bold m-0" id="statHadir">0</h5></div></div>
+                    <div class="col-3"><div class="p-2 bg-warning text-dark rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Telat</span><h5 class="fw-bold m-0" id="statTelat">0</h5></div></div>
+                    <div class="col-3"><div class="p-2 bg-info text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Izin/Sakit</span><h5 class="fw-bold m-0" id="statIzinSakit">0</h5></div></div>
+                    <div class="col-3"><div class="p-2 bg-danger text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Alpa</span><h5 class="fw-bold m-0" id="statAlpa">0</h5></div></div>
+                </div>
+                <!-- IDE 2: TABEL MATRIKS BULANAN RINGKAS -->
+                <div class="card border-0 shadow-sm bg-white rounded-4 overflow-hidden">
+                    <div class="table-responsive" style="max-height: 60vh;">
+                        <table class="table table-bordered table-striped align-middle mb-0 text-center" style="font-size: 0.8rem;">
+                            <thead class="table-dark text-uppercase sticky-top">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Masuk</th>
+                                    <th>Pulang</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableOrtuMatriksBody">
+                                <tr><td colspan="4" class="text-center text-muted py-4">Memuat matriks kehadiran...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
             <div id="page-catatan" class="sub-page">
@@ -872,6 +908,13 @@
                     renderDashboardCharts(globalRekapData); 
                     renderRincianKelasTable(globalSiswaData, globalRekapData); 
                     renderRealtimeKelasSummary(globalRekapData); 
+                    
+                    // Update juga rekap ortu jika sedang login
+                    if(loggedInSiswaNisn) {
+                        let filteredOrtu = globalRekapData.filter(r => String(r.nisn).trim() === String(loggedInSiswaNisn).trim());
+                        globalOrtuRiwayatData = filteredOrtu;
+                        renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
+                    }
                 } 
             }); 
         }
@@ -1351,7 +1394,7 @@
         function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
 
         // ==========================================
-        // FITUR DASHBOARD ORANG TUA (TERHUBUNG DATABASE)
+        // FITUR DASHBOARD ORANG TUA (IDE 2: TABEL MATRIKS BULANAN)
         // ==========================================
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn; 
@@ -1380,17 +1423,17 @@
                 }
             });
 
-            // 2. Ambil Riwayat Kehadiran Siswa (Langsung dari get_rekap & filter NISN)
+            // 2. Ambil Rekap Absensi Siswa
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 if(resData.status === "success" && Array.isArray(resData.data)) {
                     globalOrtuRiwayatData = resData.data.filter(r => String(r.nisn).trim() === String(nisn).trim()); 
-                    renderOrtuRiwayatList(globalOrtuRiwayatData);
+                    renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
                 } else {
-                    document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted small">Belum ada riwayat kehadiran tercatat.</div>`;
+                    document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran tercatat.</td></tr>`;
                 }
             }).catch(() => {
-                document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted small">Gagal memuat riwayat kehadiran.</div>`;
+                document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Gagal memuat data kehadiran.</td></tr>`;
             });
 
             // 3. Ambil Catatan Guru
@@ -1464,38 +1507,89 @@
             }
         }
 
-        function renderOrtuRiwayatList(dataArray) {
-            let container = document.getElementById('listOrtuRiwayat'); container.innerHTML = "";
+        // RENDER IDE 2: TABEL MATRIKS BULANAN (1 Baris per Tanggal: Masuk & Pulang Digabung)
+        function renderOrtuMatriksRiwayat(dataArray) {
+            let tbody = document.getElementById('tableOrtuMatriksBody'); 
+            if(!tbody) return;
+            
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; 
             let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
             
-            let filtered = dataArray.filter(r => { 
-                if(!r.tanggal) return false; 
-                let tglStr = String(r.tanggal); 
-                if (!bFilter && !tFilter) return true;
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.toLowerCase().includes('agustus') && bFilter === '08';
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let targetMonthName = monthNames[parseInt(bFilter) - 1] || "";
+            
+            let filtered = dataArray.filter(r => {
+                let tglStr = String(r.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
-            if(filtered.length === 0 && dataArray.length > 0) {
+            if(filtered.length === 0 && dataArray.length > 0 && !bFilter) {
                 filtered = dataArray;
             }
-            
-            if(filtered.length === 0) { 
-                container.innerHTML = `<div class="text-center p-4 text-muted small">Belum ada riwayat kehadiran tercatat.</div>`; 
-                return; 
-            }
-            
-            filtered.forEach(r => {
-                let badgeColor = r.status === 'Hadir' ? 'bg-success' : (r.status === 'Terlambat' ? 'bg-warning text-dark' : (String(r.tipe).toUpperCase() === 'PULANG' ? 'bg-primary' : 'bg-info'));
-                let tipeLabel = r.tipe || 'Kehadiran';
-                container.innerHTML += `<div class="mobile-card-item d-flex justify-content-between align-items-center"><div><h6 class="mb-0 fw-bold">${tipeLabel}</h6><small class="text-muted">${formatTanggalIndonesia(r.tanggal)} (${r.waktu||'-'})</small></div><div class="text-end"><span class="badge ${badgeColor}">${r.status || r.tipe || 'Tercatat'}</span></div></div>`;
+
+            // Kelompokkan data berdasarkan tanggal yang sama
+            let groupedByDate = {};
+            filtered.forEach(item => {
+                let cleanDate = String(item.tanggal || '').trim();
+                if(!groupedByDate[cleanDate]) {
+                    groupedByDate[cleanDate] = { masuk: '-', pulang: '-', status: '-' };
+                }
+                let tipe = String(item.tipe || '').trim().toUpperCase();
+                let waktuVal = String(item.waktu || '-');
+                let statusVal = String(item.status || '-');
+
+                if(tipe.includes('MASUK') || tipe.includes('HADIR') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
+                    groupedByDate[cleanDate].masuk = waktuVal;
+                    groupedByDate[cleanDate].status = statusVal;
+                } else if(tipe.includes('PULANG')) {
+                    groupedByDate[cleanDate].pulang = waktuVal;
+                } else {
+                    // Default jika tipe tidak spesifik
+                    if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = waktuVal;
+                    groupedByDate[cleanDate].status = statusVal;
+                }
             });
+
+            let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+            tbody.innerHTML = "";
+
+            let countH = 0, countT = 0, countI_S = 0, countA = 0;
+
+            if(dates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
+            } else {
+                dates.forEach(dateStr => {
+                    let d = groupedByDate[dateStr];
+                    let st = String(d.status).trim();
+                    let badgeClass = 'bg-success';
+                    if(st.toLowerCase().includes('terlambat')) { badgeClass = 'bg-warning text-dark'; countT++; }
+                    else if(st.toLowerCase().includes('hadir')) { countH++; }
+                    else if(st.toLowerCase().includes('izin') || st.toLowerCase().includes('sakit')) { badgeClass = 'bg-info text-white'; countI_S++; }
+                    else if(st.toLowerCase().includes('alpa')) { badgeClass = 'bg-danger'; countA++; }
+                    else { countH++; }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
+                            <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${d.masuk}</span></td>
+                            <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${d.pulang}</span></td>
+                            <td><span class="badge ${badgeClass}">${st}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Update Statistik Kartu Ringkasan
+            if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
+            if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
+            if(document.getElementById('statIzinSakit')) document.getElementById('statIzinSakit').innerText = countI_S;
+            if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
 
         function filterOrtuRiwayat() { 
-            renderOrtuRiwayatList(globalOrtuRiwayatData); 
+            renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
 
         function renderOrtuCatatanList(dataArray) {
@@ -1607,7 +1701,7 @@
                         tipe: statusIzin.toUpperCase(), 
                         status_kehadiran: statusIzin, 
                         waktu: new Date().toLocaleTimeString(), 
-                        petugas: "Wali Murid", 
+                        petugas: "Orang Tua", 
                         image_base64: comp, 
                         keterangan: alasan 
                     };
