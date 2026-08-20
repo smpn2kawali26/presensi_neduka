@@ -155,6 +155,7 @@
                 </div>
                 <ul class="components list-unstyled">
                     <li><a id="nav-beranda" class="active"><i class="fas fa-home"></i> Beranda Admin</a></li>
+                    <li><a id="nav-input-absen"><i class="fas fa-edit"></i> Input Absensi</a></li>
                     <li><a id="nav-siswa"><i class="fas fa-user-graduate"></i> Data Siswa</a></li>
                     <li><a id="nav-guru"><i class="fas fa-chalkboard-teacher"></i> Data Guru</a></li>
                     <li><a id="nav-rekap"><i class="fas fa-calendar-check"></i> Rekap Absen</a></li>
@@ -252,7 +253,23 @@
                             <div class="col-md-6 mb-4"><div class="card card-custom p-4 h-100"><h5 class="fw-bold text-secondary mb-3">Rekap Absensi Radar</h5><div style="position: relative; height: 280px; width: 100%;"><canvas id="radarChartKelas"></canvas></div></div></div>
                         </div>
                     </div>
-
+                    <!-- SECTION INPUT ABSEN -->
+                    <div id="section-input-absen" class="content-section">
+                        <h4 class="fw-bold mb-4">Input Kehadiran (Dua Arah)</h4>
+                        <div class="card card-custom p-4">
+                            <div class="row mb-3">
+                                <div class="col-md-4"><label>Pilih Kelas</label><select id="filterInputKelas" class="form-select" onchange="loadSiswaForAdminInput()"><option value="">-- Pilih Kelas --</option></select></div>
+                                <div class="col-md-4"><label>Tanggal</label><input type="date" id="inputTanggalAbsen" class="form-control" value="${new Date().toISOString().split('T')[0]}"></div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-dark"><tr><th>NISN</th><th>Nama</th><th>Status (H/I/S/A)</th></tr></thead>
+                                    <tbody id="tableInputAbsenBody"></tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-primary mt-3" onclick="simpanInputAbsenAdmin()">Simpan Semua Perubahan</button>
+                        </div>
+                    </div>
                     <!-- SECTION DATA SISWA -->
                     <div id="section-siswa" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -1308,6 +1325,69 @@
             };
             reader.readAsDataURL(file);
         });
+
+// --- AWAL KODE TAMBAHAN UNTUK INPUT ABSENSI ADMIN ---
+
+        // 1. Menambahkan Event Listener untuk navigasi menu baru
+        document.getElementById('nav-input-absen').addEventListener('click', () => {
+            changePage('section-input-absen', 'nav-input-absen');
+            let sel = document.getElementById('filterInputKelas');
+            if (globalSiswaData.length > 0) {
+                let k = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+                sel.innerHTML = '<option value="">-- Pilih Kelas --</option>' + k.map(x => `<option value="${x}">${x}</option>`).join('');
+            }
+        });
+
+        // 2. Fungsi memuat daftar siswa ke tabel input
+        function loadSiswaForAdminInput() {
+            let k = document.getElementById('filterInputKelas').value;
+            let tBody = document.getElementById('tableInputAbsenBody');
+            tBody.innerHTML = "";
+            if (!k) return;
+            
+            globalSiswaData.filter(s => String(s.kelas).trim() === String(k).trim()).forEach(s => {
+                tBody.innerHTML += `<tr>
+                    <td>${s.nisn}</td>
+                    <td>${s.nama}</td>
+                    <td>
+                        <select class="form-select input-absen-status" data-nisn="${s.nisn}" data-nama="${s.nama}" data-kelas="${s.kelas}">
+                            <option value="Hadir">H (Hadir)</option>
+                            <option value="Izin">I (Izin)</option>
+                            <option value="Sakit">S (Sakit)</option>
+                            <option value="Alpa">A (Alpa)</option>
+                        </select>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // 3. Fungsi menyimpan input ke backend
+        function simpanInputAbsenAdmin() {
+            let selects = document.querySelectorAll('.input-absen-status');
+            let tgl = document.getElementById('inputTanggalAbsen').value;
+            if(!tgl) return alert("Pilih tanggal terlebih dahulu!");
+            
+            let count = 0;
+            selects.forEach(sel => {
+                let payload = { 
+                    action: "admin_input_absen", 
+                    nisn: sel.dataset.nisn, 
+                    nama: sel.dataset.nama, 
+                    kelas: sel.dataset.kelas, 
+                    status_kehadiran: sel.value, 
+                    tanggal: tgl 
+                };
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+                count++;
+            });
+            alert("Sedang memproses " + count + " data siswa...");
+            setTimeout(() => {
+                fetchRekapData(); // Memperbarui data rekap di dashboard
+                alert("Data berhasil tersimpan!");
+            }, 2000);
+        }
+
+        // --- AKHIR KODE TAMBAHAN ---
     </script>
 </body>
 </html>
