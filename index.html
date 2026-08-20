@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - USER PETUGAS & ADMIN)
+     FILE: index.html (FULL 100% FINAL - FIX RADIUS & REALTIME KELAS)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -438,7 +438,7 @@
             </div>
             <div class="px-3 mb-4">
                 <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
-                    <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;"><i class="fas fa-chart-pie me-2 text-primary"></i>Status Hadir Per Kelas:</h6>
+                    <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;"><i class="fas fa-chart-pie me-2 text-primary"></i>Status Hadir Per Kelas (Hari Ini):</h6>
                     <div id="realtimeKelasSummary" class="row g-2"><div class="text-muted small">Memuat rekap...</div></div>
                 </div>
             </div>
@@ -1163,14 +1163,30 @@
                     (pos) => {
                         currentPetugasLat = pos.coords.latitude; currentPetugasLng = pos.coords.longitude;
                         let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
+                        
+                        // Mode toleransi otomatis jika koordinat sekolah belum diset akurat
+                        if (isNaN(dist) || dist > 1000000) {
+                            gpsBadge.className = "badge bg-success"; 
+                            gpsBadge.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> GPS Aktif (Mode Fleksibel)`;
+                            currentPetugasLat = null; currentPetugasLng = null;
+                            return;
+                        }
+
                         if (dist <= schoolConfig.radius_sekolah) {
                             gpsBadge.className = "badge bg-success"; gpsBadge.innerHTML = `<i class="fas fa-map-marker-alt me-1"></i> GPS Aktif (${Math.round(dist)}m dari Sekolah)`;
                         } else {
                             gpsBadge.className = "badge bg-warning text-dark"; gpsBadge.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Di Luar Radius (${Math.round(dist)}m)`;
                         }
                     },
-                    (err) => { gpsBadge.className = "badge bg-warning text-dark"; gpsBadge.innerText = "GPS Tidak Aktif"; }, { enableHighAccuracy: true }
+                    (err) => { 
+                        gpsBadge.className = "badge bg-secondary"; 
+                        gpsBadge.innerText = "GPS Dilewati / Tidak Aktif"; 
+                        currentPetugasLat = null; currentPetugasLng = null;
+                    }, { enableHighAccuracy: true, timeout: 10000 }
                 );
+            } else {
+                gpsBadge.className = "badge bg-secondary"; 
+                gpsBadge.innerText = "GPS Tidak Didukung Browser";
             }
         }
 
@@ -1212,7 +1228,7 @@
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             if (currentPetugasLat !== null && currentPetugasLng !== null) {
                 let dist = calculateDistance(currentPetugasLat, currentPetugasLng, schoolConfig.lat_sekolah, schoolConfig.lng_sekolah);
-                if (dist > schoolConfig.radius_sekolah) {
+                if (!isNaN(dist) && dist <= 1000000 && dist > schoolConfig.radius_sekolah) {
                     alert(`Gagal Absen! Jarak Anda ${Math.round(dist)}m dari sekolah. Maksimal radius adalah ${schoolConfig.radius_sekolah} meter.`);
                     return;
                 }
@@ -1247,8 +1263,27 @@
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
             let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; container.innerHTML = "";
+            let today = new Date();
+            
             kelasList.forEach(kelas => {
-                let count = rekapData.filter(item => String(item.kelas).trim().toUpperCase() === kelas.toUpperCase() && (String(item.status).trim() === 'Hadir' || String(item.status).trim() === 'Terlambat')).length;
+                // Hanya menghitung siswa yang sudah absen (Hadir / Terlambat) hari ini di kelas tersebut secara real-time
+                let count = rekapData.filter(item => {
+                    let matchKelas = String(item.kelas).trim().toUpperCase() === kelas.toUpperCase();
+                    let st = String(item.status || item.status_kehadiran || '').trim().toLowerCase();
+                    let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h';
+                    
+                    let tglStr = String(item.tanggal || '');
+                    let dItem = new Date(tglStr);
+                    let isToday = false;
+                    if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                        isToday = true;
+                    } else if(tglStr.includes(today.getDate()) || tglStr.includes(today.toLocaleDateString('id-ID'))) {
+                        isToday = true;
+                    }
+                    
+                    return matchKelas && isHadir && (isToday || tglStr.length === 0);
+                }).length;
+
                 container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge bg-primary" style="font-size: 0.7rem;">${count} Siswa</span></div></div>`;
             });
         }
