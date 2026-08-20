@@ -822,7 +822,7 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // FITUR UNDUH EXCEL FORMAT PRESENSI HARIAN BENTUK TABEL (1-31 KESAMPING)
+        // FITUR UNDUH EXCEL MENGGUNAKAN HTML TABLE (.XLS) AGAR OTOMATIS TERPISAH KE KOLOM-KOLOMNYA
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -832,24 +832,32 @@
             let activeYear = document.getElementById('adminFilterTahunRekap') ? document.getElementById('adminFilterTahunRekap').value : "2026";
             let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonth), 0).getDate();
 
-            let csv = `SMP N 2 KAWALI\nDAFTAR HADIR PRESENSI HARIAN SISWA\nKELAS,${selectedKelas.toUpperCase()}\n\n`;
-            
-            let headerRow = ["NO", "NISN", "NIS", "NAMA SISWA", "L/P"];
+            let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+            html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: center; font-family: Arial, sans-serif; font-size: 11pt; } .nama { text-align: left; }</style></head>`;
+            html += `<body>`;
+            html += `<table>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-size: 14pt; font-weight: bold; border: none;">SMP N 2 KAWALI</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-size: 12pt; font-weight: bold; border: none;">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="border: none;"></td></tr>`;
+
+            // Header Tabel
+            html += `<tr style="background-color: #d9d9d9; font-weight: bold;">`;
+            html += `<th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
             for(let d = 1; d <= 31; d++) {
-                headerRow.push(d <= daysInMonth ? d : "");
+                html += `<th>${d <= daysInMonth ? d : ''}</th>`;
             }
-            headerRow.push("H", "S", "I", "A");
-            csv += headerRow.join(",") + "\n";
-            
+            html += `<th>H</th><th>S</th><th>I</th><th>A</th>`;
+            html += `</tr>`;
+
+            // Data Siswa & Kehadiran per Tanggal
             siswaKelas.forEach((s, idx) => {
                 let lk = String(s.gender || 'L').toUpperCase();
-                let rowData = [
-                    idx + 1,
-                    `"${s.nisn || '-'}"`,
-                    `"${s.id_siswa || '-'}"`,
-                    `"${s.nama || '-'}"`,
-                    `"${lk}"`
-                ];
+                html += `<tr>`;
+                html += `<td>${idx + 1}</td>`;
+                html += `<td>&nbsp;${s.nisn || '-'}</td>`;
+                html += `<td>&nbsp;${s.id_siswa || '-'}</td>`;
+                html += `<td class="nama">${s.nama || '-'}</td>`;
+                html += `<td>${lk}</td>`;
 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
 
@@ -878,17 +886,19 @@
                             statusKode = "H"; countH++;
                         }
                     }
-                    rowData.push(d <= daysInMonth ? statusKode : "");
+                    html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
-                rowData.push(countH, countS, countI, countA);
-                csv += rowData.join(",") + "\n";
+                html += `<td><b>${countH}</b></td><td><b>${countS}</b></td><td><b>${countI}</b></td><td><b>${countA}</b></td>`;
+                html += `</tr>`;
             });
 
-            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            html += `</table></body></html>`;
+
+            let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a'); a.href = url; a.download = `Format_Presensi_Harian_Kelas_${selectedKelas}.csv`;
+            let a = document.createElement('a'); a.href = url; a.download = `Format_Presensi_Harian_Kelas_${selectedKelas}.xls`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            alert(`File Excel Format Presensi Harian Kelas ${selectedKelas} berhasil diunduh dalam bentuk tabel (1-31 ke samping) dengan rekap otomatis (H, S, I, A)!`);
+            alert(`File Excel Format Presensi Harian Kelas ${selectedKelas} berhasil diunduh dalam bentuk tabel rapi (otomatis terpisah per kolom)!`);
         }
 
         function renderRincianKelasTable(siswaData, rekapData) {
