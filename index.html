@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - CASE INSENSITIVE FIX & ALL FEATURES)
+     FILE: index.html (FULL 100% FINAL - DATABASE MAPPING FIX)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -637,7 +637,6 @@
             document.getElementById('inputTanggalAbsen').value = new Date().toISOString().split('T')[0];
         }
 
-        // FUNGSI BEL SEPEDA (Kring-Kring!)
         function playSuccessBeep() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1568,7 +1567,7 @@
             }
         }
 
-        // RENDER TABEL MATRIKS BULANAN (FIX CASE-INSENSITIVE TIPE ABSEN)
+        // RENDER TABEL MATRIKS BULANAN (SESUAI INDEKS DATABASE KOLOM G & H)
         function renderOrtuMatriksRiwayat(dataArray) {
             let tbody = document.getElementById('tableOrtuMatriksBody'); 
             if(!tbody) return;
@@ -1600,13 +1599,20 @@
                 let waktuVal = String(item.waktu || '-');
                 let statusVal = String(item.status || '-');
 
-                if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL') || (!tipe.includes('PULANG') && groupedByDate[cleanDate].masuk === '-')) {
+                if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
                     groupedByDate[cleanDate].masuk = extractTime(waktuVal);
                     if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
                 }
                 
                 if (tipe.includes('PULANG')) {
                     groupedByDate[cleanDate].pulang = extractTime(waktuVal);
+                    if(statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') {
+                        groupedByDate[cleanDate].status = statusVal;
+                    }
+                }
+                
+                if (groupedByDate[cleanDate].status === '-' && statusVal && statusVal !== '-') {
+                    groupedByDate[cleanDate].status = statusVal;
                 }
             });
 
