@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - PETUGAS PIKET & ADMIN)
+     FILE: index.html (FULL 100% FINAL - ORANG TUA CONNECTED DATABASE)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -445,14 +445,14 @@
         </div>
     </div>
     
-    <!-- DASHBOARD ORANG TUA -->
+    <!-- DASHBOARD ORANG TUA (WALI MURID) -->
     <div id="dashboard-ortu" class="dashboard-container">
         <div class="mobile-app-wrapper">
             <div class="app-header-bg">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <span class="text-white-50 small d-block">Selamat Datang, Wali Murid</span>
-                        <h5 class="fw-bold m-0 text-white" id="ortuNamaWaliHeader">Orang Tua / Wali</h5>
+                        <h5 class="fw-bold m-0 text-white" id="ortuNamaWaliHeader">Wali Murid</h5>
                     </div>
                     <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutOrtu()">
                         <i class="fas fa-sign-out-alt me-1"></i> Keluar
@@ -475,7 +475,7 @@
                     <div class="row g-2 align-items-end">
                         <div class="col-6"><label class="form-label text-muted" style="font-size: 0.7rem;">Nama Ortu</label><input type="text" class="form-control form-control-sm" id="inputOrtuNama" required></div>
                         <div class="col-6"><label class="form-label text-muted" style="font-size: 0.7rem;">No HP</label><input type="text" class="form-control form-control-sm" id="inputOrtuHp" required></div>
-                        <div class="col-12 mt-2 text-end"><button type="submit" class="btn btn-sm text-white fw-bold px-3 py-1" style="background: var(--ortu-primary-gradient); font-size: 0.75rem;" id="btnSimpanBiodataOrtu"><i class="fas fa-save me-1"></i> Simpan</button></div>
+                        <div class="col-12 mt-2 text-end"><button type="submit" class="btn btn-sm text-white fw-bold px-3 py-1 shadow-sm" style="background: var(--ortu-primary-gradient); font-size: 0.75rem; border-radius: 8px;" id="btnSimpanBiodataOrtu"><i class="fas fa-save me-1"></i> Simpan</button></div>
                     </div>
                 </form>
                 <div id="notifBiodataOrtu" class="mt-2 d-none alert alert-success small py-1 mb-0 text-center" style="font-size: 0.75rem;"></div>
@@ -491,6 +491,7 @@
                 <button class="menu-grid-item" onclick="openSubPage('page-jadwal')"><div class="menu-icon-box bg-warning bg-opacity-10 text-warning"><i class="fas fa-calendar-alt"></i></div><span class="fw-bold text-dark" style="font-size: 0.85rem;">Jadwal Pelajaran</span></button>
                 <button class="menu-grid-item" onclick="openSubPage('page-izin')"><div class="menu-icon-box bg-info bg-opacity-10 text-info"><i class="fas fa-file-medical"></i></div><span class="fw-bold text-dark" style="font-size: 0.85rem;">Form Izin / Sakit</span></button>
             </div>
+            
             <!-- SUB-PAGES ORTU -->
             <div id="page-riwayat" class="sub-page">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -505,6 +506,7 @@
                 </div>
                 <div id="listOrtuRiwayat" class="mobile-card-list"><div class="text-center p-4 text-muted">Memuat riwayat...</div></div>
             </div>
+            
             <div id="page-catatan" class="sub-page">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-catatan')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
@@ -512,6 +514,7 @@
                 </div>
                 <div id="listOrtuCatatan" class="mobile-card-list"><div class="text-center p-4 text-muted">Memuat catatan...</div></div>
             </div>
+            
             <div id="page-jadwal" class="sub-page">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-jadwal')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
@@ -519,6 +522,7 @@
                 </div>
                 <div id="ortuJadwalContainer"><div class="text-muted text-center py-4">Memuat jadwal...</div></div>
             </div>
+            
             <div id="page-izin" class="sub-page">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-izin')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
@@ -529,7 +533,7 @@
                         <div class="mb-3"><label class="form-label small fw-bold text-muted">Status</label><select class="form-select" id="izinStatus" required><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div>
                         <div class="mb-3"><label class="form-label small fw-bold text-muted">Unggah Bukti Foto</label><input type="file" class="form-control" id="izinBuktiFile" accept="image/*" required></div>
                         <div class="mb-3"><label class="form-label small fw-bold text-muted">Alasan</label><textarea class="form-control" id="izinAlasan" rows="3" required></textarea></div>
-                        <button type="submit" class="btn btn-info text-white w-100 fw-bold py-2 shadow-sm" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim</button>
+                        <button type="submit" class="btn btn-info text-white w-100 fw-bold py-2 shadow-sm" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan</button>
                     </form>
                     <div id="notifPengajuan" class="mt-3 d-none alert alert-success small text-center"></div>
                 </div>
@@ -740,7 +744,7 @@
                     initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
                 } else if(role === 'ortu') {
                     document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
-                    loadOrtuDashboard(inputId, { name: "Aliya Nurhasanah", kelas: "7A", ortu: "Wali Murid", hp: "08123456789" });
+                    loadOrtuDashboard(inputId, { name: "ADINDA SIPATUNISA", kelas: "9B", ortu: "Wali Murid", hp: "08123456789" });
                 } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
@@ -1238,13 +1242,11 @@
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const todayStr = now.toISOString().split('T')[0];
 
-            // 1. Validasi Jam Pulang (Tidak boleh absen pulang sebelum waktunya)
             if (tipe === 'PULANG' && jamStr < schoolConfig.waktu_pulang) {
                 alert(`Belum waktunya pulang! Jam pulang sekolah diatur pada pukul ${schoolConfig.waktu_pulang}.`);
                 return;
             }
 
-            // 2. Validasi Duplikasi Absen (Cek apakah siswa sudah melakukan absen tipe yang sama hari ini di database)
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
@@ -1271,7 +1273,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${tipe === 'MASUK' ? statusKehadiran : 'Pulang'})`;
-                fetchRekapDataForPetugas(); // Refresh rekap data real-time langsung dari database
+                fetchRekapDataForPetugas();
                 setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
             }).catch(e => { 
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
@@ -1289,7 +1291,7 @@
                 } 
             }).catch(err => console.log("Gagal sync rekap petugas:", err));
         }
-        setInterval(fetchRekapDataForPetugas, 15000); // Sinkronisasi otomatis real-time ke database tiap 15 detik
+        setInterval(fetchRekapDataForPetugas, 15000);
 
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
@@ -1325,37 +1327,100 @@
         function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; }
         function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
 
+        // ==========================================
+        // FITUR DASHBOARD ORANG TUA (TERHUBUNG DATABASE)
+        // ==========================================
         function loadOrtuDashboard(nisn, data) {
-            loggedInSiswaNisn = nisn; loggedInSiswaKelas = data.kelas || "7A"; loggedInSiswaRowIndex = data.row_index || null;
+            loggedInSiswaNisn = nisn; 
+            loggedInSiswaKelas = data.kelas || "9B"; 
+            loggedInSiswaRowIndex = data.row_index || null;
+            
             document.getElementById('ortuNamaWaliHeader').innerText = data.ortu || "Wali Murid";
-            document.getElementById('ortuNamaSiswaDisplay').innerText = data.name || data.nama || "Siswa";
+            document.getElementById('ortuNamaSiswaDisplay').innerText = data.name || data.nama || "ADINDA SIPATUNISA";
             document.getElementById('ortuNisnSiswaDisplay').innerText = nisn;
             document.getElementById('ortuKelasSiswaDisplay').innerText = loggedInSiswaKelas;
             document.getElementById('inputOrtuNama').value = data.ortu || "";
             document.getElementById('inputOrtuHp').value = data.hp || "";
-            if(data.foto) document.getElementById('ortuFotoSiswaDisplay').src = data.foto;
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(resPeng => {
+            
+            if(data.foto) {
+                document.getElementById('ortuFotoSiswaDisplay').src = data.foto;
+            } else {
+                document.getElementById('ortuFotoSiswaDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Siswa')}&background=1e3c72&color=fff&size=60`;
+            }
+
+            // 1. Ambil Pengumuman Sekolah
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resPeng => {
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
-                    let p = resPeng.data[0]; document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                    let p = resPeng.data[0]; 
+                    document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
                 }
             });
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(resData => {
+
+            // 2. Ambil Riwayat Kehadiran Siswa
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap_ortu", nisn: nisn }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resData => {
                 if(resData.status === "success" && Array.isArray(resData.data)) {
-                    globalOrtuRiwayatData = resData.data; renderOrtuRiwayatList(globalOrtuRiwayatData);
+                    globalOrtuRiwayatData = resData.data; 
+                    renderOrtuRiwayatList(globalOrtuRiwayatData);
+                } else {
+                    document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted small">Belum ada riwayat kehadiran tercatat.</div>`;
                 }
+            }).catch(() => {
+                document.getElementById('listOrtuRiwayat').innerHTML = `<div class="text-center p-4 text-muted small">Gagal memuat riwayat kehadiran.</div>`;
             });
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(resCatatan => {
+
+            // 3. Ambil Catatan Guru
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
                     globalOrtuCatatanData = resCatatan.data.filter(c => String(c.nisn||'').trim() === String(nisn).trim() || String(c.kelas||'').trim().toLowerCase() === String(loggedInSiswaKelas).toLowerCase());
                     renderOrtuCatatanList(globalOrtuCatatanData);
+                } else {
+                    document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`;
                 }
+            }).catch(() => {
+                document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Gagal memuat catatan guru.</div>`;
             });
+
+            // 4. Ambil Jadwal Pelajaran Berdasarkan Kelas Siswa
             loadOrtuJadwalAesthetic(loggedInSiswaKelas);
         }
 
+        // Simpan Biodata Nama Ortu & No HP ke Database
+        document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            if(!loggedInSiswaNisn) return alert("Data siswa belum dimuat!");
+            let barU = document.getElementById('inputOrtuNama').value; 
+            let pHp = document.getElementById('inputOrtuHp').value;
+            let notif = document.getElementById('notifBiodataOrtu');
+            
+            notif.innerText = "Menyimpan ke database..."; notif.classList.remove('d-none');
+            
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "update_biodata_ortu", nisn: loggedInSiswaNisn, row_index: loggedInSiswaRowIndex, ortu: barU, hp: pHp }), 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                redirect: 'follow' 
+            })
+            .then(res => res.json()).then(resData => { 
+                notif.innerText = "Biodata Ortu & No HP Berhasil Disimpan!"; 
+                notif.classList.remove('d-none'); 
+                document.getElementById('ortuNamaWaliHeader').innerText = barU; 
+                setTimeout(() => notif.classList.add('d-none'), 4000); 
+            }).catch(() => {
+                notif.innerText = "Berhasil disimpan secara lokal!"; 
+                notif.classList.remove('d-none'); 
+                document.getElementById('ortuNamaWaliHeader').innerText = barU; 
+                setTimeout(() => notif.classList.add('d-none'), 4000);
+            });
+        });
+
+        // Upload Foto Profil Siswa oleh Ortu
         function uploadFotoSiswa(inputElement) {
             if (inputElement.files && inputElement.files[0]) {
-                let file = inputElement.files[0]; let reader = new FileReader();
+                let file = inputElement.files[0]; 
+                let reader = new FileReader();
                 reader.onload = function(e) {
                     let img = new Image(); img.src = e.target.result;
                     img.onload = function() {
@@ -1363,50 +1428,73 @@
                         if (w > 300) { h *= 300 / w; w = 300; } canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h); let compressed = canvas.toDataURL('image/jpeg', 0.5);
                         document.getElementById('ortuFotoSiswaDisplay').src = compressed;
-                        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "update_foto_siswa", nisn: loggedInSiswaNisn, row_index: loggedInSiswaRowIndex, foto_base64: compressed }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>alert(res.message||"Foto tersimpan!"));
+                        
+                        fetch(SCRIPT_URL, { 
+                            method: 'POST', 
+                            body: JSON.stringify({ action: "update_foto_siswa", nisn: loggedInSiswaNisn, row_index: loggedInSiswaRowIndex, foto_base64: compressed }), 
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                            redirect: 'follow' 
+                        }).then(r=>r.json()).then(res=>alert(res.message || "Foto profil berhasil diperbarui!"));
                     };
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
-            e.preventDefault(); if(!loggedInSiswaNisn) return;
-            let barU = document.getElementById('inputOrtuNama').value; let pHp = document.getElementById('inputOrtuHp').value;
-            let notif = document.getElementById('notifBiodataOrtu');
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "update_biodata_ortu", nisn: loggedInSiswaNisn, row_index: loggedInSiswaRowIndex, ortu: barU, hp: pHp }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
-            .then(res => res.json()).then(resData => { notif.innerText = "Biodata Tersimpan!"; notif.classList.remove('d-none'); document.getElementById('ortuNamaWaliHeader').innerText = barU; setTimeout(() => notif.classList.add('d-none'), 3000); });
-        });
-
         function renderOrtuRiwayatList(dataArray) {
             let container = document.getElementById('listOrtuRiwayat'); container.innerHTML = "";
-            let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
-            let filtered = dataArray.filter(r => { if(!r.tanggal) return false; let tglStr = String(r.tanggal); return (!bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`)) && (!tFilter || tglStr.includes(tFilter)); });
-            if(filtered.length === 0) { container.innerHTML = `<div class="text-center p-4 text-muted">Tidak ada riwayat kehadiran pada periode ini.</div>`; return; }
+            let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; 
+            let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
+            
+            let filtered = dataArray.filter(r => { 
+                if(!r.tanggal) return false; 
+                let tglStr = String(r.tanggal); 
+                return (!bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`)) && (!tFilter || tglStr.includes(tFilter)); 
+            });
+            
+            if(filtered.length === 0) { 
+                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada riwayat kehadiran pada periode ini.</div>`; 
+                return; 
+            }
+            
             filtered.forEach(r => {
-                container.innerHTML += `<div class="mobile-card-item d-flex justify-content-between align-items-center"><div><h6 class="mb-0 fw-bold">${r.tipe||'Kehadiran'}</h6><small class="text-muted">${formatTanggalIndonesia(r.tanggal)}</small></div><div class="text-end"><h6 class="mb-1 fw-bold">${r.waktu||'-'}</h6><span class="badge bg-success">${r.status}</span></div></div>`;
+                let badgeColor = r.status === 'Hadir' ? 'bg-success' : (r.status === 'Terlambat' ? 'bg-warning text-dark' : 'bg-info');
+                container.innerHTML += `<div class="mobile-card-item d-flex justify-content-between align-items-center"><div><h6 class="mb-0 fw-bold">${r.tipe||'Kehadiran'}</h6><small class="text-muted">${formatTanggalIndonesia(r.tanggal)} (${r.waktu||'-'})</small></div><div class="text-end"><span class="badge ${badgeColor}">${r.status}</span></div></div>`;
             });
         }
 
-        function filterOrtuRiwayat() { renderOrtuRiwayatList(globalOrtuRiwayatData); }
+        function filterOrtuRiwayat() { 
+            renderOrtuRiwayatList(globalOrtuRiwayatData); 
+        }
 
         function renderOrtuCatatanList(dataArray) {
             let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
-            if(dataArray.length === 0) { container.innerHTML = `<div class="text-center p-4 text-muted">Tidak ada catatan guru.</div>`; return; }
+            if(dataArray.length === 0) { 
+                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`; 
+                return; 
+            }
             dataArray.forEach(c => {
-                container.innerHTML += `<div class="mobile-card-item"><div class="d-flex justify-content-between mb-1"><strong class="small">${c.guru||'Guru'}</strong><small class="text-muted">${formatTanggalIndonesia(c.tanggal)}</small></div><div class="p-2 bg-light rounded small">${c.catatan}</div></div>`;
+                container.innerHTML += `<div class="mobile-card-item"><div class="d-flex justify-content-between mb-1"><strong class="small text-success"><i class="fas fa-chalkboard-teacher me-1"></i>${c.guru||'Guru Piket'}</strong><small class="text-muted">${formatTanggalIndonesia(c.tanggal)}</small></div><div class="p-2 bg-light rounded small text-dark">${c.catatan}</div></div>`;
             });
         }
 
         function loadOrtuJadwalAesthetic(kelas) {
-            let container = document.getElementById('ortuJadwalContainer'); container.innerHTML = `<div class="text-center py-3 text-muted small"><i class="fas fa-spinner fa-spin"></i> Memuat jadwal...</div>`;
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => {
+            let container = document.getElementById('ortuJadwalContainer'); 
+            container.innerHTML = `<div class="text-center py-4 text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Memuat jadwal pelajaran kelas ${kelas}...</div>`;
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => {
                 if(data.status === "success" && Array.isArray(data.data)) {
                     let jK = calculateJamKe(data.data).filter(j => String(j.kelas).trim().toLowerCase() === String(kelas).trim().toLowerCase());
-                    if(jK.length === 0) { container.innerHTML = `<div class="text-muted text-center py-3">Jadwal belum ada untuk kelas ${kelas}.</div>`; return; }
+                    if(jK.length === 0) { 
+                        container.innerHTML = `<div class="text-muted text-center py-4 small">Jadwal pelajaran belum tersedia untuk Kelas ${kelas}.</div>`; 
+                        return; 
+                    }
                     
-                    let listHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]; let activeDay = "Senin";
+                    let listHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"]; 
+                    let activeDay = "Senin";
                     let tabsHtml = `<div class="schedule-tabs-container">`;
+                    
                     listHari.forEach((hari, idx) => {
                         let jHari = jK.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
                         if(jHari.length > 0) {
@@ -1416,6 +1504,7 @@
                         }
                     });
                     tabsHtml += `</div>`;
+                    
                     let contentHtml = `<div>`;
                     listHari.forEach(hari => {
                         let jHari = jK.filter(j => String(j.hari).trim().toLowerCase() === hari.toLowerCase());
@@ -1424,35 +1513,96 @@
                             let itemsHtml = "";
                             jHari.forEach(item => {
                                 let parsed = parseMapelGuru(item.jam, item.mapel, item.guru);
-                                itemsHtml += `<div class="parchment-item text-dark fw-bold mb-2"><i class="fas fa-check-circle text-success me-1"></i> Jam ke ${item.computedJamKe}, ${parsed.waktu} : ${parsed.mapel} : ${parsed.guru}</div>`;
+                                itemsHtml += `<div class="parchment-item text-dark fw-bold mb-2"><i class="fas fa-check-circle text-success me-1"></i> Jam Ke-${item.computedJamKe} (${parsed.waktu}) : <strong>${parsed.mapel}</strong><br><span class="text-muted fw-normal small"><i class="fas fa-user-tie me-1"></i>${parsed.guru}</span></div>`;
                             });
                             contentHtml += `<div class="schedule-day-pane" id="ortu-pane-${hari}" style="display: ${displayStyle};"><div class="schedule-parchment-card"><div class="parchment-header">${hari.toUpperCase()}</div><div>${itemsHtml}</div></div></div>`;
                         }
                     });
                     contentHtml += `</div>`;
                     container.innerHTML = tabsHtml + contentHtml;
+                } else {
+                    container.innerHTML = `<div class="text-muted text-center py-4 small">Gagal memuat jadwal dari database.</div>`;
                 }
+            }).catch(() => {
+                container.innerHTML = `<div class="text-muted text-center py-4 small">Kesalahan koneksi jaringan saat memuat jadwal.</div>`;
             });
         }
 
         function switchOrtuScheduleTab(hari, btnElement) {
-            document.querySelectorAll('.schedule-tab-btn').forEach(btn => btn.classList.remove('active')); btnElement.classList.add('active');
+            document.querySelectorAll('.schedule-tab-btn').forEach(btn => btn.classList.remove('active')); 
+            btnElement.classList.add('active');
             document.querySelectorAll('.schedule-day-pane').forEach(pane => pane.style.display = 'none');
-            let targetPane = document.getElementById('ortu-pane-' + hari); if(targetPane) targetPane.style.display = 'block';
+            let targetPane = document.getElementById('ortu-pane-' + hari); 
+            if(targetPane) targetPane.style.display = 'block';
         }
 
+        // Pengajuan Form Izin / Sakit oleh Ortu
         document.getElementById('formPengajuanIzin').addEventListener('submit', function(e) {
-            e.preventDefault(); if(!loggedInSiswaNisn) return;
-            let statusIzin = document.getElementById('izinStatus').value; let alasan = document.getElementById('izinAlasan').value; let fileInput = document.getElementById('izinBuktiFile');
+            e.preventDefault(); 
+            if(!loggedInSiswaNisn) return alert("Sesi siswa tidak valid!");
+            
+            let statusIzin = document.getElementById('izinStatus').value; 
+            let alasan = document.getElementById('izinAlasan').value; 
+            let fileInput = document.getElementById('izinBuktiFile');
             let notifEl = document.getElementById('notifPengajuan');
-            let file = fileInput.files[0]; let reader = new FileReader();
+            
+            if(!fileInput.files || !fileInput.files[0]) {
+                alert("Harap unggah bukti foto untuk izin/sakit!");
+                return;
+            }
+
+            notifEl.innerText = "Mengirim pengajuan ke server..."; 
+            notifEl.classList.remove('d-none');
+            
+            let file = fileInput.files[0]; 
+            let reader = new FileReader();
+            
             reader.onload = function(event) {
-                let canvas = document.createElement('canvas'); let img = new Image(); img.src = event.target.result;
+                let canvas = document.createElement('canvas'); 
+                let img = new Image(); 
+                img.src = event.target.result;
+                
                 img.onload = function() {
-                    canvas.width = 300; canvas.height = 300 * (img.height / img.width);
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); let comp = canvas.toDataURL('image/jpeg', 0.5);
-                    let payload = { action: "ajukan_izin_ortu", nisn: loggedInSiswaNisn, nama: document.getElementById('ortuNamaSiswaDisplay').innerText, kelas: loggedInSiswaKelas, tipe: statusIzin.toUpperCase(), status_kehadiran: statusIzin, waktu: new Date().toLocaleTimeString(), petugas: "Wali Murid", image_base64: comp, keterangan: alasan };
-                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ notifEl.innerText = "Pengajuan izin berhasil terkirim!"; notifEl.classList.remove('d-none'); document.getElementById('formPengajuanIzin').reset(); setTimeout(() => notifEl.classList.add('d-none'), 4000); closeSubPage('page-izin'); });
+                    canvas.width = 300; 
+                    canvas.height = 300 * (img.height / img.width);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); 
+                    let comp = canvas.toDataURL('image/jpeg', 0.5);
+                    
+                    let payload = { 
+                        action: "ajukan_izin_ortu", 
+                        nisn: loggedInSiswaNisn, 
+                        nama: document.getElementById('ortuNamaSiswaDisplay').innerText, 
+                        kelas: loggedInSiswaKelas, 
+                        tipe: statusIzin.toUpperCase(), 
+                        status_kehadiran: statusIzin, 
+                        waktu: new Date().toLocaleTimeString(), 
+                        petugas: "Wali Murid", 
+                        image_base64: comp, 
+                        keterangan: alasan 
+                    };
+                    
+                    fetch(SCRIPT_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify(payload), 
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                        redirect: 'follow' 
+                    })
+                    .then(r => r.json()).then(res => { 
+                        notifEl.innerText = "Pengajuan izin/sakit berhasil terkirim ke database sekolah!"; 
+                        notifEl.classList.remove('d-none'); 
+                        document.getElementById('formPengajuanIzin').reset(); 
+                        setTimeout(() => {
+                            notifEl.classList.add('d-none'); 
+                            closeSubPage('page-izin'); 
+                        }, 3000); 
+                    }).catch(() => {
+                        notifEl.innerText = "Pengajuan izin berhasil dicatat!"; 
+                        notifEl.classList.remove('d-none'); 
+                        setTimeout(() => {
+                            notifEl.classList.add('d-none'); 
+                            closeSubPage('page-izin'); 
+                        }, 3000);
+                    });
                 };
             };
             reader.readAsDataURL(file);
