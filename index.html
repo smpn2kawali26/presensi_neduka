@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - DATABASE MAPPING FIX)
+     FILE: index.html (FULL 100% FINAL - LOCKED & HAPUS DATA FIX)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -1173,7 +1173,28 @@
 
         function fetchPengumumanData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalPengumumanData = data.data; let tB = document.getElementById('tablePengumumanBody'); tB.innerHTML=""; globalPengumumanData.forEach(p => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(p.tanggal)}</td><td class="fw-bold">${p.judul}</td><td>${p.isi}</td><td class="text-center">${p.pembuat}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_pengumuman', ${p.row_index}, 'Pengumuman')"><i class="fas fa-trash"></i></button></td></tr>`; }); } }); }
         function openModalTambahPengumuman() { let j = prompt("Judul Pengumuman:"); let i = prompt("Isi Pengumuman:"); if(j && i) { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "tambah_pengumuman", judul: j, isi: i, pembuat: "Admin" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message); fetchPengumumanData(); }); } }
-        function hapusRowData(actionName, rowIndex, label) { if(confirm(`Yakin hapus ${label}?`)) { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: actionName, row_index: rowIndex }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r => r.json()).then(res => { alert(res.message); location.reload(); }); } }
+        
+        // FUNGSI PERBAIKAN HAPUS ROW DATA (TANPA RELOAD HALAMAN)
+        function hapusRowData(actionName, rowIndex, label) { 
+            if(confirm(`Yakin hapus ${label}?`)) { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: actionName, row_index: rowIndex }), 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    redirect: 'follow' 
+                })
+                .then(r => r.json())
+                .then(res => { 
+                    alert(res.message); 
+                    if(actionName === 'hapus_pengumuman') fetchPengumumanData();
+                    if(actionName === 'hapus_siswa') fetchSiswaData();
+                    if(actionName === 'hapus_guru') fetchGuruData();
+                    if(actionName === 'hapus_jadwal') fetchJadwalData();
+                    if(actionName === 'hapus_catatan') fetchCatatanData();
+                    if(actionName === 'hapus_rekap') fetchRekapData();
+                }); 
+            } 
+        }
 
         function gantiPasswordAdmin() {
             let passBaru = document.getElementById('newAdminPassword').value;
