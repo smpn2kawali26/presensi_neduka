@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Absensi Terpadu - SMP N 2 Kawali</title>
+    <title>Portal Absensi Terpadu - SMP N 2 KAWALI</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
@@ -822,25 +822,38 @@
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
 
-        // FITUR UNDUH EXCEL MENGGUNAKAN HTML TABLE (.XLS) AGAR OTOMATIS TERPISAH KE KOLOM-KOLOMNYA
+        // FUNGSI UNDUH EXCEL (.XLS HTML TABLE) DENGAN KETERANGAN BULAN & TAHUN
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
             if(siswaKelas.length === 0) { alert("Tidak ada siswa di kelas " + selectedKelas); return; }
 
-            let activeMonth = document.getElementById('adminFilterBulanRekap') ? document.getElementById('adminFilterBulanRekap').value : "08";
+            let activeMonthNum = document.getElementById('adminFilterBulanRekap') ? document.getElementById('adminFilterBulanRekap').value : "08";
             let activeYear = document.getElementById('adminFilterTahunRekap') ? document.getElementById('adminFilterTahunRekap').value : "2026";
-            let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonth), 0).getDate();
+            
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            let activeMonthName = monthNames[parseInt(activeMonthNum) - 1] || "Agustus";
+
+            let daysInMonth = new Date(parseInt(activeYear), parseInt(activeMonthNum), 0).getDate();
 
             let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-            html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: center; font-family: Arial, sans-serif; font-size: 11pt; } .nama { text-align: left; }</style></head>`;
+            html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid black; padding: 5px; text-align: center; font-family: Arial, sans-serif; font-size: 11pt; } .nama { text-align: left; } .title-main { font-size: 14pt; font-weight: bold; border: none; } .title-sub { font-size: 12pt; font-weight: bold; border: none; } .title-info { font-size: 11pt; border: none; text-align: left; font-weight: bold; }</style></head>`;
             html += `<body>`;
             html += `<table>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-size: 14pt; font-weight: bold; border: none;">SMP N 2 KAWALI</td></tr>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-size: 12pt; font-weight: bold; border: none;">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" class="title-main">SMP N 2 KAWALI</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 4}" class="title-sub">DAFTAR HADIR PRESENSI HARIAN SISWA KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            
+            html += `<tr>`;
+            html += `<td colspan="3" class="title-info">BULAN</td>`;
+            html += `<td colspan="${2 + daysInMonth + 4}" class="title-info">: ${activeMonthName.toUpperCase()}</td>`;
+            html += `</tr>`;
+            html += `<tr>`;
+            html += `<td colspan="3" class="title-info">TAHUN</td>`;
+            html += `<td colspan="${2 + daysInMonth + 4}" class="title-info">: ${activeYear}</td>`;
+            html += `</tr>`;
+
             html += `<tr><td colspan="${5 + daysInMonth + 4}" style="border: none;"></td></tr>`;
 
-            // Header Tabel
             html += `<tr style="background-color: #d9d9d9; font-weight: bold;">`;
             html += `<th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
             for(let d = 1; d <= 31; d++) {
@@ -849,7 +862,6 @@
             html += `<th>H</th><th>S</th><th>I</th><th>A</th>`;
             html += `</tr>`;
 
-            // Data Siswa & Kehadiran per Tanggal
             siswaKelas.forEach((s, idx) => {
                 let lk = String(s.gender || 'L').toUpperCase();
                 html += `<tr>`;
@@ -863,7 +875,7 @@
 
                 for(let d = 1; d <= 31; d++) {
                     let dayStr = d.toString().padStart(2, '0');
-                    let targetDatePattern = `${dayStr} Agustus ${activeYear}`;
+                    let targetDatePattern = `${dayStr} ${activeMonthName} ${activeYear}`;
                     
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
@@ -896,9 +908,8 @@
 
             let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
-            let a = document.createElement('a'); a.href = url; a.download = `Format_Presensi_Harian_Kelas_${selectedKelas}.xls`;
+            let a = document.createElement('a'); a.href = url; a.download = `Presensi_Harian_Kelas_${selectedKelas}_${activeMonthName}_${activeYear}.xls`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            alert(`File Excel Format Presensi Harian Kelas ${selectedKelas} berhasil diunduh dalam bentuk tabel rapi (otomatis terpisah per kolom)!`);
         }
 
         function renderRincianKelasTable(siswaData, rekapData) {
