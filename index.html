@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - IDE 2 RIWAYAT ORTU TABEL RINGKAS & AUDIO PETUGAS)
+     FILE: index.html (FULL 100% FINAL - FIX TABEL JAM, BEL SEPEDA, TOMBOL PETUGAS & IZIN SAKIT PISAH)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -353,9 +353,11 @@
                         <h4 class="fw-bold mb-4">Setting Waktu Absen & Batas Masuk</h4>
                         <div class="card card-custom"><div class="card-body">
                             <form id="formSettingWaktu">
-                                <div class="mb-3"><label class="form-label">Batas Masuk Tepat Waktu</label><input type="time" class="form-control" id="waktuMasuk" required></div>
-                                <div class="mb-3"><label class="form-label">Batas Toleransi Terlambat (Wajib Foto)</label><input type="time" class="form-control" id="waktuToleransi" required></div>
-                                <div class="mb-3"><label class="form-label">Jam Boleh Pulang</label><input type="time" class="form-control" id="waktuPulang" required></div>
+                                <div class="mb-3"><label class="form-label">Jam Buka Absen Masuk</label><input type="time" class="form-control" id="waktuMulaiMasuk" required></div>
+                                <div class="mb-3"><label class="form-label">Batas Akhir Absen Masuk (Tutup)</label><input type="time" class="form-control" id="waktuAkhirMasuk" required></div>
+                                <div class="mb-3"><label class="form-label">Batas Toleransi Terlambat Masuk</label><input type="time" class="form-control" id="waktuToleransi" required></div>
+                                <div class="mb-3"><label class="form-label">Jam Buka Absen Pulang</label><input type="time" class="form-control" id="waktuMulaiPulang" required></div>
+                                <div class="mb-3"><label class="form-label">Batas Akhir Absen Pulang (Tutup)</label><input type="time" class="form-control" id="waktuAkhirPulang" required></div>
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Pengaturan Waktu ke Database</button>
                             </form>
                             <div id="notifWaktu" class="mt-2 d-none alert alert-success small"></div>
@@ -431,8 +433,8 @@
                     </div>
                     <button class="btn btn-sm btn-outline-secondary rounded-pill mb-2" onclick="switchCamera()"><i class="fas fa-sync-alt me-1"></i> Putar Kamera</button>
                     <div class="row g-2 mt-1">
-                        <div class="col-6"><button class="btn btn-success w-100 fw-bold py-2 shadow-sm" style="font-size: 0.85rem; border-radius: 10px;" onclick="prosesAbsen('MASUK')"><i class="fas fa-sign-in-alt me-1"></i> MASUK</button></div>
-                        <div class="col-6"><button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" style="font-size: 0.85rem; border-radius: 10px; background-color: var(--secondary-bg);" onclick="prosesAbsen('PULANG')"><i class="fas fa-sign-out-alt me-1"></i> PULANG</button></div>
+                        <div class="col-6"><button class="btn btn-success w-100 fw-bold py-2 shadow-sm" id="btnPetugasMasuk" style="font-size: 0.85rem; border-radius: 10px;" onclick="prosesAbsen('MASUK')"><i class="fas fa-sign-in-alt me-1"></i> MASUK</button></div>
+                        <div class="col-6"><button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" id="btnPetugasPulang" style="font-size: 0.85rem; border-radius: 10px; background-color: var(--secondary-bg);" onclick="prosesAbsen('PULANG')"><i class="fas fa-sign-out-alt me-1"></i> PULANG</button></div>
                     </div>
                     <div id="absenNotif" class="mt-2 d-none alert py-2 small fw-bold"></div>
                 </div>
@@ -517,13 +519,16 @@
                         </div>
                     </div>
                 </div>
-                <!-- STATISTIK RINGKAS BULANAN -->
+                
+                <!-- IDE 2: STATISTIK RINGKAS BULANAN (Izin & Sakit Terpisah) -->
                 <div class="row g-2 mb-3" id="ortuStatistikRingkasan">
-                    <div class="col-3"><div class="p-2 bg-success text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Hadir</span><h5 class="fw-bold m-0" id="statHadir">0</h5></div></div>
-                    <div class="col-3"><div class="p-2 bg-warning text-dark rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Telat</span><h5 class="fw-bold m-0" id="statTelat">0</h5></div></div>
-                    <div class="col-3"><div class="p-2 bg-info text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Izin/Sakit</span><h5 class="fw-bold m-0" id="statIzinSakit">0</h5></div></div>
-                    <div class="col-3"><div class="p-2 bg-danger text-white rounded text-center shadow-sm"><span class="d-small" style="font-size:0.65rem;">Alpa</span><h5 class="fw-bold m-0" id="statAlpa">0</h5></div></div>
+                    <div class="col"><div class="p-2 bg-success text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0" id="statHadir">0</h5></div></div>
+                    <div class="col"><div class="p-2 bg-warning text-dark rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Telat</span><h5 class="fw-bold m-0" id="statTelat">0</h5></div></div>
+                    <div class="col"><div class="p-2 bg-info text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Izin</span><h5 class="fw-bold m-0" id="statIzin">0</h5></div></div>
+                    <div class="col"><div class="p-2 bg-secondary text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Sakit</span><h5 class="fw-bold m-0" id="statSakit">0</h5></div></div>
+                    <div class="col"><div class="p-2 bg-danger text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Alpa</span><h5 class="fw-bold m-0" id="statAlpa">0</h5></div></div>
                 </div>
+                
                 <!-- IDE 2: TABEL MATRIKS BULANAN RINGKAS -->
                 <div class="card border-0 shadow-sm bg-white rounded-4 overflow-hidden">
                     <div class="table-responsive" style="max-height: 60vh;">
@@ -615,28 +620,47 @@
         let loggedInSiswaNisn = null;
         let loggedInSiswaKelas = null;
         let loggedInSiswaRowIndex = null;
-        let schoolConfig = { lat_sekolah: -7.1895, lng_sekolah: 108.3421, radius_sekolah: 200, waktu_masuk: "07:00", waktu_toleransi: "07:15", waktu_pulang: "14:00" };
+        
+        // KONFIGURASI DEFAULT WAKTU ABSEN
+        let schoolConfig = { 
+            lat_sekolah: -7.1895, 
+            lng_sekolah: 108.3421, 
+            radius_sekolah: 200, 
+            waktu_mulai_masuk: "06:00", 
+            waktu_akhir_masuk: "07:30", 
+            waktu_toleransi: "07:15", 
+            waktu_mulai_pulang: "14:00", 
+            waktu_akhir_pulang: "16:00" 
+        };
         let paginationState = { siswa: { page: 1, limit: 10 }, guru: { page: 1, limit: 10 }, rekap: { page: 1, limit: 10 }, laporan: { page: 1, limit: 10 }, catatan: { page: 1, limit: 10 } };
         
         if(document.getElementById('inputTanggalAbsen')) {
             document.getElementById('inputTanggalAbsen').value = new Date().toISOString().split('T')[0];
         }
 
-        // Fungsi Audio Beep Penanda Absen Tersimpan
+        // FUNGSI BEL SEPEDA (Kring-Kring!)
         function playSuccessBeep() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.15);
-                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.3);
+                function ring(time) {
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc1.type = 'sine'; osc1.frequency.setValueAtTime(1800, time);
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(2200, time);
+                    
+                    gain.gain.setValueAtTime(0, time);
+                    gain.gain.linearRampToValueAtTime(0.5, time + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
+                    
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+                    osc1.start(time); osc1.stop(time + 0.15);
+                    osc2.start(time); osc2.stop(time + 0.15);
+                }
+                // Dua kali dentingan seperti bel sepeda
+                ring(audioCtx.currentTime);
+                ring(audioCtx.currentTime + 0.12);
             } catch(e) {
                 console.log("Audio context not supported", e);
             }
@@ -650,15 +674,20 @@
                     if(d.lat_sekolah) schoolConfig.lat_sekolah = parseFloat(d.lat_sekolah);
                     if(d.lng_sekolah) schoolConfig.lng_sekolah = parseFloat(d.lng_sekolah);
                     if(d.radius_sekolah) schoolConfig.radius_sekolah = parseInt(d.radius_sekolah);
-                    if(d.waktu_masuk) schoolConfig.waktu_masuk = d.waktu_masuk;
+                    if(d.waktu_mulai_masuk) schoolConfig.waktu_mulai_masuk = d.waktu_mulai_masuk;
+                    if(d.waktu_akhir_masuk) schoolConfig.waktu_akhir_masuk = d.waktu_akhir_masuk;
                     if(d.waktu_toleransi) schoolConfig.waktu_toleransi = d.waktu_toleransi;
-                    if(d.waktu_pulang) schoolConfig.waktu_pulang = d.waktu_pulang;
+                    if(d.waktu_mulai_pulang) schoolConfig.waktu_mulai_pulang = d.waktu_mulai_pulang;
+                    if(d.waktu_akhir_pulang) schoolConfig.waktu_akhir_pulang = d.waktu_akhir_pulang;
+                    
                     if(document.getElementById('lokasiLat')) document.getElementById('lokasiLat').value = schoolConfig.lat_sekolah;
                     if(document.getElementById('lokasiLng')) document.getElementById('lokasiLng').value = schoolConfig.lng_sekolah;
                     if(document.getElementById('lokasiRadius')) document.getElementById('lokasiRadius').value = schoolConfig.radius_sekolah;
-                    if(document.getElementById('waktuMasuk')) document.getElementById('waktuMasuk').value = schoolConfig.waktu_masuk;
+                    if(document.getElementById('waktuMulaiMasuk')) document.getElementById('waktuMulaiMasuk').value = schoolConfig.waktu_mulai_masuk;
+                    if(document.getElementById('waktuAkhirMasuk')) document.getElementById('waktuAkhirMasuk').value = schoolConfig.waktu_akhir_masuk;
                     if(document.getElementById('waktuToleransi')) document.getElementById('waktuToleransi').value = schoolConfig.waktu_toleransi;
-                    if(document.getElementById('waktuPulang')) document.getElementById('waktuPulang').value = schoolConfig.waktu_pulang;
+                    if(document.getElementById('waktuMulaiPulang')) document.getElementById('waktuMulaiPulang').value = schoolConfig.waktu_mulai_pulang;
+                    if(document.getElementById('waktuAkhirPulang')) document.getElementById('waktuAkhirPulang').value = schoolConfig.waktu_akhir_pulang;
                 }
             }).catch(err => console.log("Gagal ambil setting:", err));
         }
@@ -697,6 +726,18 @@
             try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
         }
         
+        // FUNGSI UNTUK MENAMPILKAN HANYA JAM SAJA
+        function extractTime(timeStr) {
+            if (!timeStr || timeStr === '-') return '-';
+            // Jika format bawaan Google Sheet 1899-12-30T07:26:48.000Z
+            let matchISO = String(timeStr).match(/T(\d{2}:\d{2})/);
+            if (matchISO && matchISO[1]) return matchISO[1];
+            // Jika format standar HH:MM:SS
+            let timeMatch = String(timeStr).match(/(\d{2}:\d{2})/);
+            if (timeMatch && timeMatch[1]) return timeMatch[1];
+            return String(timeStr).substring(0, 5);
+        }
+
         function parseMapelGuru(jam, mapel, guru) {
             let w = mapel || '-'; let m = jam || '-'; let g = (guru && String(guru).trim() !== '' && guru !== '-') ? guru : '-';
             if(g === '-' && m.includes(' - ')) { let parts = m.split(' - '); m = parts[0].trim(); g = parts.slice(1).join(' - ').trim(); }
@@ -754,14 +795,44 @@
             }
         });
 
+        // JAM DIGITAL & KONTROL AKTIVASI TOMBOL PETUGAS
         function updateClock() {
             const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
+            const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const timeStr = jamStr + ':' + now.getSeconds().toString().padStart(2, '0');
             const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
             if(document.getElementById('jamDigitalLogin')) document.getElementById('jamDigitalLogin').innerText = timeStr;
             if(document.getElementById('tanggalDigitalLogin')) document.getElementById('tanggalDigitalLogin').innerText = dateStr;
             if(document.getElementById('jamDigitalDashboard')) document.getElementById('jamDigitalDashboard').innerText = timeStr;
-        } setInterval(updateClock, 1000); updateClock();
+
+            // KONTROL TOMBOL ABSEN DI DASHBOARD PETUGAS
+            if(document.getElementById('dashboard-petugas').classList.contains('active')) {
+                const btnM = document.getElementById('btnPetugasMasuk');
+                const btnP = document.getElementById('btnPetugasPulang');
+                
+                if (btnM) {
+                    if (jamStr >= schoolConfig.waktu_mulai_masuk && jamStr <= schoolConfig.waktu_akhir_masuk) {
+                        btnM.disabled = false;
+                        btnM.innerHTML = `<i class="fas fa-sign-in-alt me-1"></i> MASUK`;
+                    } else {
+                        btnM.disabled = true;
+                        btnM.innerHTML = `<i class="fas fa-lock me-1"></i> MASUK (TUTUP)`;
+                    }
+                }
+                
+                if (btnP) {
+                    if (jamStr >= schoolConfig.waktu_mulai_pulang && jamStr <= schoolConfig.waktu_akhir_pulang) {
+                        btnP.disabled = false;
+                        btnP.innerHTML = `<i class="fas fa-sign-out-alt me-1"></i> PULANG`;
+                    } else {
+                        btnP.disabled = true;
+                        btnP.innerHTML = `<i class="fas fa-lock me-1"></i> PULANG (TUTUP)`;
+                    }
+                }
+            }
+        } 
+        setInterval(updateClock, 1000); updateClock();
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -925,7 +996,7 @@
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.waktu || '-'}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
+            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
             renderPaginationControls(dataArray.length, 'rekap', 'paginationRekapContainer');
         }
 
@@ -1073,16 +1144,29 @@
             });
         });
 
+        // SIMPAN SETTING WAKTU PETUGAS BARU KE DATABASE
         document.getElementById('formSettingWaktu').addEventListener('submit', function(e) {
             e.preventDefault();
-            schoolConfig.waktu_masuk = document.getElementById('waktuMasuk').value;
+            schoolConfig.waktu_mulai_masuk = document.getElementById('waktuMulaiMasuk').value;
+            schoolConfig.waktu_akhir_masuk = document.getElementById('waktuAkhirMasuk').value;
             schoolConfig.waktu_toleransi = document.getElementById('waktuToleransi').value;
-            schoolConfig.waktu_pulang = document.getElementById('waktuPulang').value;
-            let payload = { action: "simpan_setting_umum", settings: { waktu_masuk: schoolConfig.waktu_masuk, waktu_toleransi: schoolConfig.waktu_toleransi, waktu_pulang: schoolConfig.waktu_pulang } };
+            schoolConfig.waktu_mulai_pulang = document.getElementById('waktuMulaiPulang').value;
+            schoolConfig.waktu_akhir_pulang = document.getElementById('waktuAkhirPulang').value;
+            
+            let payload = { 
+                action: "simpan_setting_umum", 
+                settings: { 
+                    waktu_mulai_masuk: schoolConfig.waktu_mulai_masuk,
+                    waktu_akhir_masuk: schoolConfig.waktu_akhir_masuk,
+                    waktu_toleransi: schoolConfig.waktu_toleransi, 
+                    waktu_mulai_pulang: schoolConfig.waktu_mulai_pulang,
+                    waktu_akhir_pulang: schoolConfig.waktu_akhir_pulang 
+                } 
+            };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 let notif = document.getElementById('notifWaktu');
-                notif.innerText = "Batas waktu dan jam pulang tersimpan ke Database!"; notif.classList.remove('d-none');
+                notif.innerText = "Konfigurasi buka/tutup absen tersimpan ke Database!"; notif.classList.remove('d-none');
                 setTimeout(() => notif.classList.add('d-none'), 4000);
             });
         });
@@ -1291,6 +1375,7 @@
             });
         });
 
+        // VALIDASI ABSEN HANYA 1X SEHARI (MASUK/PULANG)
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1306,11 +1391,6 @@
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const todayStr = now.toISOString().split('T')[0];
 
-            if (tipe === 'PULANG' && jamStr < schoolConfig.waktu_pulang) {
-                alert(`Belum waktunya pulang! Jam pulang sekolah diatur pada pukul ${schoolConfig.waktu_pulang}.`);
-                return;
-            }
-
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
@@ -1320,7 +1400,7 @@
             });
 
             if (isAlreadyAbsen) {
-                alert(`Siswa ${selectedSiswaData.nama} sudah melakukan absensi ${tipe} hari ini!`);
+                alert(`Siswa ${selectedSiswaData.nama} SUDAH tercatat absen ${tipe} hari ini!`);
                 return;
             }
 
@@ -1541,13 +1621,12 @@
                 let statusVal = String(item.status || '-');
 
                 if(tipe.includes('MASUK') || tipe.includes('HADIR') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
-                    groupedByDate[cleanDate].masuk = waktuVal;
+                    groupedByDate[cleanDate].masuk = extractTime(waktuVal);
                     groupedByDate[cleanDate].status = statusVal;
                 } else if(tipe.includes('PULANG')) {
-                    groupedByDate[cleanDate].pulang = waktuVal;
+                    groupedByDate[cleanDate].pulang = extractTime(waktuVal);
                 } else {
-                    // Default jika tipe tidak spesifik
-                    if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = waktuVal;
+                    if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = extractTime(waktuVal);
                     groupedByDate[cleanDate].status = statusVal;
                 }
             });
@@ -1555,7 +1634,7 @@
             let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
             tbody.innerHTML = "";
 
-            let countH = 0, countT = 0, countI_S = 0, countA = 0;
+            let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
 
             if(dates.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
@@ -1564,9 +1643,11 @@
                     let d = groupedByDate[dateStr];
                     let st = String(d.status).trim();
                     let badgeClass = 'bg-success';
+                    
                     if(st.toLowerCase().includes('terlambat')) { badgeClass = 'bg-warning text-dark'; countT++; }
                     else if(st.toLowerCase().includes('hadir')) { countH++; }
-                    else if(st.toLowerCase().includes('izin') || st.toLowerCase().includes('sakit')) { badgeClass = 'bg-info text-white'; countI_S++; }
+                    else if(st.toLowerCase().includes('izin')) { badgeClass = 'bg-info text-white'; countI++; }
+                    else if(st.toLowerCase().includes('sakit')) { badgeClass = 'bg-secondary text-white'; countS++; }
                     else if(st.toLowerCase().includes('alpa')) { badgeClass = 'bg-danger'; countA++; }
                     else { countH++; }
 
@@ -1581,10 +1662,11 @@
                 });
             }
 
-            // Update Statistik Kartu Ringkasan
+            // Update Statistik Kartu Ringkasan (Izin & Sakit Terpisah)
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
             if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
-            if(document.getElementById('statIzinSakit')) document.getElementById('statIzinSakit').innerText = countI_S;
+            if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
+            if(document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
             if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
 
