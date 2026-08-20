@@ -1,3 +1,6 @@
+<!-- ==========================================
+     FILE: index.html
+     ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -191,12 +194,47 @@
                     <!-- SECTION BERANDA -->
                     <div id="section-beranda" class="content-section active">
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Selamat Datang, <span class="profil-nama">Administrator Utama</span>!</h4>
-                        <div class="row">
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-primary text-white"><h6><i class="fas fa-users"></i> Total Siswa</h6><h3 id="dashTotalSiswa">0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-success text-white"><h6><i class="fas fa-check-circle"></i> Hadir Hari Ini</h6><h3 id="dashTotalHadir">0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-warning text-dark"><h6><i class="fas fa-exclamation-triangle"></i> Terlambat</h6><h3 id="dashTotalTelat">0</h3></div></div>
-                            <div class="col-md-3"><div class="card card-custom p-3 bg-danger text-white"><h6><i class="fas fa-times-circle"></i> Alpa/Izin</h6><h3 id="dashTotalAlpa">0</h3></div></div>
+                        
+                        <!-- CARD DASHBOARD (DIPERBARUI MENJADI 6 KOTAK TERPISAH) -->
+                        <div class="row g-3">
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-primary text-white h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-users mb-1 d-block fs-5"></i> Total Siswa</h6>
+                                    <h3 id="dashTotalSiswa" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-success text-white h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-check-circle mb-1 d-block fs-5"></i> Hadir Hari Ini</h6>
+                                    <h3 id="dashTotalHadir" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-warning text-dark h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-exclamation-triangle mb-1 d-block fs-5"></i> Terlambat</h6>
+                                    <h3 id="dashTotalTelat" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-info text-white h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-envelope-open-text mb-1 d-block fs-5"></i> Izin</h6>
+                                    <h3 id="dashTotalIzin" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-secondary text-white h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-briefcase-medical mb-1 d-block fs-5"></i> Sakit</h6>
+                                    <h3 id="dashTotalSakit" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-2">
+                                <div class="card card-custom p-3 bg-danger text-white h-100 text-center">
+                                    <h6 class="small"><i class="fas fa-times-circle mb-1 d-block fs-5"></i> Alpa</h6>
+                                    <h3 id="dashTotalAlpa" class="fw-bold m-0">0</h3>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="card card-custom p-4 mt-4">
                             <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-table me-2"></i>Rincian Rekap Absensi Per Kelas (Hari Ini)</h5>
                             <div class="table-responsive">
@@ -702,7 +740,21 @@
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
 
-        function fetchSiswaData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalSiswaData = data.data; listSiswaAbsen = data.data; document.getElementById('dashTotalSiswa').innerText = data.data.length; renderAdminSiswaTable(globalSiswaData); renderRincianKelasTable(globalSiswaData, globalRekapData); populateFilterKelasDropdown(); populateModalDropdowns(); } }); }
+        function fetchSiswaData() { 
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json()).then(data => { 
+                if(data.status === "success" && Array.isArray(data.data)) { 
+                    globalSiswaData = data.data; 
+                    listSiswaAbsen = data.data; 
+                    document.getElementById('dashTotalSiswa').innerText = data.data.length; 
+                    renderAdminSiswaTable(globalSiswaData); 
+                    renderRincianKelasTable(globalSiswaData, globalRekapData); 
+                    populateFilterKelasDropdown(); 
+                    populateModalDropdowns(); 
+                } 
+            }); 
+        }
+
         function renderAdminSiswaTable(dataArray) {
             let tBody = document.getElementById('tableSiswaBody'); if(!tBody) return;
             let state = paginationState.siswa; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
@@ -740,7 +792,63 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
 
-        function fetchRekapData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalRekapData = data.data; let totalH = 0, totalT = 0; globalRekapData.forEach(r => { if(r.status === 'Hadir') totalH++; else if(r.status === 'Terlambat') totalT++; }); document.getElementById('dashTotalHadir').innerText = totalH; document.getElementById('dashTotalTelat').innerText = totalT; document.getElementById('dashTotalAlpa').innerText = globalSiswaData.length - (totalH + totalT); filterAdminRekap(); filterLaporan(); renderDashboardCharts(globalRekapData); renderRincianKelasTable(globalSiswaData, globalRekapData); renderRealtimeKelasSummary(globalRekapData); } }); }
+        // FUNGSI PERBAIKAN LOGIKA REKAP DATA (Untuk mengisi Dashboard Card)
+        function fetchRekapData() { 
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(res => res.json())
+            .then(data => { 
+                if(data.status === "success" && Array.isArray(data.data)) { 
+                    globalRekapData = data.data; 
+                    
+                    let totalH = 0, totalT = 0, totalI = 0, totalS = 0, totalA = 0; 
+                    
+                    let today = new Date();
+                    let todayStr1 = today.toLocaleDateString('id-ID'); // cth: 20/08/2026
+                    let todayStr2 = today.toDateString(); 
+                    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    let todayStr3 = (today.getDate() < 10 ? '0' : '') + today.getDate() + ' ' + monthNames[today.getMonth()] + ' ' + today.getFullYear();
+                    let todayStr4 = today.getDate() + ' ' + monthNames[today.getMonth()] + ' ' + today.getFullYear();
+
+                    // Loop hanya untuk membaca data murni dari database HARI INI
+                    globalRekapData.forEach(r => { 
+                        let tgl = String(r.tanggal);
+                        let isToday = false;
+                        
+                        let d = new Date(tgl);
+                        if (!isNaN(d.getTime()) && d.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                            isToday = true;
+                        } else if (tgl.includes(todayStr1) || tgl.includes(todayStr2) || tgl.includes(todayStr3) || tgl.includes(todayStr4)) {
+                            isToday = true;
+                        }
+                        
+                        if (isToday) {
+                            let st = String(r.status).trim().toUpperCase();
+                            let tp = String(r.tipe).trim().toUpperCase();
+                            
+                            if (st === 'HADIR') totalH++; 
+                            else if (st === 'TERLAMBAT') totalT++; 
+                            else if (st === 'ALPA') totalA++;
+                            else if (st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) totalI++;
+                            else if (st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) totalS++;
+                        }
+                    }); 
+
+                    // Update UI Dashboard Card
+                    if(document.getElementById('dashTotalHadir')) document.getElementById('dashTotalHadir').innerText = totalH; 
+                    if(document.getElementById('dashTotalTelat')) document.getElementById('dashTotalTelat').innerText = totalT; 
+                    if(document.getElementById('dashTotalIzin')) document.getElementById('dashTotalIzin').innerText = totalI;
+                    if(document.getElementById('dashTotalSakit')) document.getElementById('dashTotalSakit').innerText = totalS;
+                    if(document.getElementById('dashTotalAlpa')) document.getElementById('dashTotalAlpa').innerText = totalA;
+                    
+                    filterAdminRekap(); 
+                    filterLaporan(); 
+                    renderDashboardCharts(globalRekapData); 
+                    renderRincianKelasTable(globalSiswaData, globalRekapData); 
+                    renderRealtimeKelasSummary(globalRekapData); 
+                } 
+            }); 
+        }
+
         function filterAdminRekap() { let b = document.getElementById('adminFilterBulanRekap').value; let th = document.getElementById('adminFilterTahunRekap').value; let filtered = globalRekapData.filter(r => { let tgl = String(r.tanggal || ''); let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08'; let matchTh = !th || tgl.includes(th); return matchB && matchTh; }); renderAdminRekapTable(filtered); }
         function renderAdminRekapTable(dataArray) {
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
@@ -797,47 +905,56 @@
             let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
             html += `<head><meta charset="utf-8"/><style>table { border-collapse: collapse; } th, td { border: 1px solid black; padding: 5px; text-align: center; } .nama { text-align: left; }</style></head>`;
             html += `<body><table>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-weight:bold; font-size:14pt;">SMP N 2 KAWALI</td></tr>`;
-            html += `<tr><td colspan="${5 + daysInMonth + 4}" style="font-weight:bold;">DAFTAR HADIR KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 6}" style="font-weight:bold; font-size:14pt;">SMP N 2 KAWALI</td></tr>`;
+            html += `<tr><td colspan="${5 + daysInMonth + 6}" style="font-weight:bold;">DAFTAR HADIR KELAS ${selectedKelas.toUpperCase()}</td></tr>`;
             html += `<tr><td colspan="3">BULAN</td><td colspan="5">: ${activeMonthName.toUpperCase()}</td></tr>`;
             html += `<tr><td colspan="3">TAHUN</td><td colspan="5">: ${activeYear}</td></tr><tr><td></td></tr>`;
             
+            // Header: Menambahkan AO (%) dan AP (KET)
             html += `<tr style="background-color: #d9d9d9;"><th>NO</th><th>NISN</th><th>NIS</th><th>NAMA SISWA</th><th>L/P</th>`;
             for(let d=1; d<=31; d++) html += `<th>${d <= daysInMonth ? d : ''}</th>`;
-            html += `<th>H</th><th>S</th><th>I</th><th>A</th></tr>`;
+            html += `<th>H</th><th>S</th><th>I</th><th>A</th><th>AO (%)</th><th>AP (KET)</th></tr>`;
 
             siswaKelas.forEach((s, idx) => {
-                let lk = String(s.gender || s.l_k || 'L').toUpperCase(); // PERBAIKAN 1: Coba 'gender' atau 'l_k' untuk data Sheets
-                html += `<tr><td>${idx+1}</td><td>&nbsp;${s.nisn||'-'}</td><td>&nbsp;${s.id_siswa||'-'}</td><td class="nama">${s.nama||'-'}</td><td>${lk}</td>`;
+                // Sel L/K dinamis mengambil dari database
+                var lkValue = s.gender ? String(s.gender).trim().toUpperCase() : '-';
+                html += `<tr><td>${idx+1}</td><td>&nbsp;${s.nisn||'-'}</td><td>&nbsp;${s.id_siswa||'-'}</td><td class="nama">${s.nama||'-'}</td><td>${lkValue}</td>`;
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
 
                 for(let d=1; d<=31; d++) {
                     let dayStr = d.toString().padStart(2, '0');
-                    let targetDatePattern = `${dayStr} ${activeMonthName} ${activeYear}`; // Format: '01 Agustus 2026'
+                    let targetDatePattern = `${dayStr} ${activeMonthName} ${activeYear}`;
 
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
-                        // Masalah 1: `r.tanggal` mungkin dalam format yang berbeda (misalnya, objek Tanggal JS, atau format DD/MM/YYYY dari Google Sheets, atau format formatTanggalIndonesia)
-                        // Masalah 2: `targetDatePattern` adalah format Indonesia yang dibuat secara manual.
-
-                        // Asumsi: `r.tanggal` yang dikembalikan dari `get_rekap` mungkin dalam format formatTanggalIndonesia karena formatTanggalIndonesia() dipanggil di tempat lain.
-                        // Format formatTanggalIndonesia(): 'Senin, 01 Agustus 2026'
-                        
-                        let matchTgl = String(r.tanggal).includes(dayStr) || String(r.tanggal).includes(targetDatePattern);
+                        let matchTgl = String(r.tanggal).includes(targetDatePattern);
                         return matchNisn && matchTgl;
                     });
 
                     let statusKode = "";
                     if(absenMatch && d <= daysInMonth) {
-                        if(absenMatch.status === 'Hadir' || absenMatch.status === 'Terlambat') { statusKode = "H"; countH++; }
-                        else if(absenMatch.tipe === 'IZIN') { statusKode = "I"; countI++; }
-                        else if(absenMatch.tipe === 'SAKIT') { statusKode = "S"; countS++; }
+                        let st = String(absenMatch.status).toUpperCase();
+                        let tp = String(absenMatch.tipe).toUpperCase();
+
+                        if(st === 'HADIR' || st === 'TERLAMBAT') { statusKode = "H"; countH++; }
+                        else if(tp === 'IZIN' || st === 'IZIN' || st.includes('IZIN')) { statusKode = "I"; countI++; }
+                        else if(tp === 'SAKIT' || st === 'SAKIT' || st.includes('SAKIT')) { statusKode = "S"; countS++; }
+                        else if(st === 'ALPA') { statusKode = "A"; countA++; }
                     }
                     html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
                 
-                html += `<td>${countH}</td><td>${countS}</td><td>${countI}</td><td>${countA}</td></tr>`;
+                // Menambahkan ringkasan H,S,I,A
+                html += `<td>${countH}</td><td>${countS}</td><td>${countI}</td><td>${countA}</td>`;
+
+                // Logika Presentase (H/TotalHadir) dan Keterangan
+                var totalHadir = countH;
+                var totalStatus = countH + countS + countI + countA;
+                var presentase = totalStatus > 0 ? ((totalHadir / totalStatus) * 100).toFixed(1) : 0;
+                var keterangan = presentase < 80 ? 'Perlu Perhatian' : 'Baik'; // Contoh logika sederhana
+
+                html += `<td>${presentase}%</td><td>${keterangan}</td></tr>`;
             });
 
             html += `</table></body></html>`;
