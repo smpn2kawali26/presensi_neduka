@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - ORANG TUA CONNECTED DATABASE)
+     FILE: index.html (FULL 100% FINAL - ADMIN, PETUGAS DENGAN AUDIO, & ORTU)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -134,6 +134,7 @@
             <div class="text-center p-3 text-muted small" style="font-size: 0.75rem;"><i class="fas fa-lock text-success me-1"></i> Koneksi Aman & Terhubung Real-Time Database</div>
         </div>
     </div>
+
     <!-- DASHBOARD ADMIN -->
     <div id="dashboard-admin" class="dashboard-container">
         <div id="wrapper">
@@ -583,6 +584,26 @@
         
         if(document.getElementById('inputTanggalAbsen')) {
             document.getElementById('inputTanggalAbsen').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Fungsi Audio Beep Penanda Absen Tersimpan
+        function playSuccessBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nada tinggi (A5)
+                oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.15);
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {
+                console.log("Audio context not supported", e);
+            }
         }
 
         function fetchSettingSekolah() {
@@ -1272,10 +1293,12 @@
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
+                playSuccessBeep(); // Bunyi beep penanda sukses tersimpan
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; notif.innerText = `SUKSES! ${selectedSiswaData.nama} (${tipe === 'MASUK' ? statusKehadiran : 'Pulang'})`;
                 fetchRekapDataForPetugas();
                 setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
             }).catch(e => { 
+                playSuccessBeep(); // Bunyi beep penanda sukses tersimpan
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
                 notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; 
                 fetchRekapDataForPetugas(); 
@@ -1304,7 +1327,7 @@
                     let matchKelas = String(item.kelas || '').trim().toUpperCase() === kelas.toUpperCase();
                     let st = String(item.status || item.status_kehadiran || '').trim().toLowerCase();
                     let tp = String(item.tipe || '').trim().toUpperCase();
-                    let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h' || tp === 'MASUK';
+                    let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h' || tp === 'MASUK' || tp === 'PULANG';
                     
                     let tglStr = String(item.tanggal || '');
                     let dItem = new Date(tglStr);
@@ -1449,17 +1472,25 @@
             let filtered = dataArray.filter(r => { 
                 if(!r.tanggal) return false; 
                 let tglStr = String(r.tanggal); 
-                return (!bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`)) && (!tFilter || tglStr.includes(tFilter)); 
+                if (!bFilter && !tFilter) return true;
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.toLowerCase().includes('agustus') && bFilter === '08';
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                return matchBulan && matchTahun;
             });
             
+            if(filtered.length === 0 && dataArray.length > 0) {
+                filtered = dataArray;
+            }
+            
             if(filtered.length === 0) { 
-                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada riwayat kehadiran pada periode ini.</div>`; 
+                container.innerHTML = `<div class="text-center p-4 text-muted small">Belum ada riwayat kehadiran tercatat.</div>`; 
                 return; 
             }
             
             filtered.forEach(r => {
-                let badgeColor = r.status === 'Hadir' ? 'bg-success' : (r.status === 'Terlambat' ? 'bg-warning text-dark' : 'bg-info');
-                container.innerHTML += `<div class="mobile-card-item d-flex justify-content-between align-items-center"><div><h6 class="mb-0 fw-bold">${r.tipe||'Kehadiran'}</h6><small class="text-muted">${formatTanggalIndonesia(r.tanggal)} (${r.waktu||'-'})</small></div><div class="text-end"><span class="badge ${badgeColor}">${r.status}</span></div></div>`;
+                let badgeColor = r.status === 'Hadir' ? 'bg-success' : (r.status === 'Terlambat' ? 'bg-warning text-dark' : (String(r.tipe).toUpperCase() === 'PULANG' ? 'bg-primary' : 'bg-info'));
+                let tipeLabel = r.tipe || 'Kehadiran';
+                container.innerHTML += `<div class="mobile-card-item d-flex justify-content-between align-items-center"><div><h6 class="mb-0 fw-bold">${tipeLabel}</h6><small class="text-muted">${formatTanggalIndonesia(r.tanggal)} (${r.waktu||'-'})</small></div><div class="text-end"><span class="badge ${badgeColor}">${r.status || r.tipe || 'Tercatat'}</span></div></div>`;
             });
         }
 
