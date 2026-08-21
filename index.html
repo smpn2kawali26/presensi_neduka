@@ -592,45 +592,42 @@
         </div>
     </div>
 
-    <!-- DASHBOARD GURU (TEACHER) - DANA STYLE -->
-    <div id="dashboard-teacher" class="dashboard-container">
-        <div class="mobile-app-wrapper" style="background-color: #f5f5f5;">
-            <div class="dana-header-bg">
+    <!-- DASHBOARD GURU / TEACHER -->
+    <div id="dashboard-teacher" class="dashboard-container" style="display:none;">
+        <div class="mobile-app-wrapper" style="background-color: #f8f9fa; min-height: 100vh;">
+            <!-- Header -->
+            <div class="dana-header-bg p-3 text-white rounded-bottom-4 shadow-sm" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <span class="text-white-50 small d-block">Portal Guru & Pengajar</span>
-                        <h5 class="fw-bold m-0 text-white" id="teacherNameDisplay">Nama Guru</h5>
+                        <h5 class="fw-bold m-0" id="teacherNameDisplay">Nama Guru</h5>
                     </div>
-                    <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutTeacher()">
-                        <i class="fas fa-sign-out-alt me-1"></i> Keluar
-                    </button>
+                    <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutTeacher()">Keluar</button>
                 </div>
             </div>
-            <div class="dana-profile-card">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-dark" style="font-size: 0.9rem;">Rekap Kehadiran Real-Time</span>
-                    <span class="badge bg-primary">Hari Ini</span>
-                </div>
-                <div id="teacherRealtimeSummary" class="row g-2 text-center mt-2">
-                    <div class="text-muted small">Memuat data...</div>
+
+            <!-- Profil & Statistik Ringkas -->
+            <div class="px-3 mt-3">
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white">
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fas fa-chart-pie me-1 text-primary"></i> Statistik Kehadiran Hari Ini</span>
+                    <div id="teacherRealtimeSummary" class="row g-2 text-center mt-2">
+                        <!-- Terisi otomatis oleh script -->
+                    </div>
                 </div>
             </div>
-            
-            <div class="px-3 mb-2"><h6 class="fw-bold text-dark mb-2 px-1" style="font-size: 0.95rem;">Mode Akses Guru</h6></div>
-            <div class="dana-menu-grid">
-                <button class="dana-menu-item active" id="btnTabWali" onclick="switchTeacherTab('wali')">
-                    <div class="dana-icon-box bg-success bg-opacity-10 text-success"><i class="fas fa-user-shield"></i></div>
-                    <span class="fw-bold text-dark" style="font-size: 0.8rem;">Wali Kelas</span>
-                </button>
-                <button class="dana-menu-item" id="btnTabMapel" onclick="switchTeacherTab('mapel')">
-                    <div class="dana-icon-box bg-info bg-opacity-10 text-info"><i class="fas fa-book"></i></div>
-                    <span class="fw-bold text-dark" style="font-size: 0.8rem;">Guru Mapel</span>
-                </button>
+
+            <!-- Menu Pilihan Peran Dinamis (Kepsek / Wali Kelas / Mapel) -->
+            <div class="px-3 mt-3">
+                <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Pilih Menu Akses</h6>
+                <div class="dana-menu-grid d-grid gap-2" style="grid-template-columns: repeat(3, 1fr);">
+                    <!-- Tombol menu akan otomatis muncul sesuai tugas guru di Sheet -->
+                </div>
             </div>
-            
-            <div class="px-3 mb-4">
-                <div class="card border-0 shadow-sm p-3 bg-white rounded-4" id="teacherContentArea">
-                    <!-- Dinamis terisi dari JS -->
+
+            <!-- Area Konten Dinamis Berdasarkan Menu yang Dipilih -->
+            <div class="px-3 mt-3 mb-5">
+                <div class="card border-0 shadow-sm p-3 bg-white rounded-4" id="teacherContentArea" style="min-height: 250px;">
+                    <!-- Konten interaktif guru -->
                 </div>
             </div>
         </div>
@@ -1879,148 +1876,235 @@
         });
 
         // ==========================================
-        // FUNGSI GURU (TEACHER) BARU 
+        // FUNGSI GURU (TEACHER) BARU (TERINTEGRASI KEPSEK, WALI, MAPEL)
         // ==========================================
-
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
-            loggedInTeacherData = data;
-            document.getElementById('teacherNameDisplay').innerText = data.name || data.nama || nip;
+            loggedInTeacherData = data; 
             
-            // Fetch Rekap Untuk Summary Guru
+            let elName = document.getElementById('teacherNameDisplay');
+            if(elName) elName.innerText = data.name || nip;
+            
+            let tugas = (data.tugas || "").toLowerCase();
+            let menuGrid = document.querySelector('#dashboard-teacher .dana-menu-grid');
+            if(!menuGrid) return;
+            
+            menuGrid.innerHTML = ""; 
+            
+            let isKepsek = tugas.includes("kepala sekolah");
+            let isWali = tugas.includes("wali kelas");
+            
+            // Ekstraksi kelas binaan jika Wali Kelas (Contoh: "Wali Kelas 8A" -> "8A")
+            if (isWali) {
+                let parts = data.tugas.split(" ");
+                loggedInTeacherData.kelas_binaan = parts.slice(2).join(" ").trim() || "7A";
+            }
+            
+            // Render tombol menu sesuai hak akses di Sheet
+            if (isKepsek) {
+                menuGrid.innerHTML += `
+                    <button class="btn btn-outline-danger p-2 d-flex flex-column align-items-center rounded-3 shadow-sm" onclick="switchTeacherTab('kepsek')">
+                        <i class="fas fa-user-tie mb-1 fs-5"></i>
+                        <span class="fw-bold" style="font-size: 0.75rem;">Kepala Sekolah</span>
+                    </button>`;
+            }
+            if (isWali) {
+                menuGrid.innerHTML += `
+                    <button class="btn btn-outline-success p-2 d-flex flex-column align-items-center rounded-3 shadow-sm" onclick="switchTeacherTab('wali')">
+                        <i class="fas fa-user-shield mb-1 fs-5"></i>
+                        <span class="fw-bold" style="font-size: 0.75rem;">Wali Kelas (${loggedInTeacherData.kelas_binaan})</span>
+                    </button>`;
+            }
+            menuGrid.innerHTML += `
+                <button class="btn btn-outline-info p-2 d-flex flex-column align-items-center rounded-3 shadow-sm text-dark" onclick="switchTeacherTab('mapel')">
+                    <i class="fas fa-book mb-1 fs-5 text-info"></i>
+                    <span class="fw-bold" style="font-size: 0.75rem;">Guru Mapel</span>
+                </button>`;
+            
+            // Tentukan tab aktif pertama kali
+            if (isKepsek) switchTeacherTab('kepsek');
+            else if (isWali) switchTeacherTab('wali');
+            else switchTeacherTab('mapel');
+            
+            // Ambil data rekap untuk ringkasan statistik
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r=>r.json()).then(res => {
-                if(res.status==="success" && Array.isArray(res.data)){
+            .then(r => r.json()).then(res => {
+                if(res.status === "success" && Array.isArray(res.data)){
                     globalRekapData = res.data;
                     renderTeacherRealtimeSummary();
                 }
             });
+        }
+
+        function switchTeacherTab(tab) {
+            let contentArea = document.getElementById('teacherContentArea');
+            if(!contentArea) return;
             
-            if(globalSiswaData.length === 0) fetchSiswaData();
-            
-            switchTeacherTab('wali');
+            if(tab === 'kepsek') {
+                contentArea.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-danger"><i class="fas fa-chart-line me-2"></i>Monitoring Kepala Sekolah</h6>
+                    <div class="alert alert-light border small">
+                        <strong>Akses Aktif:</strong> Anda dapat memantau seluruh rekapitulasi absensi seluruh kelas secara transparan.
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-danger btn-sm fw-bold" onclick="alert('Fitur Broadcast Pengumuman terhubung ke sistem utama.')"><i class="fas fa-bullhorn me-1"></i> Buat Pengumuman Sekolah</button>
+                    </div>
+                `;
+            } else if(tab === 'wali') {
+                let kelasBinaan = loggedInTeacherData.kelas_binaan || "7A";
+                contentArea.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-success"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Daftar Siswa Izin / Sakit (Dengan Foto)</label>
+                        <div id="listIzinWaliContainer" class="border rounded p-2 bg-light small" style="max-height: 200px; overflow-y: auto;">
+                            Memuat data izin siswa...
+                        </div>
+                    </div>
+                    <div class="mb-2 mt-3">
+                        <label class="form-label small text-muted fw-bold">Kirim Catatan ke Kelas ${kelasBinaan}</label>
+                        <textarea id="tWaliCatatan" class="form-control form-control-sm bg-light" rows="2" placeholder="Tulis catatan wali kelas..."></textarea>
+                    </div>
+                    <button class="btn btn-success w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanWaliKelas('${kelasBinaan}')">Kirim Catatan Wali Kelas</button>
+                `;
+                loadIzinSakitWaliKelas(kelasBinaan);
+            } else {
+                contentArea.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-info"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${loggedInTeacherData.mapel || 'Umum'})</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Kelas</label>
+                        <select id="tMapelKelas" class="form-select form-select-sm" onchange="populateSiswaMapel(this.value)"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Pilih Siswa</label>
+                        <select id="tMapelSiswa" class="form-select form-select-sm"><option value="">-- Pilih Siswa --</option></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">Catatan Private Siswa</label>
+                        <textarea id="tMapelCatatan" class="form-control form-control-sm bg-light" rows="2" placeholder="Catatan perkembangan belajar..."></textarea>
+                    </div>
+                    <button class="btn btn-info text-white w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanGuruMapel()">Simpan Catatan Mapel</button>
+                `;
+                populateMapelDropdowns();
+            }
         }
 
         function renderTeacherRealtimeSummary() {
             let container = document.getElementById('teacherRealtimeSummary');
-            let totalH = 0, totalT = 0, totalI = 0, totalS = 0, totalA = 0;
-            let today = new Date();
+            if(!container || globalRekapData.length === 0) return;
             
-            globalRekapData.forEach(r => {
-                 let tglStr = String(r.tanggal || '');
-                 let isToday = false;
-                 let dItem = new Date(tglStr);
-                 
-                 if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) isToday = true;
-                 else if(tglStr.includes(today.getDate()) || tglStr.includes(today.toLocaleDateString('id-ID'))) isToday = true;
-                 
-                 if(isToday) {
-                     let st = String(r.status).toUpperCase();
-                     let tp = String(r.tipe).toUpperCase();
-                     if(st === 'HADIR' || st === 'H' || tp === 'MASUK') totalH++;
-                     else if(st === 'TERLAMBAT') totalT++;
-                     else if(st.includes('IZIN') || tp === 'IZIN') totalI++;
-                     else if(st.includes('SAKIT') || tp === 'SAKIT') totalS++;
-                     else if(st === 'ALPA') totalA++;
-                 }
-            });
+            let today = new Date().toLocaleDateString('id-ID');
+            let rekapToday = globalRekapData.filter(r => String(r.tanggal).includes(today) || String(r.tanggal).includes(new Date().toISOString().split('T')[0]));
+            
+            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir').length;
+            let izin = rekapToday.filter(r => String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')).length;
+            let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             container.innerHTML = `
-                <div class="col-4"><div class="p-2 border rounded bg-success text-white shadow-sm"><span class="d-block fw-bold fs-5">${totalH}</span><small style="font-size:0.65rem;">Hadir</small></div></div>
-                <div class="col-4"><div class="p-2 border rounded bg-warning text-dark shadow-sm"><span class="d-block fw-bold fs-5">${totalT}</span><small style="font-size:0.65rem;">Telat</small></div></div>
-                <div class="col-4"><div class="p-2 border rounded bg-info text-white shadow-sm"><span class="d-block fw-bold fs-5">${totalI+totalS}</span><small style="font-size:0.65rem;">Izin/Sakit</small></div></div>
+                <div class="col-4">
+                    <div class="p-2 border rounded bg-light">
+                        <span class="text-muted d-block" style="font-size: 0.7rem;">Hadir</span>
+                        <h6 class="fw-bold text-success m-0">${hadir}</h6>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 border rounded bg-light">
+                        <span class="text-muted d-block" style="font-size: 0.7rem;">Izin/Sakit</span>
+                        <h6 class="fw-bold text-warning m-0">${izin}</h6>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 border rounded bg-light">
+                        <span class="text-muted d-block" style="font-size: 0.7rem;">Alpa</span>
+                        <h6 class="fw-bold text-danger m-0">${alpa}</h6>
+                    </div>
+                </div>
             `;
         }
 
-        function switchTeacherTab(tab) {
-            document.getElementById('btnTabWali').classList.remove('active');
-            document.getElementById('btnTabMapel').classList.remove('active');
-            let contentArea = document.getElementById('teacherContentArea');
+        function loadIzinSakitWaliKelas(kelasBinaan) {
+            let container = document.getElementById('listIzinWaliContainer');
+            if(!container) return;
             
-            if(tab === 'wali') {
-                document.getElementById('btnTabWali').classList.add('active');
-                contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-success"><i class="fas fa-bullhorn me-2"></i>Catatan Wali Kelas (Publik)</h6>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Kelas Binaan</label>
-                        <select id="tWaliKelas" class="form-select form-select-sm"></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Siswa (Opsional)</label>
-                        <select id="tWaliSiswa" class="form-select form-select-sm"><option value="">-- Seluruh Siswa Kelas --</option></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Isi Catatan</label>
-                        <textarea id="tWaliCatatan" class="form-control form-control-sm bg-light" rows="3" placeholder="Tulis info kelas atau catatan untuk orang tua..."></textarea>
-                    </div>
-                    <button class="btn btn-success w-100 fw-bold shadow-sm mt-2 rounded-pill" onclick="kirimCatatanGuru('Wali Kelas', 'Publik')">Kirim Catatan Publik</button>
-                `;
-                populateTeacherDropdowns('tWaliKelas', 'tWaliSiswa');
-            } else {
-                document.getElementById('btnTabMapel').classList.add('active');
-                contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-info"><i class="fas fa-user-secret me-2"></i>Catatan Guru Mapel (Private)</h6>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Kelas yang Diajar</label>
-                        <select id="tMapelKelas" class="form-select form-select-sm"></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Siswa Target</label>
-                        <select id="tMapelSiswa" class="form-select form-select-sm"><option value="">-- Pilih Siswa --</option></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Isi Catatan Mapel</label>
-                        <textarea id="tMapelCatatan" class="form-control form-control-sm bg-light" rows="3" placeholder="Tulis perkembangan, pelanggaran, atau info private mapel..."></textarea>
-                    </div>
-                    <button class="btn btn-info text-white w-100 fw-bold shadow-sm mt-2 rounded-pill" onclick="kirimCatatanGuru('Guru Mapel', 'Private')">Simpan Catatan Private</button>
-                `;
-                populateTeacherDropdowns('tMapelKelas', 'tMapelSiswa');
+            let izinSakitSiswa = globalRekapData.filter(r => String(r.kelas).trim().toLowerCase() === kelasBinaan.toLowerCase() && (String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')));
+            
+            if(izinSakitSiswa.length === 0) {
+                container.innerHTML = `<span class="text-muted">Tidak ada siswa Izin/Sakit di kelas ${kelasBinaan}.</span>`;
+                return;
             }
-        }
-
-        function populateTeacherDropdowns(idKelas, idSiswa) {
-            let selK = document.getElementById(idKelas);
-            let selS = document.getElementById(idSiswa);
-            if(!selK || !selS || globalSiswaData.length === 0) return;
-            
-            let kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
-            selK.innerHTML = `<option value="">-- Pilih Kelas --</option>` + kelasList.map(k => `<option value="${k}">Kelas ${k}</option>`).join('');
-            
-            selK.addEventListener('change', function() {
-                let k = this.value;
-                let siswaKelas = globalSiswaData.filter(s => String(s.kelas) === k);
-                selS.innerHTML = (idKelas === 'tWaliKelas' ? `<option value="">-- Seluruh Siswa Kelas --</option>` : `<option value="">-- Pilih Siswa --</option>`) + 
-                                 siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
+            container.innerHTML = "";
+            izinSakitSiswa.forEach(item => {
+                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs btn-primary py-0 px-1" style="font-size:0.65rem;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
+                container.innerHTML += `
+                    <div class="p-2 mb-1 bg-white border rounded d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong style="font-size:0.8rem;">${item.nama}</strong> <span class="badge bg-warning text-dark" style="font-size:0.6rem;">${item.status}</span><br>
+                            <small class="text-muted" style="font-size:0.65rem;">${item.tanggal}</small>
+                        </div>
+                        <div>${fotoBukti}</div>
+                    </div>
+                `;
             });
         }
 
-        function kirimCatatanGuru(tipeGuru, sifatCatatan) {
-            let prefix = tipeGuru === 'Wali Kelas' ? 'tWali' : 'tMapel';
-            let kelas = document.getElementById(prefix + 'Kelas').value;
-            let nisn = document.getElementById(prefix + 'Siswa').value;
-            let isi = document.getElementById(prefix + 'Catatan').value;
+        function populateMapelDropdowns() {
+            let selK = document.getElementById('tMapelKelas');
+            if(!selK) return;
             
-            if(!kelas) return alert("Pilih kelas terlebih dahulu!");
-            if(tipeGuru === 'Guru Mapel' && !nisn) return alert("Pilih siswa untuk catatan private!");
-            if(!isi) return alert("Isi catatan tidak boleh kosong!");
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r => r.json()).then(res => {
+                if(res.status === "success" && Array.isArray(res.data)) {
+                    window.tempSiswaMapel = res.data;
+                    let kelasList = [...new Set(res.data.map(s => s.kelas))].filter(Boolean).sort();
+                    selK.innerHTML = `<option value="">-- Pilih Kelas --</option>` + kelasList.map(k => `<option value="${k}">Kelas ${k}</option>`).join('');
+                }
+            });
+        }
+
+        function populateSiswaMapel(kelas) {
+            let selS = document.getElementById('tMapelSiswa');
+            if(!selS || !window.tempSiswaMapel) return;
+            let siswaKelas = window.tempSiswaMapel.filter(s => String(s.kelas) === kelas);
+            selS.innerHTML = `<option value="">-- Pilih Siswa --</option>` + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
+        }
+
+        function kirimCatatanWaliKelas(kelasBinaan) {
+            let isi = document.getElementById('tWaliCatatan').value;
+            if(!isi) return alert("Catatan tidak boleh kosong!");
             
-            let tagPrivate = sifatCatatan === 'Private' ? '[PRIVATE MAPEL] ' : '';
             let payload = {
                  action: "tambah_catatan", 
-                 tanggal: new Date().toISOString().split('T')[0],
-                 nisn: nisn || "Semua Siswa",
-                 kelas: kelas,
-                 catatan: tagPrivate + isi,
-                 guru: loggedInTeacherData.name || loggedInTeacherNip
+                 nisn: "Semua Siswa",
+                 kelas: kelasBinaan,
+                 catatan: "[WALI KELAS] " + isi,
+                 guru: loggedInTeacherData.name
             };
             
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
             .then(r => r.json()).then(res => {
-                 alert("Catatan berhasil dikirim dan tersimpan di database!");
-                 document.getElementById(prefix + 'Catatan').value = "";
-            }).catch(e => {
-                 alert("Catatan berhasil dikirim!");
-                 document.getElementById(prefix + 'Catatan').value = "";
+                 alert("Catatan wali kelas berhasil dikirim!");
+                 document.getElementById('tWaliCatatan').value = "";
+            });
+        }
+
+        function kirimCatatanGuruMapel() {
+            let kelas = document.getElementById('tMapelKelas').value;
+            let nisn = document.getElementById('tMapelSiswa').value;
+            let isi = document.getElementById('tMapelCatatan').value;
+            
+            if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
+            
+            let payload = {
+                 action: "tambah_catatan", 
+                 nisn: nisn,
+                 kelas: kelas,
+                 catatan: "[MAPEL] " + isi,
+                 guru: loggedInTeacherData.name + " (" + (loggedInTeacherData.mapel || 'Mapel') + ")"
+            };
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r => r.json()).then(res => {
+                 alert("Catatan mapel berhasil disimpan!");
+                 document.getElementById('tMapelCatatan').value = "";
             });
         }
 
