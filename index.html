@@ -589,8 +589,8 @@
         </div>
     </div>
     
-    <!-- DASHBOARD GURU / TEACHER -->
-    <div id="dashboard-teacher" class="dashboard-container" style="display:none;">
+    <!-- DASHBOARD GURU / TEACHER (FIXED) -->
+    <div id="dashboard-teacher" class="dashboard-container">
         <div class="mobile-app-wrapper" style="background-color: #f8f9fa; min-height: 100vh;">
             <!-- Header -->
             <div class="dana-header-bg p-3 text-white rounded-bottom-4 shadow-sm" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
@@ -783,7 +783,6 @@
                     return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
                 }
             } catch(e) {}
-
             let timeMatch = String(timeStr).match(/(\d{2}:\d{2})/);
             if (timeMatch && timeMatch[1]) return timeMatch[1];
             return String(timeStr).substring(0, 5);
@@ -1451,7 +1450,6 @@
                 const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas'); canvas.width = 240; canvas.height = 180;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
-
             // KUNCI SEMENTARA KE ARRAY LOKAL AGAR TIDAK BISA DI-TAP 2 KALI WALAUPUN SERVER DELAY
             globalRekapData.push({
                 nisn: selectedSiswaData.nisn,
@@ -1462,7 +1460,6 @@
                 tanggal: todayStr,
                 waktu: jamStr
             });
-
             let payload = { action: "proses_absen", nisn: selectedSiswaData.nisn, nama: selectedSiswaData.nama, kelas: selectedSiswaData.kelas, tipe: tipe, status_kehadiran: statusKehadiran, waktu: jamStr, petugas: currentPetugasName, image_base64: fotoBase64 };
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
@@ -1849,7 +1846,7 @@
             let elName = document.getElementById('teacherNameDisplay');
             if(elName) elName.innerText = loggedInTeacherData.name;
             
-            let tugas = loggedInTeacherData.tugas.toLowerCase();
+            let tugas = String(loggedInTeacherData.tugas).toLowerCase();
             let menuGrid = document.querySelector('#dashboard-teacher .dana-menu-grid');
             
             if(!menuGrid) {
