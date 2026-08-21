@@ -89,14 +89,16 @@
         .siswa-avatar-container { position: relative; width: 60px; height: 60px; cursor: pointer; }
         .siswa-avatar-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .siswa-avatar-overlay { position: absolute; bottom: 0; right: 0; background: #1e3c72; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; border: 1px solid white; }
-        /* GAYA DASHBOARD TEACHER - DANA STYLE */
-        .dana-header-bg { background: #118eea; color: white; padding: 25px 20px 45px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; position: relative; }
-        .dana-profile-card { background: white; border-radius: 16px; padding: 20px; margin: -35px 20px 20px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); position: relative; z-index: 10; }
-        .dana-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px 20px 20px; }
-        .dana-menu-item { background: white; border: none; border-radius: 16px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease;}
-        .dana-menu-item:hover { transform: translateY(-3px); }
-        .dana-menu-item.active { border: 2px solid #118eea; background: #f0f8ff; }
-        .dana-icon-box { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 8px; }
+        
+        /* GAYA DASHBOARD TEACHER - SHOPEE STYLE */
+        #dashboard-teacher .mobile-app-wrapper { background-color: #fdfbf7; min-height: 100vh; }
+        .shopee-header-bg { background: linear-gradient(-180deg, #f53d2d, #ff6633); color: white; padding: 25px 20px 45px 20px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; position: relative; }
+        .shopee-menu-item { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555;}
+        .shopee-menu-item:hover { background-color: #fff5f1; transform: translateY(-2px); }
+        .shopee-menu-item.active { border: 2px solid #ee4d2d; background: #fff5f1; color: #ee4d2d !important; font-weight: bold; }
+        .shopee-btn { background-color: #ee4d2d; color: white; border: none; font-weight: bold; }
+        .shopee-btn:hover { background-color: #d73a1c; color: white; }
+        .shopee-text { color: #ee4d2d; }
     </style>
 </head>
 <body id="mainBody">
@@ -589,35 +591,38 @@
         </div>
     </div>
     
-    <!-- DASHBOARD GURU / TEACHER (FIXED) -->
+    <!-- DASHBOARD GURU / TEACHER (TEMA SHOPEE KHUSUS GURU) -->
     <div id="dashboard-teacher" class="dashboard-container">
-        <div class="mobile-app-wrapper" style="background-color: #f8f9fa; min-height: 100vh;">
-            <!-- Header -->
-            <div class="dana-header-bg p-3 text-white rounded-bottom-4 shadow-sm" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
+        <div class="mobile-app-wrapper position-relative">
+            <!-- Header Shopee Style -->
+            <div class="shopee-header-bg shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <span class="text-white-50 small d-block">Portal Guru & Pengajar</span>
                         <h5 class="fw-bold m-0" id="teacherNameDisplay">Nama Guru</h5>
                     </div>
-                    <button class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutTeacher()">Keluar</button>
+                    <button class="btn btn-sm bg-white text-danger fw-bold rounded-pill px-3 shadow-sm" onclick="logoutTeacher()">Keluar</button>
                 </div>
             </div>
-            <!-- Profil & Statistik Ringkas -->
-            <div class="px-3 mt-3">
+            
+            <!-- Profil & Statistik Ringkas (Terpisah Hadir/Izin/Sakit/Alpa) -->
+            <div class="px-3" style="margin-top: -30px; position: relative; z-index: 10;">
                 <div class="card border-0 shadow-sm p-3 rounded-4 bg-white">
-                    <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fas fa-chart-pie me-1 text-primary"></i> Statistik Kehadiran Hari Ini</span>
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fas fa-chart-pie me-1 shopee-text"></i> Statistik Kehadiran Hari Ini</span>
                     <div id="teacherRealtimeSummary" class="row g-2 text-center mt-2">
                         <!-- Terisi otomatis oleh script -->
                     </div>
                 </div>
             </div>
+            
             <!-- Menu Pilihan Peran Dinamis (Kepsek / Wali Kelas / Mapel) -->
             <div class="px-3 mt-3">
                 <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Pilih Menu Akses</h6>
                 <div class="dana-menu-grid d-grid gap-2" style="grid-template-columns: repeat(3, 1fr);">
-                    <!-- Tombol menu akan otomatis muncul -->
+                    <!-- Tombol menu akan otomatis muncul dengan class .shopee-menu-item -->
                 </div>
             </div>
+            
             <!-- Area Konten Dinamis Berdasarkan Menu yang Dipilih -->
             <div class="px-3 mt-3 mb-5">
                 <div class="card border-0 shadow-sm p-3 bg-white rounded-4" id="teacherContentArea" style="min-height: 250px;">
@@ -632,7 +637,7 @@
     <div class="modal fade" id="modalTambahGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="tambahGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="tambahGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tambahGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="tambahGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanTambahGuru()" class="btn btn-success w-100">Simpan Guru Baru</button></form></div></div></div></div>
     <div class="modal fade" id="modalEditSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><input type="hidden" id="editSiswaRowIndex"><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="editSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama</label><input type="text" class="form-control" id="editSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="editSiswaKelas" required></div><div class="mb-2"><label class="form-label">Ortu</label><input type="text" class="form-control" id="editSiswaOrtu"></div><div class="mb-2"><label class="form-label">HP</label><input type="text" class="form-control" id="editSiswaHp"></div><div class="mb-3"><label class="form-label">Wali</label><input type="text" class="form-control" id="editSiswaWali"></div><button type="button" onclick="simpanEditSiswa()" class="btn btn-primary w-100">Simpan Perubahan</button></form></div></div></div></div>
     
-    <!-- MODAL TAMBAH JADWAL DENGAN DROPDOWN KELAS & GURU -->
+    <!-- MODAL TAMBAH JADWAL -->
     <div class="modal fade" id="modalTambahJadwal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Tambah Jadwal Pelajaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">Hari</label><select class="form-select" id="tambahJadwalHari"><option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option></select></div><div class="mb-2"><label class="form-label">Kelas</label><select class="form-select" id="tambahJadwalKelas"><option value="" disabled selected>-- Pilih Kelas --</option></select></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahJadwalJam" required placeholder="Contoh: Matematika"></div><div class="mb-2"><label class="form-label">Waktu Jam Pelajaran</label><input type="text" class="form-control" id="tambahJadwalMapel" required placeholder="07:00 - 08:30"></div><div class="mb-3"><label class="form-label">Guru Pengajar</label><select class="form-select" id="tambahJadwalGuru"><option value="" disabled selected>-- Pilih Guru --</option></select></div><button type="button" onclick="simpanTambahJadwal()" class="btn btn-success w-100">Simpan Jadwal</button></form></div></div></div></div>
     
     <!-- MODAL PROFIL ADMIN -->
@@ -640,7 +645,7 @@
     <div class="modal fade" id="modalSettingFoto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Foto Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Unggah Foto Profil</label><input type="file" class="form-control" id="inputFotoAdminFile" accept="image/*"></div><button type="button" onclick="simpanFotoAdmin()" class="btn btn-info text-white w-100">Simpan Foto</button></div></div></div></div>
     <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Profil Sekolah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="inputNamaSekolahVal" value="SMP N 2 KAWALI"></div><button type="button" onclick="simpanProfilSekolah()" class="btn btn-success w-100">Simpan Profil</button></div></div></div></div>
     
-    <!-- SCRIPT UTAMA RAKSASA LENGKAP -->
+    <!-- SCRIPT UTAMA -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
@@ -706,9 +711,7 @@
                 }
                 ring(audioCtx.currentTime);
                 ring(audioCtx.currentTime + 0.12);
-            } catch(e) {
-                console.log("Audio context not supported", e);
-            }
+            } catch(e) {}
         }
         function fetchSettingSekolah() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_setting_sekolah" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
@@ -765,18 +768,14 @@
             if (!dateString) return "-";
             try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
         }
-        
-        // --- PERBAIKAN ZONA WAKTU / JAM ---
         function extractTime(timeStr) {
             if (!timeStr || timeStr === '-') return '-';
-            // Cek jika database menyimpan format ISO dengan zona UTC ("Z" atau "T")
             if (String(timeStr).includes('T') && String(timeStr).includes('Z')) {
                 try {
                     let d = new Date(timeStr);
                     return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
                 } catch(e) {}
             }
-            // Jika dikirim string waktu baku dari sheet, pastikan konversi aman
             try {
                 let d = new Date(timeStr);
                 if (!isNaN(d.getTime())) {
@@ -787,7 +786,6 @@
             if (timeMatch && timeMatch[1]) return timeMatch[1];
             return String(timeStr).substring(0, 5);
         }
-        
         function parseMapelGuru(jam, mapel, guru) {
             let w = mapel || '-'; let m = jam || '-'; let g = (guru && String(guru).trim() !== '' && guru !== '-') ? guru : '-';
             if(g === '-' && m.includes(' - ')) { let parts = m.split(' - '); m = parts[0].trim(); g = parts.slice(1).join(' - ').trim(); }
@@ -873,6 +871,7 @@
             }
         } 
         setInterval(updateClock, 1000); updateClock();
+        
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnLogin'); const err = document.getElementById('loginError');
@@ -922,6 +921,7 @@
                 } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
+        
         function fetchSiswaData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => { 
@@ -957,6 +957,7 @@
             let payload = { action: "edit_siswa", row_index: document.getElementById('editSiswaRowIndex').value, nisn: document.getElementById('editSiswaNisn').value, nama: document.getElementById('editSiswaNama').value, kelas: document.getElementById('editSiswaKelas').value, ortu: document.getElementById('editSiswaOrtu').value, hp: document.getElementById('editSiswaHp').value, wali: document.getElementById('editSiswaWali').value };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r => r.json()).then(res => { alert(res.message || "Tersimpan!"); bootstrap.Modal.getInstance(document.getElementById('modalEditSiswa')).hide(); fetchSiswaData(); });
         }
+        
         function fetchGuruData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalGuruData = data.data; renderAdminGuruTable(globalGuruData); populateModalDropdowns(); } }); }
         function renderAdminGuruTable(dataArray) {
             let tBody = document.getElementById('tableGuruBody'); if(!tBody) return;
@@ -970,6 +971,8 @@
             let payload = { action: "tambah_guru", nip: document.getElementById('tambahGuruNip').value, nama: document.getElementById('tambahGuruNama').value, mapel: document.getElementById('tambahGuruMapel').value, tugas: document.getElementById('tambahGuruTugas').value, status: document.getElementById('tambahGuruStatus').value };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
+        
+        // FUNGSI REKAP DENGAN DETEKSI TANGGAL YANG FLEKSIBEL (MEMPERBAIKI BUG 0 PADA STATISTIK)
         function fetchRekapData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json())
@@ -977,26 +980,30 @@
                 if(data.status === "success" && Array.isArray(data.data)) { 
                     globalRekapData = data.data; 
                     let totalH = 0, totalT = 0, totalI = 0, totalS = 0, totalA = 0; 
+                    
                     let today = new Date();
-                    let todayStr1 = today.toLocaleDateString('id-ID');
-                    let todayStr2 = today.toDateString(); 
-                    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-                    let todayStr3 = (today.getDate() < 10 ? '0' : '') + today.getDate() + ' ' + monthNames[today.getMonth()] + ' ' + today.getFullYear();
-                    let todayStr4 = today.getDate() + ' ' + monthNames[today.getMonth()] + ' ' + today.getFullYear();
+                    let dDay = today.getDate().toString();
+                    let dMonth = (today.getMonth() + 1).toString();
+                    let dYear = today.getFullYear().toString();
                     
                     globalRekapData.forEach(r => { 
-                        let tgl = String(r.tanggal);
+                        let tgl = String(r.tanggal || "").trim();
                         let isToday = false;
-                        let d = new Date(tgl);
-                        if (!isNaN(d.getTime()) && d.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                        
+                        if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || 
+                            tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || 
+                            tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
                             isToday = true;
-                        } else if (tgl.includes(todayStr1) || tgl.includes(todayStr2) || tgl.includes(todayStr3) || tgl.includes(todayStr4)) {
-                            isToday = true;
+                        } else {
+                            let dItem = new Date(tgl);
+                            if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                                isToday = true;
+                            }
                         }
                         
                         if (isToday) {
-                            let st = String(r.status).trim().toUpperCase();
-                            let tp = String(r.tipe).trim().toUpperCase();
+                            let st = String(r.status || "").trim().toUpperCase();
+                            let tp = String(r.tipe || "").trim().toUpperCase();
                             if (st === 'HADIR') totalH++; 
                             else if (st === 'TERLAMBAT') totalT++; 
                             else if (st === 'ALPA') totalA++;
@@ -1016,6 +1023,7 @@
                     renderDashboardCharts(globalRekapData); 
                     renderRincianKelasTable(globalSiswaData, globalRekapData); 
                     renderRealtimeKelasSummary(globalRekapData); 
+                    renderTeacherRealtimeSummary();
                     
                     if(loggedInSiswaNisn) {
                         let filteredOrtu = globalRekapData.filter(r => String(r.nisn).trim() === String(loggedInSiswaNisn).trim());
@@ -1025,12 +1033,9 @@
                 } 
             }); 
         }
-        
-        // Auto-Refresh Sinkronisasi Tiap 10 Detik
         setInterval(fetchRekapData, 10000);
         
         function filterAdminRekap() { let b = document.getElementById('adminFilterBulanRekap').value; let th = document.getElementById('adminFilterTahunRekap').value; let filtered = globalRekapData.filter(r => { let tgl = String(r.tanggal || ''); let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08'; let matchTh = !th || tgl.includes(th); return matchB && matchTh; }); renderAdminRekapTable(filtered); }
-        
         function renderAdminRekapTable(dataArray) {
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
@@ -1058,7 +1063,6 @@
             }
         }
         function filterLaporan() { let kFilter = document.getElementById('filterKelasLaporan').value; let filtered = globalRekapData.filter(r => !kFilter || String(r.kelas).trim().toLowerCase() === kFilter.toLowerCase()); renderLaporanTable(filtered); }
-        
         function renderLaporanTable(dataArray) {
             let tBody = document.getElementById('tableLaporanBody'); if(!tBody) return;
             let state = paginationState.laporan; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
@@ -1182,17 +1186,7 @@
             schoolConfig.waktu_toleransi = document.getElementById('waktuToleransi').value;
             schoolConfig.waktu_mulai_pulang = document.getElementById('waktuMulaiPulang').value;
             schoolConfig.waktu_akhir_pulang = document.getElementById('waktuAkhirPulang').value;
-            
-            let payload = { 
-                action: "simpan_setting_umum", 
-                settings: { 
-                    waktu_mulai_masuk: schoolConfig.waktu_mulai_masuk,
-                    waktu_akhir_masuk: schoolConfig.waktu_akhir_masuk,
-                    waktu_toleransi: schoolConfig.waktu_toleransi, 
-                    waktu_mulai_pulang: schoolConfig.waktu_mulai_pulang,
-                    waktu_akhir_pulang: schoolConfig.waktu_akhir_pulang 
-                } 
-            };
+            let payload = { action: "simpan_setting_umum", settings: { waktu_mulai_masuk: schoolConfig.waktu_mulai_masuk, waktu_akhir_masuk: schoolConfig.waktu_akhir_masuk, waktu_toleransi: schoolConfig.waktu_toleransi, waktu_mulai_pulang: schoolConfig.waktu_mulai_pulang, waktu_akhir_pulang: schoolConfig.waktu_akhir_pulang } };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resData => {
                 let notif = document.getElementById('notifWaktu');
@@ -1397,8 +1391,6 @@
                 listEl.appendChild(item);
             });
         });
-        
-        // --- PERBAIKAN PENGUNCIAN ABSENSI (MAKS 1X SEHARI) ---
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1415,7 +1407,6 @@
             const todayStr = now.toISOString().split('T')[0];
             const todayLokal = now.toLocaleDateString('id-ID');
             
-            // Cek ke dalam data rekap secara lebih ketat dan aman
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
@@ -1423,11 +1414,9 @@
                 let isToday = false;
                 
                 let d1 = new Date(tglVal);
-                // Validasi tanggal 1: Cocokkan via objek tanggal (jam 00:00:00)
                 if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === new Date().setHours(0,0,0,0)) {
                     isToday = true;
                 } 
-                // Validasi tanggal 2: Cocokkan string ISO atau Lokal jika formatnya custom
                 else if (tglVal.includes(todayStr) || tglVal.includes(todayLokal) || tglVal.includes(now.getDate().toString().padStart(2, '0') + ' ' + ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][now.getMonth()])) {
                     isToday = true;
                 }
@@ -1450,7 +1439,6 @@
                 const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas'); canvas.width = 240; canvas.height = 180;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
-            // KUNCI SEMENTARA KE ARRAY LOKAL AGAR TIDAK BISA DI-TAP 2 KALI WALAUPUN SERVER DELAY
             globalRekapData.push({
                 nisn: selectedSiswaData.nisn,
                 nama: selectedSiswaData.nama,
@@ -1613,8 +1601,6 @@
                 reader.readAsDataURL(file);
             }
         }
-        
-        // RENDER TABEL MATRIKS BULANAN (SESUAI INDEKS DATABASE KOLOM G & H)
         function renderOrtuMatriksRiwayat(dataArray) {
             let tbody = document.getElementById('tableOrtuMatriksBody'); 
             if(!tbody) return;
@@ -1806,38 +1792,25 @@
                         keterangan: alasan 
                     };
                     
-                    fetch(SCRIPT_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify(payload), 
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                        redirect: 'follow' 
-                    })
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
                     .then(r => r.json()).then(res => { 
                         notifEl.innerText = "Pengajuan izin/sakit berhasil terkirim ke database sekolah!"; 
                         notifEl.classList.remove('d-none'); 
                         document.getElementById('formPengajuanIzin').reset(); 
-                        setTimeout(() => {
-                            notifEl.classList.add('d-none'); 
-                            closeSubPage('page-izin'); 
-                        }, 3000); 
+                        setTimeout(() => { notifEl.classList.add('d-none'); closeSubPage('page-izin'); }, 3000); 
                     }).catch(() => {
                         notifEl.innerText = "Pengajuan izin berhasil dicatat!"; 
                         notifEl.classList.remove('d-none'); 
-                        setTimeout(() => {
-                            notifEl.classList.add('d-none'); 
-                            closeSubPage('page-izin'); 
-                        }, 3000);
+                        setTimeout(() => { notifEl.classList.add('d-none'); closeSubPage('page-izin'); }, 3000);
                     });
                 };
             };
             reader.readAsDataURL(file);
         });
         
-        // --- PERBAIKAN DASHBOARD TEACHER BLANK ---
+        // --- DASHBOARD GURU / TEACHER (TEMA SHOPEE + FITUR MASSAL) ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
-            
-            // Penanganan objek yang aman
             loggedInTeacherData = data || {};
             if(!loggedInTeacherData.name) loggedInTeacherData.name = nip || "Bapak/Ibu Guru";
             if(!loggedInTeacherData.tugas) loggedInTeacherData.tugas = "Guru Mapel";
@@ -1848,11 +1821,7 @@
             
             let tugas = String(loggedInTeacherData.tugas).toLowerCase();
             let menuGrid = document.querySelector('#dashboard-teacher .dana-menu-grid');
-            
-            if(!menuGrid) {
-                console.warn("Elemen dashboard teacher tidak ditemukan di DOM.");
-                return;
-            }
+            if(!menuGrid) return;
             menuGrid.innerHTML = ""; 
             
             let isKepsek = tugas.includes("kepala sekolah") || tugas.includes("kepsek");
@@ -1863,36 +1832,23 @@
                 loggedInTeacherData.kelas_binaan = parts.slice(2).join(" ").trim() || "8A";
             }
             
-            // Render menu dinamis secara aman
             let htmlButtons = "";
             if (isKepsek) {
-                htmlButtons += `<button class="btn btn-outline-danger p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('kepsek', this)"><i class="fas fa-user-tie mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Kepsek</span></button>`;
+                htmlButtons += `<button class="shopee-menu-item" onclick="switchTeacherTab('kepsek', this)"><i class="fas fa-user-tie mb-1 fs-5 shopee-text"></i><span style="font-size: 0.75rem;">Kepsek</span></button>`;
             }
             if (isWali) {
-                htmlButtons += `<button class="btn btn-outline-success p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('wali', this)"><i class="fas fa-user-shield mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Wali Kelas</span></button>`;
+                htmlButtons += `<button class="shopee-menu-item" onclick="switchTeacherTab('wali', this)"><i class="fas fa-user-shield mb-1 fs-5 shopee-text"></i><span style="font-size: 0.75rem;">Wali Kelas</span></button>`;
             }
-            htmlButtons += `<button class="btn btn-outline-info p-2 d-flex flex-column align-items-center rounded-3 shadow-sm text-dark dana-menu-item" onclick="switchTeacherTab('mapel', this)"><i class="fas fa-book mb-1 fs-5 text-info"></i><span class="fw-bold" style="font-size: 0.75rem;">Guru Mapel</span></button>`;
+            htmlButtons += `<button class="shopee-menu-item active" onclick="switchTeacherTab('mapel', this)"><i class="fas fa-book mb-1 fs-5 shopee-text"></i><span style="font-size: 0.75rem;">Guru Mapel</span></button>`;
             
             menuGrid.innerHTML = htmlButtons;
             
-            // Jeda 50ms untuk memastikan DOM ter-render penuh (Mencegah Blank/Error)
             setTimeout(() => {
-                let allBtns = menuGrid.querySelectorAll('button');
-                if(allBtns.length > 0) {
-                    if (isKepsek) { switchTeacherTab('kepsek', allBtns[0]); }
-                    else if (isWali) { switchTeacherTab('wali', allBtns[0]); }
-                    else { switchTeacherTab('mapel', allBtns[0]); }
-                }
+                let activeBtn = menuGrid.querySelector('button');
+                switchTeacherTab('mapel', activeBtn);
             }, 50);
             
-            // Ambil data rekap untuk ringkasan statistik
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => {
-                if(res.status === "success" && Array.isArray(res.data)){
-                    globalRekapData = res.data;
-                    renderTeacherRealtimeSummary();
-                }
-            }).catch(e => console.log("Gagal memuat rekap untuk Guru:", e));
+            fetchRekapData();
         }
         
         function switchTeacherTab(tab, btnElement) {
@@ -1907,48 +1863,48 @@
             
             if(tab === 'kepsek') {
                 contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-danger"><i class="fas fa-chart-line me-2"></i>Monitoring Kepala Sekolah</h6>
-                    <div class="alert alert-light border small">
+                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-chart-line me-2"></i>Monitoring Kepala Sekolah</h6>
+                    <div class="alert alert-light border small" style="background-color: #fff9f5;">
                         <strong>Akses Aktif:</strong> Anda dapat memantau seluruh rekapitulasi absensi seluruh kelas secara transparan.
                     </div>
                     <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-outline-danger btn-sm fw-bold" onclick="alert('Fitur Broadcast Pengumuman terhubung ke sistem utama.')"><i class="fas fa-bullhorn me-1"></i> Buat Pengumuman Sekolah</button>
+                        <button class="btn shopee-btn btn-sm fw-bold rounded-pill" onclick="alert('Fitur Broadcast Pengumuman terhubung ke sistem utama.')"><i class="fas fa-bullhorn me-1"></i> Buat Pengumuman Sekolah</button>
                     </div>
                 `;
             } else if(tab === 'wali') {
                 let kelasBinaan = loggedInTeacherData.kelas_binaan || "8A";
                 contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-success"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
+                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
                     <div class="mb-2">
                         <label class="form-label small text-muted fw-bold">Daftar Siswa Izin / Sakit (Dengan Foto)</label>
-                        <div id="listIzinWaliContainer" class="border rounded p-2 bg-light small" style="max-height: 200px; overflow-y: auto;">
+                        <div id="listIzinWaliContainer" class="border rounded p-2 small" style="max-height: 200px; overflow-y: auto; background-color: #fdfbf7;">
                             Memuat data izin siswa...
                         </div>
                     </div>
                     <div class="mb-2 mt-3">
                         <label class="form-label small text-muted fw-bold">Kirim Catatan ke Kelas ${kelasBinaan}</label>
-                        <textarea id="tWaliCatatan" class="form-control form-control-sm bg-light" rows="2" placeholder="Tulis catatan wali kelas..."></textarea>
+                        <textarea id="tWaliCatatan" class="form-control form-control-sm" style="background-color: #fff5f1; border-color: #f3cfc6;" rows="2" placeholder="Tulis catatan wali kelas..."></textarea>
                     </div>
-                    <button class="btn btn-success w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanWaliKelas('${kelasBinaan}')">Kirim Catatan Wali Kelas</button>
+                    <button class="btn shopee-btn w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanWaliKelas('${kelasBinaan}')">Kirim Catatan Wali Kelas</button>
                 `;
                 loadIzinSakitWaliKelas(kelasBinaan);
             } else {
                 let mp = loggedInTeacherData.mapel || "Umum";
                 contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-info"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${mp})</h6>
+                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${mp})</h6>
                     <div class="mb-2">
                         <label class="form-label small text-muted fw-bold">Pilih Kelas</label>
-                        <select id="tMapelKelas" class="form-select form-select-sm" onchange="populateSiswaMapel(this.value)"></select>
+                        <select id="tMapelKelas" class="form-select form-select-sm" style="border-color: #f3cfc6;" onchange="populateSiswaMapel(this.value)"></select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Siswa</label>
-                        <select id="tMapelSiswa" class="form-select form-select-sm"><option value="">-- Pilih Siswa --</option></select>
+                        <label class="form-label small text-muted fw-bold">Pilih Siswa / Target</label>
+                        <select id="tMapelSiswa" class="form-select form-select-sm" style="border-color: #f3cfc6;"><option value="">-- Pilih Siswa / Kelas --</option></select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Catatan Private Siswa</label>
-                        <textarea id="tMapelCatatan" class="form-control form-control-sm bg-light" rows="2" placeholder="Catatan perkembangan belajar..."></textarea>
+                        <label class="form-label small text-muted fw-bold">Catatan Private / Massal</label>
+                        <textarea id="tMapelCatatan" class="form-control form-control-sm" style="background-color: #fff5f1; border-color: #f3cfc6;" rows="2" placeholder="Tulis tugas, nilai, atau perkembangan..."></textarea>
                     </div>
-                    <button class="btn btn-info text-white w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanGuruMapel()">Simpan Catatan Mapel</button>
+                    <button class="btn shopee-btn w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanGuruMapel()">Simpan Catatan Mapel</button>
                 `;
                 populateMapelDropdowns();
             }
@@ -1958,29 +1914,50 @@
             let container = document.getElementById('teacherRealtimeSummary');
             if(!container || globalRekapData.length === 0) return;
             
-            let today = new Date().toLocaleDateString('id-ID');
-            let rekapToday = globalRekapData.filter(r => String(r.tanggal).includes(today) || String(r.tanggal).includes(new Date().toISOString().split('T')[0]));
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            let rekapToday = globalRekapData.filter(r => {
+                let tgl = String(r.tanggal || "").trim();
+                let isToday = false;
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                return isToday;
+            });
             
             let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
-            let izin = rekapToday.filter(r => String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')).length;
+            let izin = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let sakit = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
             let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             container.innerHTML = `
-                <div class="col-4">
-                    <div class="p-2 border rounded bg-light">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;">Hadir</span>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Hadir</span>
                         <h6 class="fw-bold text-success m-0">${hadir}</h6>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="p-2 border rounded bg-light">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;">Izin/Sakit</span>
-                        <h6 class="fw-bold text-warning m-0">${izin}</h6>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Izin</span>
+                        <h6 class="fw-bold text-info m-0">${izin}</h6>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="p-2 border rounded bg-light">
-                        <span class="text-muted d-block" style="font-size: 0.7rem;">Alpa</span>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Sakit</span>
+                        <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
                         <h6 class="fw-bold text-danger m-0">${alpa}</h6>
                     </div>
                 </div>
@@ -1989,20 +1966,18 @@
         function loadIzinSakitWaliKelas(kelasBinaan) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container) return;
-            
             let izinSakitSiswa = globalRekapData.filter(r => String(r.kelas).trim().toLowerCase() === kelasBinaan.toLowerCase() && (String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')));
-            
             if(izinSakitSiswa.length === 0) {
                 container.innerHTML = `<span class="text-muted">Tidak ada siswa Izin/Sakit di kelas ${kelasBinaan}.</span>`;
                 return;
             }
             container.innerHTML = "";
             izinSakitSiswa.forEach(item => {
-                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs btn-primary py-0 px-1" style="font-size:0.65rem;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
+                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs shopee-btn py-0 px-1" style="font-size:0.65rem;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
                 container.innerHTML += `
                     <div class="p-2 mb-1 bg-white border rounded d-flex justify-content-between align-items-center">
                         <div>
-                            <strong style="font-size:0.8rem;">${item.nama}</strong> <span class="badge bg-warning text-dark" style="font-size:0.6rem;">${item.status}</span><br>
+                            <strong style="font-size:0.8rem; color:#ee4d2d;">${item.nama}</strong> <span class="badge bg-warning text-dark" style="font-size:0.6rem;">${item.status}</span><br>
                             <small class="text-muted" style="font-size:0.65rem;">${item.tanggal}</small>
                         </div>
                         <div>${fotoBukti}</div>
@@ -2027,25 +2002,19 @@
             let selS = document.getElementById('tMapelSiswa');
             if(!selS || !window.tempSiswaMapel) return;
             let siswaKelas = window.tempSiswaMapel.filter(s => String(s.kelas) === kelas);
-            selS.innerHTML = `<option value="">-- Pilih Siswa --</option>` + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
+            
+            // Tambahkan opsi "Semua Siswa" di paling atas list dropdown siswa
+            selS.innerHTML = `<option value="">-- Pilih Siswa / Target --</option>
+                              <option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] SEMUA SISWA DI KELAS INI</option>` 
+                              + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
         }
         function kirimCatatanWaliKelas(kelasBinaan) {
             let isi = document.getElementById('tWaliCatatan').value;
             if(!isi) return alert("Catatan tidak boleh kosong!");
             
-            let payload = {
-                 action: "tambah_catatan", 
-                 nisn: "Semua Siswa",
-                 kelas: kelasBinaan,
-                 catatan: "[WALI KELAS] " + isi,
-                 guru: loggedInTeacherData.name
-            };
-            
+            let payload = { action: "tambah_catatan", nisn: "Semua Siswa", kelas: kelasBinaan, catatan: "[WALI KELAS] " + isi, guru: loggedInTeacherData.name };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => {
-                 alert("Catatan wali kelas berhasil dikirim!");
-                 document.getElementById('tWaliCatatan').value = "";
-            });
+            .then(r => r.json()).then(res => { alert("Catatan wali kelas berhasil dikirim!"); document.getElementById('tWaliCatatan').value = ""; });
         }
         function kirimCatatanGuruMapel() {
             let kelas = document.getElementById('tMapelKelas').value;
@@ -2054,6 +2023,8 @@
             
             if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
             
+            // Logika tidak diubah, tetap pakai parameter yang sama, jika memilih opsi "Semua Siswa",
+            // maka target NISN akan terisi string "Semua Siswa" dan terbaca oleh seluruh anak di kelas tsb.
             let payload = {
                  action: "tambah_catatan", 
                  nisn: nisn,
@@ -2064,8 +2035,9 @@
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
             .then(r => r.json()).then(res => {
-                 alert("Catatan mapel berhasil disimpan!");
+                 alert("Catatan mapel berhasil dikirim dan disimpan!");
                  document.getElementById('tMapelCatatan').value = "";
+                 document.getElementById('tMapelSiswa').value = "";
             });
         }
         function logoutTeacher() {
