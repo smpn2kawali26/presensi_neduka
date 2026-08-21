@@ -526,7 +526,7 @@
                     </div>
                 </div>
                 
-                <!-- STATISTIK RINGKAS BULANAN (Izin & Sakit Terpisah) -->
+                <!-- STATISTIK RINGKAS BULANAN -->
                 <div class="row g-2 mb-3" id="ortuStatistikRingkasan">
                     <div class="col"><div class="p-2 bg-success text-white rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0" id="statHadir">0</h5></div></div>
                     <div class="col"><div class="p-2 bg-warning text-dark rounded text-center shadow-sm"><span class="d-block" style="font-size:0.6rem;">Telat</span><h5 class="fw-bold m-0" id="statTelat">0</h5></div></div>
@@ -588,6 +588,7 @@
             </div>
         </div>
     </div>
+    
     <!-- DASHBOARD GURU / TEACHER -->
     <div id="dashboard-teacher" class="dashboard-container" style="display:none;">
         <div class="mobile-app-wrapper" style="background-color: #f8f9fa; min-height: 100vh;">
@@ -614,7 +615,7 @@
             <div class="px-3 mt-3">
                 <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Pilih Menu Akses</h6>
                 <div class="dana-menu-grid d-grid gap-2" style="grid-template-columns: repeat(3, 1fr);">
-                    <!-- Tombol menu akan otomatis muncul sesuai tugas guru di Sheet -->
+                    <!-- Tombol menu akan otomatis muncul -->
                 </div>
             </div>
             <!-- Area Konten Dinamis Berdasarkan Menu yang Dipilih -->
@@ -638,6 +639,7 @@
     <div class="modal fade" id="modalSettingPassword" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Password Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Password Baru</label><input type="password" class="form-control" id="newAdminPassword"></div><button type="button" onclick="gantiPasswordAdmin()" class="btn btn-warning w-100">Simpan Password</button></div></div></div></div>
     <div class="modal fade" id="modalSettingFoto" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Foto Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Unggah Foto Profil</label><input type="file" class="form-control" id="inputFotoAdminFile" accept="image/*"></div><button type="button" onclick="simpanFotoAdmin()" class="btn btn-info text-white w-100">Simpan Foto</button></div></div></div></div>
     <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Profil Sekolah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="inputNamaSekolahVal" value="SMP N 2 KAWALI"></div><button type="button" onclick="simpanProfilSekolah()" class="btn btn-success w-100">Simpan Profil</button></div></div></div></div>
+    
     <!-- SCRIPT UTAMA RAKSASA LENGKAP -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -764,14 +766,29 @@
             try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
         }
         
+        // --- PERBAIKAN ZONA WAKTU / JAM ---
         function extractTime(timeStr) {
             if (!timeStr || timeStr === '-') return '-';
-            let matchISO = String(timeStr).match(/T(\d{2}:\d{2})/);
-            if (matchISO && matchISO[1]) return matchISO[1];
+            // Cek jika database menyimpan format ISO dengan zona UTC ("Z" atau "T")
+            if (String(timeStr).includes('T') && String(timeStr).includes('Z')) {
+                try {
+                    let d = new Date(timeStr);
+                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+                } catch(e) {}
+            }
+            // Jika dikirim string waktu baku dari sheet, pastikan konversi aman
+            try {
+                let d = new Date(timeStr);
+                if (!isNaN(d.getTime())) {
+                    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+                }
+            } catch(e) {}
+
             let timeMatch = String(timeStr).match(/(\d{2}:\d{2})/);
             if (timeMatch && timeMatch[1]) return timeMatch[1];
             return String(timeStr).substring(0, 5);
         }
+        
         function parseMapelGuru(jam, mapel, guru) {
             let w = mapel || '-'; let m = jam || '-'; let g = (guru && String(guru).trim() !== '' && guru !== '-') ? guru : '-';
             if(g === '-' && m.includes(' - ')) { let parts = m.split(' - '); m = parts[0].trim(); g = parts.slice(1).join(' - ').trim(); }
@@ -1010,7 +1027,7 @@
             }); 
         }
         
-        // Auto-Refresh Database 10 Detik
+        // Auto-Refresh Sinkronisasi Tiap 10 Detik
         setInterval(fetchRekapData, 10000);
         
         function filterAdminRekap() { let b = document.getElementById('adminFilterBulanRekap').value; let th = document.getElementById('adminFilterTahunRekap').value; let filtered = globalRekapData.filter(r => { let tgl = String(r.tanggal || ''); let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08'; let matchTh = !th || tgl.includes(th); return matchB && matchTh; }); renderAdminRekapTable(filtered); }
@@ -1381,6 +1398,8 @@
                 listEl.appendChild(item);
             });
         });
+        
+        // --- PERBAIKAN PENGUNCIAN ABSENSI (MAKS 1X SEHARI) ---
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1395,18 +1414,36 @@
             const now = new Date(); 
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const todayStr = now.toISOString().split('T')[0];
+            const todayLokal = now.toLocaleDateString('id-ID');
+            
+            // Cek ke dalam data rekap secara lebih ketat dan aman
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
-                let tglVal = String(r.tanggal || '');
-                let isToday = tglVal.includes(todayStr) || tglVal.includes(now.getDate().toString().padStart(2, '0') + ' ' + ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][now.getMonth()]);
+                let tglVal = String(r.tanggal || '').trim();
+                let isToday = false;
+                
+                let d1 = new Date(tglVal);
+                // Validasi tanggal 1: Cocokkan via objek tanggal (jam 00:00:00)
+                if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === new Date().setHours(0,0,0,0)) {
+                    isToday = true;
+                } 
+                // Validasi tanggal 2: Cocokkan string ISO atau Lokal jika formatnya custom
+                else if (tglVal.includes(todayStr) || tglVal.includes(todayLokal) || tglVal.includes(now.getDate().toString().padStart(2, '0') + ' ' + ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][now.getMonth()])) {
+                    isToday = true;
+                }
                 return matchNisn && matchTipe && isToday;
             });
+            
             if (isAlreadyAbsen) {
                 alert(`Siswa ${selectedSiswaData.nama} SUDAH tercatat absen ${tipe} hari ini!`);
                 return;
             }
-            const notif = document.getElementById('absenNotif'); notif.className = "mt-2 alert alert-info text-center fw-bold py-1 small"; notif.innerText = "Memproses Absensi..."; notif.classList.remove('d-none');
+            
+            const notif = document.getElementById('absenNotif'); 
+            notif.className = "mt-2 alert alert-info text-center fw-bold py-1 small"; 
+            notif.innerText = "Memproses Absensi..."; 
+            notif.classList.remove('d-none');
             
             let statusKehadiran = "Hadir"; let fotoBase64 = null;
             if(tipe === 'MASUK') {
@@ -1414,6 +1451,18 @@
                 const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas'); canvas.width = 240; canvas.height = 180;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
             }
+
+            // KUNCI SEMENTARA KE ARRAY LOKAL AGAR TIDAK BISA DI-TAP 2 KALI WALAUPUN SERVER DELAY
+            globalRekapData.push({
+                nisn: selectedSiswaData.nisn,
+                nama: selectedSiswaData.nama,
+                kelas: selectedSiswaData.kelas,
+                tipe: tipe,
+                status: statusKehadiran,
+                tanggal: todayStr,
+                waktu: jamStr
+            });
+
             let payload = { action: "proses_absen", nisn: selectedSiswaData.nisn, nama: selectedSiswaData.nama, kelas: selectedSiswaData.kelas, tipe: tipe, status_kehadiran: statusKehadiran, waktu: jamStr, petugas: currentPetugasName, image_base64: fotoBase64 };
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
@@ -1438,7 +1487,6 @@
                 } 
             }).catch(err => console.log("Gagal sync rekap petugas:", err));
         }
-        setInterval(fetchRekapDataForPetugas, 15000);
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
             let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; container.innerHTML = "";
@@ -1788,13 +1836,11 @@
             reader.readAsDataURL(file);
         });
         
-        // ==========================================
-        // FUNGSI GURU (TEACHER) BARU (TERINTEGRASI KEPSEK, WALI, MAPEL)
-        // ==========================================
+        // --- PERBAIKAN DASHBOARD TEACHER BLANK ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
             
-            // Penanganan jika object 'data' dari Apps Script kosong/undefined
+            // Penanganan objek yang aman
             loggedInTeacherData = data || {};
             if(!loggedInTeacherData.name) loggedInTeacherData.name = nip || "Bapak/Ibu Guru";
             if(!loggedInTeacherData.tugas) loggedInTeacherData.tugas = "Guru Mapel";
@@ -1805,7 +1851,11 @@
             
             let tugas = loggedInTeacherData.tugas.toLowerCase();
             let menuGrid = document.querySelector('#dashboard-teacher .dana-menu-grid');
-            if(!menuGrid) return;
+            
+            if(!menuGrid) {
+                console.warn("Elemen dashboard teacher tidak ditemukan di DOM.");
+                return;
+            }
             menuGrid.innerHTML = ""; 
             
             let isKepsek = tugas.includes("kepala sekolah") || tugas.includes("kepsek");
@@ -1816,19 +1866,27 @@
                 loggedInTeacherData.kelas_binaan = parts.slice(2).join(" ").trim() || "8A";
             }
             
-            // Render menu dinamis agar tidak blank
+            // Render menu dinamis secara aman
+            let htmlButtons = "";
             if (isKepsek) {
-                menuGrid.innerHTML += `<button class="btn btn-outline-danger p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('kepsek', this)"><i class="fas fa-user-tie mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Kepsek</span></button>`;
+                htmlButtons += `<button class="btn btn-outline-danger p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('kepsek', this)"><i class="fas fa-user-tie mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Kepsek</span></button>`;
             }
             if (isWali) {
-                menuGrid.innerHTML += `<button class="btn btn-outline-success p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('wali', this)"><i class="fas fa-user-shield mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Wali Kelas</span></button>`;
+                htmlButtons += `<button class="btn btn-outline-success p-2 d-flex flex-column align-items-center rounded-3 shadow-sm dana-menu-item" onclick="switchTeacherTab('wali', this)"><i class="fas fa-user-shield mb-1 fs-5"></i><span class="fw-bold" style="font-size: 0.75rem;">Wali Kelas</span></button>`;
             }
-            menuGrid.innerHTML += `<button class="btn btn-outline-info p-2 d-flex flex-column align-items-center rounded-3 shadow-sm text-dark dana-menu-item active" onclick="switchTeacherTab('mapel', this)"><i class="fas fa-book mb-1 fs-5 text-info"></i><span class="fw-bold" style="font-size: 0.75rem;">Guru Mapel</span></button>`;
+            htmlButtons += `<button class="btn btn-outline-info p-2 d-flex flex-column align-items-center rounded-3 shadow-sm text-dark dana-menu-item" onclick="switchTeacherTab('mapel', this)"><i class="fas fa-book mb-1 fs-5 text-info"></i><span class="fw-bold" style="font-size: 0.75rem;">Guru Mapel</span></button>`;
             
-            // Set Tab Default
-            if (isKepsek) { switchTeacherTab('kepsek', menuGrid.children[0]); }
-            else if (isWali) { switchTeacherTab('wali', menuGrid.children[0]); }
-            else { switchTeacherTab('mapel', menuGrid.children[0]); }
+            menuGrid.innerHTML = htmlButtons;
+            
+            // Jeda 50ms untuk memastikan DOM ter-render penuh (Mencegah Blank/Error)
+            setTimeout(() => {
+                let allBtns = menuGrid.querySelectorAll('button');
+                if(allBtns.length > 0) {
+                    if (isKepsek) { switchTeacherTab('kepsek', allBtns[0]); }
+                    else if (isWali) { switchTeacherTab('wali', allBtns[0]); }
+                    else { switchTeacherTab('mapel', allBtns[0]); }
+                }
+            }, 50);
             
             // Ambil data rekap untuk ringkasan statistik
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
@@ -1837,7 +1895,7 @@
                     globalRekapData = res.data;
                     renderTeacherRealtimeSummary();
                 }
-            });
+            }).catch(e => console.log("Gagal memuat rekap untuk Guru:", e));
         }
         
         function switchTeacherTab(tab, btnElement) {
@@ -1906,7 +1964,7 @@
             let today = new Date().toLocaleDateString('id-ID');
             let rekapToday = globalRekapData.filter(r => String(r.tanggal).includes(today) || String(r.tanggal).includes(new Date().toISOString().split('T')[0]));
             
-            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir').length;
+            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
             let izin = rekapToday.filter(r => String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')).length;
             let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
