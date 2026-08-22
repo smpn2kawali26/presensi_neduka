@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED)
+     FILE: index.html (FULL 100% FINAL - FIXED 2.0)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -797,6 +797,7 @@
             dataArray.forEach((j) => { let key = j.hari + '_' + j.kelas; if(!grouped[key]) grouped[key] = 1; j.computedJamKe = grouped[key]++; result.push(j); });
             return result;
         }
+        // FUNGSI NORMALISASI KELAS (Membuat VIIA = 7A dst.)
         function normalizeKelas(k) {
             if(!k) return '';
             let str = String(k).toUpperCase().replace(/\s/g,'');
@@ -1174,7 +1175,6 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
         
-        // PERBAIKAN: Menghitung L/P di Rincian Kelas
         function renderRincianKelasTable(siswaData, rekapData) {
             let tBody = document.getElementById('tableRincianKelasBody'); if(!tBody) return;
             let kelasList = [...new Set(siswaData.map(s => s.kelas))].filter(Boolean).sort();
@@ -1564,6 +1564,7 @@
         }
         function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; }
         function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
+        
         function loadOrtuDashboard(nisn, data) {
             loggedInSiswaNisn = nisn; 
             loggedInSiswaKelas = data.kelas || "9B"; 
@@ -1599,10 +1600,15 @@
             }).catch(() => {
                 document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Gagal memuat data kehadiran.</td></tr>`;
             });
+            
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    globalOrtuCatatanData = resCatatan.data.filter(c => String(c.nisn||'').trim() === String(nisn).trim() || String(c.kelas||'').trim().toLowerCase() === String(loggedInSiswaKelas).toLowerCase());
+                    // PERBAIKAN: Gunakan normalisasi kelas agar 'VIIA' dari guru dikenali sama dengan '7A' dari siswa
+                    globalOrtuCatatanData = resCatatan.data.filter(c => 
+                        String(c.nisn||'').trim() === String(nisn).trim() || 
+                        normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas)
+                    );
                     renderOrtuCatatanList(globalOrtuCatatanData);
                 } else {
                     document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`;
@@ -1610,8 +1616,10 @@
             }).catch(() => {
                 document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Gagal memuat catatan guru.</div>`;
             });
+            
             loadOrtuJadwalAesthetic(loggedInSiswaKelas);
         }
+        
         document.getElementById('formUpdateBiodataOrtu').addEventListener('submit', function(e) {
             e.preventDefault(); 
             if(!loggedInSiswaNisn) return alert("Data siswa belum dimuat!");
@@ -1745,7 +1753,6 @@
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
         
-        // PERBAIKAN: Pemisahan Desain Catatan (Wali Kelas vs Guru Mapel)
         function renderOrtuCatatanList(dataArray) {
             let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
             if(dataArray.length === 0) { 
@@ -2049,7 +2056,6 @@
             `;
         }
         
-        // PERBAIKAN: Membaca kelas dengan fleksibel (Normalizer Angka Romawi vs Arab)
         function loadIzinSakitWaliKelas(kelasBinaan) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container) return;
@@ -2118,14 +2124,27 @@
                               <option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] SEMUA SISWA DI KELAS INI</option>` 
                               + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
         }
+        
+        // PERBAIKAN: Penambahan keterangan jabatan agar otomatis terdeteksi lebih jelas di sistem
         function kirimCatatanWaliKelas(kelasBinaan) {
             let isi = document.getElementById('tWaliCatatan').value;
             if(!isi) return alert("Catatan tidak boleh kosong!");
             
-            let payload = { action: "tambah_catatan", nisn: "Semua Siswa", kelas: kelasBinaan, catatan: "[WALI KELAS] " + isi, guru: loggedInTeacherData.name };
+            let payload = { 
+                action: "tambah_catatan", 
+                nisn: "Semua Siswa", 
+                kelas: kelasBinaan, 
+                catatan: "[WALI KELAS] " + isi, 
+                guru: loggedInTeacherData.name + " (Wali Kelas " + kelasBinaan + ")" 
+            };
+            
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => { alert("Catatan wali kelas berhasil dikirim!"); document.getElementById('tWaliCatatan').value = ""; });
+            .then(r => r.json()).then(res => { 
+                alert("Catatan wali kelas berhasil dikirim!"); 
+                document.getElementById('tWaliCatatan').value = ""; 
+            });
         }
+        
         function kirimCatatanGuruMapel() {
             let kelas = document.getElementById('tMapelKelas').value;
             let nisn = document.getElementById('tMapelSiswa').value;
