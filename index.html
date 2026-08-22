@@ -1,5 +1,5 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - ALL FEATURES INCLUDED)
+     FILE: index.html (FULL 100% FINAL - FIXED)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -144,6 +144,7 @@
             <div class="text-center p-3 text-muted small" style="font-size: 0.75rem;"><i class="fas fa-lock text-success me-1"></i> Koneksi Aman & Terhubung Real-Time Database</div>
         </div>
     </div>
+
     <!-- DASHBOARD ADMIN -->
     <div id="dashboard-admin" class="dashboard-container">
         <div id="wrapper">
@@ -250,7 +251,7 @@
                         </div>
                     </div>
                     
-                    <!-- SECTION INPUT ABSEN (DUA ARAH) -->
+                    <!-- SECTION INPUT ABSEN -->
                     <div id="section-input-absen" class="content-section">
                         <h4 class="fw-bold mb-4" style="color: var(--secondary-bg);">Input Kehadiran Dua Arah (H, I, S, A)</h4>
                         <div class="card card-custom p-4">
@@ -796,6 +797,15 @@
             dataArray.forEach((j) => { let key = j.hari + '_' + j.kelas; if(!grouped[key]) grouped[key] = 1; j.computedJamKe = grouped[key]++; result.push(j); });
             return result;
         }
+        function normalizeKelas(k) {
+            if(!k) return '';
+            let str = String(k).toUpperCase().replace(/\s/g,'');
+            str = str.replace('VIIIA', '8A').replace('VIIIB', '8B').replace('VIIIC', '8C')
+                     .replace('VIIA', '7A').replace('VIIB', '7B').replace('VIIC', '7C')
+                     .replace('IXA', '9A').replace('IXB', '9B').replace('IXC', '9C');
+            str = str.replace('KELAS', '');
+            return str;
+        }
         const DEFAULT_THEME = { primary: '#1e3c72', secondary: '#2a5298', font: "'Poppins', sans-serif", logo: 'logo.png', sekolah: 'SMP N 2 KAWALI', preset: 'digibjb' };
         
         function applyTheme(theme) {
@@ -972,7 +982,6 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r=>r.json()).then(res=>{ alert(res.message || "Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); fetchGuruData(); }).catch(() => { alert("Guru berhasil ditambah!"); bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru')).hide(); });
         }
         
-        // FUNGSI REKAP DENGAN DETEKSI TANGGAL YANG FLEKSIBEL (MEMPERBAIKI BUG 0 PADA STATISTIK)
         function fetchRekapData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json())
@@ -1100,23 +1109,42 @@
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
                 for(let d=1; d<=31; d++) {
-                    let dayStr = d.toString().padStart(2, '0');
+                    let dayStr = d.toString();
+                    let dayStr0 = dayStr.padStart(2, '0');
                     let targetDateNum = parseInt(dayStr);
+                    let mStr = parseInt(activeMonthNum).toString();
+                    let mStr0 = activeMonthNum.padStart(2, '0');
                     
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
-                        let tglVal = String(r.tanggal || '');
+                        if (!matchNisn) return false;
                         
+                        let tglVal = String(r.tanggal || '').trim();
                         let isMatchDate = false;
-                        if (tglVal.includes(activeYear) && (tglVal.includes(`-${activeMonthNum}-`) || tglVal.includes(`/${activeMonthNum}/`) || tglVal.toLowerCase().includes(activeMonthName.toLowerCase()))) {
-                            let parsedDay = parseInt(tglVal.substring(0, 2));
-                            if (isNaN(parsedDay)) {
-                                let parts = tglVal.split(/[-/\s]/);
-                                parsedDay = parseInt(parts[0]);
-                            }
-                            if (parsedDay === targetDateNum) isMatchDate = true;
+                        
+                        // Cek format tanggal (DD/MM/YYYY, D/M/YYYY, dll)
+                        if (tglVal.startsWith(`${dayStr}/${mStr}/`) || 
+                            tglVal.startsWith(`${dayStr0}/${mStr0}/`) || 
+                            tglVal.startsWith(`${dayStr}/${mStr0}/`) || 
+                            tglVal.startsWith(`${dayStr0}/${mStr}/`)) {
+                            if (tglVal.includes(activeYear)) isMatchDate = true;
                         }
-                        return matchNisn && isMatchDate;
+                        // Cek format YYYY-MM-DD
+                        else if (tglVal.startsWith(`${activeYear}-${mStr0}-${dayStr0}`) || 
+                                 tglVal.startsWith(`${activeYear}-${mStr}-${dayStr}`)) {
+                            isMatchDate = true;
+                        }
+                        // Fallback parsing
+                        else {
+                            let dItem = new Date(tglVal);
+                            if (!isNaN(dItem.getTime()) && 
+                                dItem.getFullYear().toString() === activeYear && 
+                                (dItem.getMonth() + 1) === parseInt(activeMonthNum) && 
+                                dItem.getDate() === targetDateNum) {
+                                isMatchDate = true;
+                            }
+                        }
+                        return isMatchDate;
                     });
                     
                     let statusKode = "";
@@ -1145,22 +1173,55 @@
             let a = document.createElement('a'); a.href = url; a.download = `Presensi_${selectedKelas}_${activeMonthName}.xls`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
+        
+        // PERBAIKAN: Menghitung L/P di Rincian Kelas
         function renderRincianKelasTable(siswaData, rekapData) {
             let tBody = document.getElementById('tableRincianKelasBody'); if(!tBody) return;
             let kelasList = [...new Set(siswaData.map(s => s.kelas))].filter(Boolean).sort();
-            if(kelasList.length === 0) kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"];
+            if(kelasList.length === 0) kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
             tBody.innerHTML = "";
+            
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            // Filter rekap hari ini
+            let rekapToday = rekapData.filter(r => {
+                let tgl = String(r.tanggal || "").trim();
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) return true;
+                let dItem = new Date(tgl);
+                if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
+                return false;
+            });
+
             kelasList.forEach(kelas => {
                 let siswaKelas = siswaData.filter(s => String(s.kelas).trim() === String(kelas).trim());
-                let rekapKelas = rekapData.filter(r => String(r.kelas).trim() === String(kelas).trim());
-                let hadirL = rekapKelas.filter(r => r.status === 'Hadir').length || 0;
-                let telatL = rekapKelas.filter(r => r.status === 'Terlambat').length || 0;
-                tBody.innerHTML += `<tr><td class="fw-bold bg-light">Kelas ${kelas}</td><td>${siswaKelas.length}</td><td>${hadirL}</td><td>0</td><td>${telatL}</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>`;
+                let rekapKelas = rekapToday.filter(r => String(r.kelas).trim() === String(kelas).trim());
+                
+                let hL = 0, hP = 0, tL = 0, tP = 0, iL = 0, iP = 0, sL = 0, sP = 0;
+                
+                rekapKelas.forEach(r => {
+                    let sMatched = siswaKelas.find(siswa => String(siswa.nisn) === String(r.nisn));
+                    let jk = sMatched ? String(sMatched.gender || '').toUpperCase() : '';
+                    let st = String(r.status || '').toLowerCase();
+                    let tp = String(r.tipe || '').toLowerCase();
+                    
+                    let isIzin = st.includes('izin') || tp.includes('izin');
+                    let isSakit = st.includes('sakit') || tp.includes('sakit');
+                    
+                    if (st === 'hadir') { if(jk === 'P') hP++; else hL++; }
+                    else if (st.includes('terlambat')) { if(jk === 'P') tP++; else tL++; }
+                    else if (isIzin) { if(jk === 'P') iP++; else iL++; }
+                    else if (isSakit) { if(jk === 'P') sP++; else sL++; }
+                });
+                
+                tBody.innerHTML += `<tr><td class="fw-bold bg-light">Kelas ${kelas}</td><td>${siswaKelas.length}</td><td>${hL}</td><td>${hP}</td><td>${tL}</td><td>${tP}</td><td>${iL}</td><td>${iP}</td><td>${sL}</td><td>${sP}</td></tr>`;
             });
         }
         function renderDashboardCharts(rekapData) {
             let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"];
-            let hadirCounts = kelasList.map(k => rekapData.filter(r => r.kelas === k && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
+            let hadirCounts = kelasList.map(k => rekapData.filter(r => String(r.kelas).trim().toUpperCase() === k && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
             const ctxBar = document.getElementById('barChartKelas').getContext('2d'); if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: kelasList, datasets: [{ label: 'Hadir', data: hadirCounts, backgroundColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
             const ctxRadar = document.getElementById('radarChartKelas').getContext('2d'); if(radarChartInstance) radarChartInstance.destroy();
@@ -1683,6 +1744,8 @@
         function filterOrtuRiwayat() { 
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
+        
+        // PERBAIKAN: Pemisahan Desain Catatan (Wali Kelas vs Guru Mapel)
         function renderOrtuCatatanList(dataArray) {
             let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
             if(dataArray.length === 0) { 
@@ -1690,9 +1753,31 @@
                 return; 
             }
             dataArray.forEach(c => {
-                container.innerHTML += `<div class="mobile-card-item"><div class="d-flex justify-content-between mb-1"><strong class="small text-success"><i class="fas fa-chalkboard-teacher me-1"></i>${c.guru||'Guru Piket'}</strong><small class="text-muted">${formatTanggalIndonesia(c.tanggal)}</small></div><div class="p-2 bg-light rounded small text-dark">${c.catatan}</div></div>`;
+                let catText = String(c.catatan || "");
+                let badgeType = "bg-secondary";
+                let labelText = "Catatan Umum";
+                let icon = "fa-comment-dots";
+                
+                if (catText.includes("[WALI KELAS]")) {
+                    badgeType = "bg-danger"; labelText = "Wali Kelas"; icon = "fa-user-shield";
+                    catText = catText.replace("[WALI KELAS]", "").trim();
+                } else if (catText.includes("[MAPEL]")) {
+                    badgeType = "bg-primary"; labelText = "Guru Mapel"; icon = "fa-book-reader";
+                    catText = catText.replace("[MAPEL]", "").trim();
+                }
+                
+                container.innerHTML += `
+                <div class="mobile-card-item mb-3 bg-white border rounded shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge ${badgeType}"><i class="fas ${icon} me-1"></i> ${labelText}</span>
+                        <small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</small>
+                    </div>
+                    <div class="mb-2"><strong class="small text-dark"><i class="fas fa-chalkboard-teacher me-1"></i> ${c.guru||'Guru'}</strong></div>
+                    <div class="p-2 bg-light rounded small text-dark border-start border-3 border-${badgeType.split('-')[1]}">${catText}</div>
+                </div>`;
             });
         }
+        
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer'); 
             container.innerHTML = `<div class="text-center py-4 text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Memuat jadwal pelajaran kelas ${kelas}...</div>`;
@@ -1876,7 +1961,7 @@
                 contentArea.innerHTML = `
                     <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
                     <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Daftar Siswa Izin / Sakit (Dengan Foto)</label>
+                        <label class="form-label small text-muted fw-bold">Daftar Siswa Izin / Sakit (Hari Ini)</label>
                         <div id="listIzinWaliContainer" class="border rounded p-2 small" style="max-height: 200px; overflow-y: auto; background-color: #fdfbf7;">
                             Memuat data izin siswa...
                         </div>
@@ -1963,28 +2048,54 @@
                 </div>
             `;
         }
+        
+        // PERBAIKAN: Membaca kelas dengan fleksibel (Normalizer Angka Romawi vs Arab)
         function loadIzinSakitWaliKelas(kelasBinaan) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container) return;
-            let izinSakitSiswa = globalRekapData.filter(r => String(r.kelas).trim().toLowerCase() === kelasBinaan.toLowerCase() && (String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit')));
+            
+            let kBinaan = normalizeKelas(kelasBinaan);
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            let izinSakitSiswa = globalRekapData.filter(r => {
+                let rK = normalizeKelas(r.kelas);
+                let matchKelas = (rK === kBinaan || rK.includes(kBinaan) || kBinaan.includes(rK));
+                
+                let tgl = String(r.tanggal || "").trim();
+                let isToday = false;
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                
+                return matchKelas && isToday && (String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit'));
+            });
+            
             if(izinSakitSiswa.length === 0) {
-                container.innerHTML = `<span class="text-muted">Tidak ada siswa Izin/Sakit di kelas ${kelasBinaan}.</span>`;
+                container.innerHTML = `<span class="text-muted">Tidak ada siswa Izin/Sakit di kelas ${kelasBinaan} hari ini.</span>`;
                 return;
             }
+            
             container.innerHTML = "";
             izinSakitSiswa.forEach(item => {
-                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs shopee-btn py-0 px-1" style="font-size:0.65rem;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
+                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs shopee-btn py-0 px-1" style="font-size:0.65rem; border-radius: 4px;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
                 container.innerHTML += `
                     <div class="p-2 mb-1 bg-white border rounded d-flex justify-content-between align-items-center">
                         <div>
                             <strong style="font-size:0.8rem; color:#ee4d2d;">${item.nama}</strong> <span class="badge bg-warning text-dark" style="font-size:0.6rem;">${item.status}</span><br>
-                            <small class="text-muted" style="font-size:0.65rem;">${item.tanggal}</small>
+                            <small class="text-muted" style="font-size:0.65rem;">${formatTanggalIndonesia(item.tanggal)}</small>
                         </div>
                         <div>${fotoBukti}</div>
                     </div>
                 `;
             });
         }
+        
         function populateMapelDropdowns() {
             let selK = document.getElementById('tMapelKelas');
             if(!selK) return;
@@ -2003,7 +2114,6 @@
             if(!selS || !window.tempSiswaMapel) return;
             let siswaKelas = window.tempSiswaMapel.filter(s => String(s.kelas) === kelas);
             
-            // Tambahkan opsi "Semua Siswa" di paling atas list dropdown siswa
             selS.innerHTML = `<option value="">-- Pilih Siswa / Target --</option>
                               <option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] SEMUA SISWA DI KELAS INI</option>` 
                               + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
@@ -2023,8 +2133,6 @@
             
             if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
             
-            // Logika tidak diubah, tetap pakai parameter yang sama, jika memilih opsi "Semua Siswa",
-            // maka target NISN akan terisi string "Semua Siswa" dan terbaca oleh seluruh anak di kelas tsb.
             let payload = {
                  action: "tambah_catatan", 
                  nisn: nisn,
