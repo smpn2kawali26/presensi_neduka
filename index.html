@@ -1,5 +1,6 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED 2.0)
+     FILE: index.html (FULL 100% FINAL - FIXED 3.0)
+     FITUR BARU: FILTER BULAN & TAHUN PADA CATATAN GURU
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -76,7 +77,7 @@
         .sub-page { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--ortu-bg-app); z-index: 100; overflow-y: auto; padding: 20px; animation: fadeInSub 0.3s ease; }
         .sub-page.active { display: block; }
         @keyframes fadeInSub { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        .mobile-card-list { max-height: 70vh; overflow-y: auto; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 15px; }
+        .mobile-card-list { max-height: 70vh; overflow-y: auto; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 15px; padding-bottom: 20px; }
         .mobile-card-item { padding: 15px; border-bottom: 1px solid #f1f1f1; }
         .mobile-card-item:last-child { border-bottom: none; }
         .schedule-tabs-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
@@ -563,6 +564,29 @@
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-catatan')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
                     <h5 class="fw-bold m-0 text-success">Catatan Guru</h5><div style="width: 70px;"></div>
                 </div>
+                
+                <!-- FILTER BULAN & TAHUN UNTUK CATATAN GURU -->
+                <div class="card border-0 shadow-sm p-3 mb-3 bg-white rounded-4">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <select id="ortuFilterBulanCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
+                                <option value="">Semua Bulan</option>
+                                <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select id="ortuFilterTahunCatatan" class="form-select form-select-sm" onchange="filterOrtuCatatan()">
+                                <option value="">Semua Tahun</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="listOrtuCatatan" class="mobile-card-list"><div class="text-center p-4 text-muted">Memuat catatan...</div></div>
             </div>
             
@@ -1604,12 +1628,13 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    // PERBAIKAN: Gunakan normalisasi kelas agar 'VIIA' dari guru dikenali sama dengan '7A' dari siswa
                     globalOrtuCatatanData = resCatatan.data.filter(c => 
                         String(c.nisn||'').trim() === String(nisn).trim() || 
                         normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas)
                     );
-                    renderOrtuCatatanList(globalOrtuCatatanData);
+                    
+                    // LANGSUNG TERAPKAN FILTER SAAT PERTAMA KALI LOAD
+                    filterOrtuCatatan();
                 } else {
                     document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`;
                 }
@@ -1752,11 +1777,32 @@
         function filterOrtuRiwayat() { 
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
+
+        // FUNGSI BARU: FILTER CATATAN BERDASARKAN BULAN & TAHUN
+        function filterOrtuCatatan() {
+            let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
+            let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
+            
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
+            
+            let filtered = globalOrtuCatatanData.filter(c => {
+                let tglStr = String(c.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                return matchBulan && matchTahun;
+            });
+            
+            // Urutkan dari yang terbaru (opsional, jika format tanggal ISO/YYYY-MM-DD)
+            filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            
+            renderOrtuCatatanList(filtered);
+        }
         
         function renderOrtuCatatanList(dataArray) {
             let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
             if(dataArray.length === 0) { 
-                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`; 
+                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru pada bulan ini.</div>`; 
                 return; 
             }
             dataArray.forEach(c => {
@@ -2125,7 +2171,6 @@
                               + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
         }
         
-        // PERBAIKAN: Penambahan keterangan jabatan agar otomatis terdeteksi lebih jelas di sistem
         function kirimCatatanWaliKelas(kelasBinaan) {
             let isi = document.getElementById('tWaliCatatan').value;
             if(!isi) return alert("Catatan tidak boleh kosong!");
