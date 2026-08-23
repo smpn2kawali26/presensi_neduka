@@ -1,6 +1,7 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED 3.0)
-     FITUR BARU: FILTER BULAN & TAHUN PADA CATATAN GURU
+     FILE: index.html (FULL 100% FINAL - FIXED 4.0)
+     FITUR BARU: KEPSEK CHART & REKAP KELAS, WALI KELAS PRIVATE NOTE, 
+     MANAJEMEN RIWAYAT CATATAN & PENGUMUMAN (EDIT, HAPUS, MASA BERLAKU)
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -100,6 +101,15 @@
         .shopee-btn { background-color: #ee4d2d; color: white; border: none; font-weight: bold; }
         .shopee-btn:hover { background-color: #d73a1c; color: white; }
         .shopee-text { color: #ee4d2d; }
+        .shopee-btn-outline { border: 1px solid #ee4d2d; color: #ee4d2d; background: transparent; }
+        .shopee-btn-outline:hover { background: #fff5f1; }
+        
+        /* Teacher Accordion / Minimalist Card */
+        .minimalist-card { border-left: 3px solid #ee4d2d; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .minimalist-card-title { font-size: 0.8rem; font-weight: bold; color: #333; }
+        .minimalist-card-date { font-size: 0.65rem; color: #888; }
+        .minimalist-card-text { font-size: 0.75rem; color: #555; margin-top: 5px; }
+        .btn-action-micro { padding: 0.1rem 0.4rem; font-size: 0.7rem; border-radius: 4px; }
     </style>
 </head>
 <body id="mainBody">
@@ -630,7 +640,7 @@
                 </div>
             </div>
             
-            <!-- Profil & Statistik Ringkas (Terpisah Hadir/Izin/Sakit/Alpa) -->
+            <!-- Profil & Statistik Ringkas -->
             <div class="px-3" style="margin-top: -30px; position: relative; z-index: 10;">
                 <div class="card border-0 shadow-sm p-3 rounded-4 bg-white">
                     <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fas fa-chart-pie me-1 shopee-text"></i> Statistik Kehadiran Hari Ini</span>
@@ -690,6 +700,8 @@
         
         let barChartInstance = null;
         let radarChartInstance = null;
+        let kepsekChartInstance = null;
+        
         let currentPetugasName = "Petugas Piket";
         let currentPetugasLat = null;
         let currentPetugasLng = null;
@@ -821,7 +833,6 @@
             dataArray.forEach((j) => { let key = j.hari + '_' + j.kelas; if(!grouped[key]) grouped[key] = 1; j.computedJamKe = grouped[key]++; result.push(j); });
             return result;
         }
-        // FUNGSI NORMALISASI KELAS (Membuat VIIA = 7A dst.)
         function normalizeKelas(k) {
             if(!k) return '';
             let str = String(k).toUpperCase().replace(/\s/g,'');
@@ -943,6 +954,7 @@
                     }
                 } else { err.innerText = data.message; err.classList.remove('d-none'); }
             }).catch(e => { 
+                // Fallback Simulator Offline
                 if(role === 'petugas') {
                     document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
                     currentPetugasName = inputId; document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
@@ -1058,6 +1070,11 @@
                     renderRincianKelasTable(globalSiswaData, globalRekapData); 
                     renderRealtimeKelasSummary(globalRekapData); 
                     renderTeacherRealtimeSummary();
+                    
+                    // RE-RENDER KEPSEK JIKA AKTIF
+                    if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(1)')?.classList.contains('active')) {
+                        loadKepsekRekapKelas();
+                    }
                     
                     if(loggedInSiswaNisn) {
                         let filteredOrtu = globalRekapData.filter(r => String(r.nisn).trim() === String(loggedInSiswaNisn).trim());
@@ -1609,8 +1626,15 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resPeng => {
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
-                    let p = resPeng.data[0]; 
-                    document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                    let todayIso = new Date().toISOString().split('T')[0];
+                    let validPengumuman = resPeng.data.filter(p => !p.masa_berlaku || p.masa_berlaku === '-' || p.masa_berlaku === '' || p.masa_berlaku >= todayIso);
+                    
+                    if(validPengumuman.length > 0) {
+                        let p = validPengumuman[0]; 
+                        document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                    } else {
+                        document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Tidak ada pengumuman baru.</span>`;
+                    }
                 }
             });
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_rekap" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
@@ -1632,8 +1656,6 @@
                         String(c.nisn||'').trim() === String(nisn).trim() || 
                         normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas)
                     );
-                    
-                    // LANGSUNG TERAPKAN FILTER SAAT PERTAMA KALI LOAD
                     filterOrtuCatatan();
                 } else {
                     document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`;
@@ -1778,31 +1800,34 @@
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
 
-        // FUNGSI BARU: FILTER CATATAN BERDASARKAN BULAN & TAHUN
         function filterOrtuCatatan() {
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
+            let todayIso = new Date().toISOString().split('T')[0];
             
             const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
             let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
             
             let filtered = globalOrtuCatatanData.filter(c => {
+                // Filter Masa Berlaku
+                if (c.masa_berlaku && c.masa_berlaku !== '-' && c.masa_berlaku !== '') {
+                    if (c.masa_berlaku < todayIso) return false;
+                }
+                
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
-            // Urutkan dari yang terbaru (opsional, jika format tanggal ISO/YYYY-MM-DD)
             filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-            
             renderOrtuCatatanList(filtered);
         }
         
         function renderOrtuCatatanList(dataArray) {
             let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
             if(dataArray.length === 0) { 
-                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru pada bulan ini.</div>`; 
+                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru pada periode ini.</div>`; 
                 return; 
             }
             dataArray.forEach(c => {
@@ -1946,7 +1971,7 @@
             reader.readAsDataURL(file);
         });
         
-        // --- DASHBOARD GURU / TEACHER (TEMA SHOPEE + FITUR MASSAL) ---
+        // --- DASHBOARD GURU / TEACHER (FULL KOMPREHENSIF) ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
             loggedInTeacherData = data || {};
@@ -1981,6 +2006,11 @@
             
             menuGrid.innerHTML = htmlButtons;
             
+            // Tarik ulang data pengumuman & catatan khusus guru
+            fetchPengumumanData();
+            fetchCatatanData();
+            fetchSiswaData();
+            
             setTimeout(() => {
                 let activeBtn = menuGrid.querySelector('button');
                 switchTeacherTab('mapel', activeBtn);
@@ -1991,62 +2021,553 @@
         
         function switchTeacherTab(tab, btnElement) {
             if(btnElement) {
-                document.querySelectorAll('#dashboard-teacher .dana-menu-grid button').forEach(b => {
-                    b.classList.remove('active');
-                });
+                document.querySelectorAll('#dashboard-teacher .dana-menu-grid button').forEach(b => b.classList.remove('active'));
                 btnElement.classList.add('active');
             }
             let contentArea = document.getElementById('teacherContentArea');
             if(!contentArea) return;
             
             if(tab === 'kepsek') {
-                contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-chart-line me-2"></i>Monitoring Kepala Sekolah</h6>
-                    <div class="alert alert-light border small" style="background-color: #fff9f5;">
-                        <strong>Akses Aktif:</strong> Anda dapat memantau seluruh rekapitulasi absensi seluruh kelas secara transparan.
-                    </div>
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn shopee-btn btn-sm fw-bold rounded-pill" onclick="alert('Fitur Broadcast Pengumuman terhubung ke sistem utama.')"><i class="fas fa-bullhorn me-1"></i> Buat Pengumuman Sekolah</button>
-                    </div>
-                `;
-            } else if(tab === 'wali') {
-                let kelasBinaan = loggedInTeacherData.kelas_binaan || "8A";
-                contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Daftar Siswa Izin / Sakit (Hari Ini)</label>
-                        <div id="listIzinWaliContainer" class="border rounded p-2 small" style="max-height: 200px; overflow-y: auto; background-color: #fdfbf7;">
-                            Memuat data izin siswa...
-                        </div>
-                    </div>
-                    <div class="mb-2 mt-3">
-                        <label class="form-label small text-muted fw-bold">Kirim Catatan ke Kelas ${kelasBinaan}</label>
-                        <textarea id="tWaliCatatan" class="form-control form-control-sm" style="background-color: #fff5f1; border-color: #f3cfc6;" rows="2" placeholder="Tulis catatan wali kelas..."></textarea>
-                    </div>
-                    <button class="btn shopee-btn w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanWaliKelas('${kelasBinaan}')">Kirim Catatan Wali Kelas</button>
-                `;
-                loadIzinSakitWaliKelas(kelasBinaan);
-            } else {
-                let mp = loggedInTeacherData.mapel || "Umum";
-                contentArea.innerHTML = `
-                    <h6 class="fw-bold mb-3 shopee-text"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${mp})</h6>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Kelas</label>
-                        <select id="tMapelKelas" class="form-select form-select-sm" style="border-color: #f3cfc6;" onchange="populateSiswaMapel(this.value)"></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Pilih Siswa / Target</label>
-                        <select id="tMapelSiswa" class="form-select form-select-sm" style="border-color: #f3cfc6;"><option value="">-- Pilih Siswa / Kelas --</option></select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small text-muted fw-bold">Catatan Private / Massal</label>
-                        <textarea id="tMapelCatatan" class="form-control form-control-sm" style="background-color: #fff5f1; border-color: #f3cfc6;" rows="2" placeholder="Tulis tugas, nilai, atau perkembangan..."></textarea>
-                    </div>
-                    <button class="btn shopee-btn w-100 fw-bold shadow-sm mt-1 rounded-pill btn-sm" onclick="kirimCatatanGuruMapel()">Simpan Catatan Mapel</button>
-                `;
-                populateMapelDropdowns();
+                contentArea.innerHTML = getHTMLKepsek();
+                setTimeout(() => {
+                    initKepsekChart();
+                    loadKepsekRekapKelas();
+                    loadKepsekPengumuman();
+                }, 100);
+            } 
+            else if(tab === 'wali') {
+                contentArea.innerHTML = getHTMLWali();
+                setTimeout(() => {
+                    populateSiswaWali(loggedInTeacherData.kelas_binaan || "8A");
+                    loadIzinSakitWaliKelas(loggedInTeacherData.kelas_binaan || "8A");
+                    loadRiwayatCatatanTeacher('WALI KELAS');
+                }, 100);
+            } 
+            else {
+                contentArea.innerHTML = getHTMLMapel();
+                setTimeout(() => {
+                    populateMapelDropdowns();
+                    loadRiwayatCatatanTeacher('MAPEL');
+                }, 100);
             }
         }
+        
+        // --- HTML GENERATORS UNTUK TAB GURU ---
+        function getHTMLKepsek() {
+            return `
+                <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-chart-line me-2"></i>Monitoring Kepala Sekolah</h6>
+                
+                <!-- Chart Global -->
+                <div class="mb-4">
+                    <canvas id="kepsekChart" style="max-height: 180px;"></canvas>
+                </div>
+                
+                <!-- Rekap Per Kelas & Bukti Foto -->
+                <h6 class="fw-bold text-dark mb-2" style="font-size: 0.85rem;"><i class="fas fa-list-alt me-1 text-secondary"></i> Riwayat Absensi Per Kelas (Hari Ini)</h6>
+                <div id="kepsekRekapKelasContainer" class="mb-4 text-center text-muted small">Memuat data rekap kelas...</div>
+                
+                <!-- Manajemen Pengumuman Sekolah -->
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                    <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;"><i class="fas fa-bullhorn me-1 text-warning"></i> Pengumuman Sekolah</h6>
+                    <button class="btn btn-xs shopee-btn py-1 px-2" onclick="toggleFormPengumumanKepsek()"><i class="fas fa-plus"></i> Buat</button>
+                </div>
+                
+                <!-- Form Minimalis Pengumuman -->
+                <div id="formPengumumanKepsekContainer" class="d-none mb-3 p-3 border rounded" style="background-color: #fff5f1;">
+                    <input type="hidden" id="kPengId">
+                    <div class="mb-2"><input type="text" id="kPengJudul" class="form-control form-control-sm" placeholder="Judul Pengumuman" style="border-color:#f3cfc6;"></div>
+                    <div class="mb-2"><textarea id="kPengIsi" class="form-control form-control-sm" rows="3" placeholder="Isi Pengumuman..." style="border-color:#f3cfc6;"></textarea></div>
+                    <div class="mb-2">
+                        <label class="small text-muted fw-bold">Batas Masa Berlaku (Opsional)</label>
+                        <input type="date" id="kPengMasa" class="form-control form-control-sm" style="border-color:#f3cfc6;">
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-sm btn-light border" onclick="toggleFormPengumumanKepsek()">Batal</button>
+                        <button class="btn btn-sm shopee-btn" onclick="simpanPengumumanKepsek()">Simpan</button>
+                    </div>
+                </div>
+                
+                <!-- Riwayat Pengumuman -->
+                <div id="kepsekPengumumanList"><div class="text-center text-muted small">Memuat riwayat...</div></div>
+            `;
+        }
+        
+        function getHTMLWali() {
+            let kelasBinaan = loggedInTeacherData.kelas_binaan || "8A";
+            return `
+                <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
+                
+                <!-- Izin Sakit Siswa Binaan -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
+                    <div id="listIzinWaliContainer" class="border rounded p-2 small" style="max-height: 180px; overflow-y: auto; background-color: #fdfbf7;">
+                        Memuat data izin siswa...
+                    </div>
+                </div>
+                
+                <!-- Form Catatan Wali (Bisa Private / Massal) -->
+                <div class="mb-4 p-3 border rounded shadow-sm" style="background-color: #fff5f1; border-color: #f3cfc6 !important;">
+                    <label class="form-label small text-dark fw-bold mb-2">Kirim Catatan Binaan (Private / Massal)</label>
+                    <input type="hidden" id="tWaliEditId">
+                    <select id="tWaliTarget" class="form-select form-select-sm mb-2" style="border-color: #f3cfc6;"></select>
+                    <textarea id="tWaliCatatan" class="form-control form-control-sm mb-2" style="border-color: #f3cfc6;" rows="2" placeholder="Tulis catatan, arahan, atau peringatan..."></textarea>
+                    <div class="row g-2 mb-2">
+                        <div class="col-12"><label class="small text-muted" style="font-size:0.65rem;">Masa Berlaku (Kosongkan jika selamanya)</label><input type="date" id="tWaliMasaBerlaku" class="form-control form-control-sm" style="border-color: #f3cfc6;"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border d-none w-50" id="btnBatalEditWali" onclick="batalEditCatatanTeacher('WALI KELAS')">Batal</button>
+                        <button class="btn shopee-btn w-100 fw-bold shadow-sm btn-sm" id="btnSimpanWali" onclick="kirimCatatanWaliKelas('${kelasBinaan}')"><i class="fas fa-paper-plane me-1"></i> Kirim</button>
+                    </div>
+                </div>
+                
+                <!-- Riwayat Minimalis Catatan -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-secondary"></i> Riwayat Catatan Saya</h6>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><select id="filterBulanWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')"><option value="">Semua Bulan</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Jul</option><option value="08" selected>Ags</option><option value="09">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option></select></div>
+                    <div class="col-6"><select id="filterTahunWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')"><option value="">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+                </div>
+                <div id="listRiwayatCatatanWali"></div>
+            `;
+        }
+        
+        function getHTMLMapel() {
+            let mp = loggedInTeacherData.mapel || "Umum";
+            return `
+                <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${mp})</h6>
+                
+                <!-- Form Catatan Mapel -->
+                <div class="mb-4 p-3 border rounded shadow-sm" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                    <label class="form-label small text-dark fw-bold mb-2">Kirim Catatan Mapel</label>
+                    <input type="hidden" id="tMapelEditId">
+                    <div class="row g-2 mb-2">
+                        <div class="col-5"><select id="tMapelKelas" class="form-select form-select-sm" onchange="populateSiswaMapel(this.value)"></select></div>
+                        <div class="col-7"><select id="tMapelSiswa" class="form-select form-select-sm"><option value="">-- Pilih Siswa / Kelas --</option></select></div>
+                    </div>
+                    <textarea id="tMapelCatatan" class="form-control form-control-sm mb-2" rows="2" placeholder="Tulis tugas, nilai, atau perkembangan materi..."></textarea>
+                    <div class="row g-2 mb-2">
+                        <div class="col-12"><label class="small text-muted" style="font-size:0.65rem;">Masa Berlaku (Kosongkan jika selamanya)</label><input type="date" id="tMapelMasaBerlaku" class="form-control form-control-sm"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border d-none w-50" id="btnBatalEditMapel" onclick="batalEditCatatanTeacher('MAPEL')">Batal</button>
+                        <button class="btn btn-primary w-100 fw-bold shadow-sm btn-sm" id="btnSimpanMapel" style="background-color: #1e3c72; border:none;" onclick="kirimCatatanGuruMapel()"><i class="fas fa-paper-plane me-1"></i> Kirim</button>
+                    </div>
+                </div>
+                
+                <!-- Riwayat Minimalis Catatan -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-secondary"></i> Riwayat Catatan Saya</h6>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><select id="filterBulanMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')"><option value="">Semua Bulan</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Jul</option><option value="08" selected>Ags</option><option value="09">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option></select></div>
+                    <div class="col-6"><select id="filterTahunMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')"><option value="">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+                </div>
+                <div id="listRiwayatCatatanMapel"></div>
+            `;
+        }
+        
+        // --- LOGIKA DASHBOARD KEPSEK ---
+        function initKepsekChart() {
+            let ctx = document.getElementById('kepsekChart');
+            if(!ctx || globalRekapData.length === 0) return;
+            
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            let rekapToday = globalRekapData.filter(r => {
+                let tgl = String(r.tanggal || "").trim();
+                let isToday = false;
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                return isToday;
+            });
+            
+            let h = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let i = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let s = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let a = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            
+            if(kepsekChartInstance) kepsekChartInstance.destroy();
+            kepsekChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Hadir', 'Izin', 'Sakit', 'Alpa'],
+                    datasets: [{
+                        label: 'Total Kehadiran',
+                        data: [h, i, s, a],
+                        backgroundColor: ['#198754', '#0dcaf0', '#6c757d', '#dc3545'],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+        
+        function loadKepsekRekapKelas() {
+            let container = document.getElementById('kepsekRekapKelasContainer');
+            if(!container) return;
+            
+            let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
+            if(globalSiswaData.length > 0) {
+                kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            }
+            
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            let rekapToday = globalRekapData.filter(r => {
+                let tgl = String(r.tanggal || "").trim();
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) return true;
+                let dItem = new Date(tgl);
+                if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
+                return false;
+            });
+            
+            let html = `<div class="accordion accordion-flush border rounded overflow-hidden" id="accKepsekKelas">`;
+            
+            kelasList.forEach((kelas, idx) => {
+                let rekapK = rekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
+                let h = 0, i = 0, s = 0, a = 0;
+                let listSakitIzinHtml = "";
+                
+                rekapK.forEach(r => {
+                    let st = String(r.status || '').toLowerCase();
+                    let tp = String(r.tipe || '').toLowerCase();
+                    let nama = r.nama || '-';
+                    let isIzin = st.includes('izin') || tp.includes('izin');
+                    let isSakit = st.includes('sakit') || tp.includes('sakit');
+                    
+                    if (st === 'hadir' || st.includes('terlambat')) { h++; }
+                    else if (isIzin) { i++; }
+                    else if (isSakit) { s++; }
+                    else if (st === 'alpa') { a++; }
+                    
+                    if (isIzin || isSakit) {
+                        let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
+                        let label = isSakit ? 'Sakit' : 'Izin';
+                        let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-sm shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:10px;"><i class="fas fa-image me-1"></i>Bukti</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
+                        
+                        listSakitIzinHtml += `
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                                <div class="text-truncate" style="max-width: 60%;"><span class="fw-bold" style="font-size:0.75rem;">${nama}</span> <span class="badge ${badge}" style="font-size:0.6rem;">${label}</span></div>
+                                <div>${fotoLnk}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                if(listSakitIzinHtml === "") listSakitIzinHtml = `<div class="text-muted small text-center py-2">Semua siswa hadir/alpa. Tidak ada catatan izin/sakit.</div>`;
+                
+                html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="hdKlk${idx}">
+                        <button class="accordion-button collapsed py-2 px-3 fw-bold" style="font-size:0.85rem;" type="button" data-bs-toggle="collapse" data-bs-target="#clKlk${idx}">
+                            Kelas ${kelas} 
+                            <span class="ms-auto me-2 badge bg-success">${h} H</span>
+                            <span class="me-2 badge bg-secondary">${s} S</span>
+                            <span class="me-2 badge bg-info text-dark">${i} I</span>
+                        </button>
+                    </h2>
+                    <div id="clKlk${idx}" class="accordion-collapse collapse" data-bs-parent="#accKepsekKelas">
+                        <div class="accordion-body p-2 bg-light">
+                            <h6 class="small fw-bold text-muted mb-1 border-bottom pb-1">Detail Izin & Sakit:</h6>
+                            ${listSakitIzinHtml}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+        
+        function toggleFormPengumumanKepsek() {
+            const form = document.getElementById('formPengumumanKepsekContainer');
+            if(form.classList.contains('d-none')) {
+                form.classList.remove('d-none');
+                document.getElementById('kPengId').value = "";
+                document.getElementById('kPengJudul').value = "";
+                document.getElementById('kPengIsi').value = "";
+                document.getElementById('kPengMasa').value = "";
+            } else {
+                form.classList.add('d-none');
+            }
+        }
+        
+        function loadKepsekPengumuman() {
+            let container = document.getElementById('kepsekPengumumanList');
+            if(!container) return;
+            if(globalPengumumanData.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada pengumuman.</div>`;
+                return;
+            }
+            
+            let html = "";
+            // Urutkan terbaru
+            let sorted = [...globalPengumumanData].reverse();
+            
+            sorted.forEach(p => {
+                let masaTxt = p.masa_berlaku ? `<i class="fas fa-clock text-warning"></i> S.d: ${formatTanggalIndonesia(p.masa_berlaku)}` : `<i class="fas fa-infinity text-success"></i> Berlaku Selamanya`;
+                html += `
+                <div class="minimalist-card p-2 mb-2 rounded border">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="width: 80%;">
+                            <div class="minimalist-card-title">${p.judul}</div>
+                            <div class="minimalist-card-date">${formatTanggalIndonesia(p.tanggal)} | ${masaTxt}</div>
+                            <div class="minimalist-card-text">${p.isi}</div>
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            <button class="btn btn-action-micro btn-warning text-dark border-0" onclick="editFormPengumumanKepsek(${p.row_index}, '${escapeHtml(p.judul)}', '${escapeHtml(p.isi)}', '${p.masa_berlaku || ''}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-action-micro btn-danger border-0" onclick="hapusRowData('hapus_pengumuman', ${p.row_index}, 'Pengumuman')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            if(!text) return "";
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        }
+        
+        function editFormPengumumanKepsek(rowIndex, judul, isi, masa) {
+            document.getElementById('formPengumumanKepsekContainer').classList.remove('d-none');
+            document.getElementById('kPengId').value = rowIndex;
+            document.getElementById('kPengJudul').value = judul;
+            document.getElementById('kPengIsi').value = isi;
+            document.getElementById('kPengMasa').value = masa;
+            document.getElementById('kPengJudul').focus();
+        }
+        
+        function simpanPengumumanKepsek() {
+            let rowId = document.getElementById('kPengId').value;
+            let judul = document.getElementById('kPengJudul').value;
+            let isi = document.getElementById('kPengIsi').value;
+            let masa = document.getElementById('kPengMasa').value;
+            
+            if(!judul || !isi) return alert("Judul dan Isi pengumuman harus diisi!");
+            
+            let actionName = rowId ? "edit_pengumuman" : "tambah_pengumuman";
+            let payload = { action: actionName, judul: judul, isi: isi, pembuat: loggedInTeacherData.name, masa_berlaku: masa };
+            if(rowId) payload.row_index = rowId;
+            
+            let btn = document.querySelector('#formPengumumanKepsekContainer .shopee-btn');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`; btn.disabled = true;
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r => r.json()).then(res => {
+                alert(res.message);
+                toggleFormPengumumanKepsek();
+                fetchPengumumanData(); // will refresh list
+            }).finally(() => {
+                btn.innerHTML = `Simpan`; btn.disabled = false;
+            });
+        }
+        
+        // --- LOGIKA DASHBOARD WALI KELAS & MAPEL ---
+        function populateSiswaWali(kelas) {
+            let selS = document.getElementById('tWaliTarget');
+            if(!selS || globalSiswaData.length === 0) return;
+            
+            let kBinaan = normalizeKelas(kelas);
+            let siswaKelas = globalSiswaData.filter(s => normalizeKelas(s.kelas) === kBinaan);
+            
+            selS.innerHTML = `<option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] MASSAL: Semua Siswa di Kelas ${kelas}</option>` 
+                              + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
+        }
+        
+        function batalEditCatatanTeacher(tipe) {
+            if (tipe === 'WALI KELAS') {
+                document.getElementById('tWaliEditId').value = "";
+                document.getElementById('tWaliCatatan').value = "";
+                document.getElementById('tWaliMasaBerlaku').value = "";
+                document.getElementById('btnBatalEditWali').classList.add('d-none');
+                document.getElementById('btnSimpanWali').innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`;
+            } else {
+                document.getElementById('tMapelEditId').value = "";
+                document.getElementById('tMapelCatatan').value = "";
+                document.getElementById('tMapelMasaBerlaku').value = "";
+                document.getElementById('btnBatalEditMapel').classList.add('d-none');
+                document.getElementById('btnSimpanMapel').innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`;
+            }
+        }
+        
+        function kirimCatatanWaliKelas(kelasBinaan) {
+            let targetNisn = document.getElementById('tWaliTarget').value;
+            let isi = document.getElementById('tWaliCatatan').value;
+            let masa = document.getElementById('tWaliMasaBerlaku').value;
+            let rowId = document.getElementById('tWaliEditId').value;
+            
+            if(!isi) return alert("Catatan tidak boleh kosong!");
+            
+            let actionName = rowId ? "edit_catatan" : "tambah_catatan";
+            let payload = { 
+                action: actionName, 
+                nisn: targetNisn, 
+                kelas: kelasBinaan, 
+                catatan: "[WALI KELAS] " + isi, 
+                guru: loggedInTeacherData.name + " (Wali Kelas " + kelasBinaan + ")",
+                masa_berlaku: masa
+            };
+            if(rowId) payload.row_index = rowId;
+            
+            let btn = document.getElementById('btnSimpanWali');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`; btn.disabled = true;
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r => r.json()).then(res => { 
+                alert(res.message || "Catatan wali kelas tersimpan!"); 
+                batalEditCatatanTeacher('WALI KELAS');
+                fetchCatatanData(); 
+            }).finally(() => { btn.disabled = false; });
+        }
+        
+        function kirimCatatanGuruMapel() {
+            let kelas = document.getElementById('tMapelKelas').value;
+            let nisn = document.getElementById('tMapelSiswa').value;
+            let isi = document.getElementById('tMapelCatatan').value;
+            let masa = document.getElementById('tMapelMasaBerlaku').value;
+            let rowId = document.getElementById('tMapelEditId').value;
+            
+            if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
+            
+            let actionName = rowId ? "edit_catatan" : "tambah_catatan";
+            let payload = {
+                 action: actionName, 
+                 nisn: nisn,
+                 kelas: kelas,
+                 catatan: "[MAPEL] " + isi,
+                 guru: loggedInTeacherData.name + " (" + (loggedInTeacherData.mapel || 'Mapel') + ")",
+                 masa_berlaku: masa
+            };
+            if(rowId) payload.row_index = rowId;
+            
+            let btn = document.getElementById('btnSimpanMapel');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`; btn.disabled = true;
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
+            .then(r => r.json()).then(res => {
+                 alert(res.message || "Catatan mapel tersimpan!");
+                 batalEditCatatanTeacher('MAPEL');
+                 fetchCatatanData();
+            }).finally(() => { btn.disabled = false; });
+        }
+        
+        function loadRiwayatCatatanTeacher(tipe) {
+            let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali').value : document.getElementById('filterBulanMapel').value;
+            let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali').value : document.getElementById('filterTahunMapel').value;
+            let containerId = tipe === 'WALI KELAS' ? 'listRiwayatCatatanWali' : 'listRiwayatCatatanMapel';
+            let container = document.getElementById(containerId);
+            
+            if(!container) return;
+            
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
+            
+            // Filter hanya catatan milik guru yang sedang login (pencocokan nama minimal)
+            let myNotes = globalCatatanData.filter(c => String(c.guru).toLowerCase().includes(String(loggedInTeacherData.name).toLowerCase()) || String(c.guru).includes(tipe));
+            
+            // Filter tambahan sesuai label MAPEL atau WALI KELAS
+            if(tipe === 'WALI KELAS') myNotes = myNotes.filter(c => String(c.catatan).includes('[WALI KELAS]'));
+            if(tipe === 'MAPEL') myNotes = myNotes.filter(c => String(c.catatan).includes('[MAPEL]'));
+            
+            let filtered = myNotes.filter(c => {
+                let tglStr = String(c.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                return matchBulan && matchTahun;
+            });
+            
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan.</div>`;
+                return;
+            }
+            
+            filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            
+            let html = "";
+            filtered.forEach(c => {
+                let rawCatatan = String(c.catatan).replace('[WALI KELAS]', '').replace('[MAPEL]', '').trim();
+                let masaTxt = c.masa_berlaku ? `Exp: ${formatTanggalIndonesia(c.masa_berlaku)}` : `Selamanya`;
+                let isExpired = false;
+                if (c.masa_berlaku && c.masa_berlaku !== '-' && c.masa_berlaku !== '') {
+                    if (c.masa_berlaku < new Date().toISOString().split('T')[0]) isExpired = true;
+                }
+                
+                let targetTxt = (c.nisn === 'Semua Siswa' || !c.nisn) ? `Semua Siswa (${c.kelas})` : `Siswa NISN: ${c.nisn}`;
+                
+                html += `
+                <div class="minimalist-card p-2 mb-2 rounded border" style="border-left-color: ${tipe==='WALI KELAS'? '#dc3545' : '#0d6efd'};">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-bold text-dark text-truncate" style="max-width: 65%;"><i class="fas ${tipe==='WALI KELAS'?'fa-users':'fa-user'} text-secondary me-1"></i>${targetTxt}</small>
+                        <small class="text-muted" style="font-size:0.65rem;">${formatTanggalIndonesia(c.tanggal)}</small>
+                    </div>
+                    <div class="text-truncate small text-secondary mb-1" style="white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${rawCatatan}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-1">
+                        <span class="badge ${isExpired ? 'bg-danger' : 'bg-light text-muted border'}" style="font-size:0.6rem;">${masaTxt}</span>
+                        <div>
+                            <button class="btn btn-action-micro btn-warning text-dark border-0 me-1" onclick="siapkanEditCatatanTeacher('${tipe}', ${c.row_index}, '${escapeHtml(c.nisn)}', '${escapeHtml(c.kelas)}', '${escapeHtml(rawCatatan)}', '${c.masa_berlaku || ''}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-action-micro btn-danger border-0" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+        
+        function siapkanEditCatatanTeacher(tipe, rowIndex, nisn, kelas, catatan, masa) {
+            if(tipe === 'WALI KELAS') {
+                document.getElementById('tWaliEditId').value = rowIndex;
+                document.getElementById('tWaliTarget').value = nisn;
+                document.getElementById('tWaliCatatan').value = catatan;
+                document.getElementById('tWaliMasaBerlaku').value = masa;
+                document.getElementById('btnBatalEditWali').classList.remove('d-none');
+                document.getElementById('btnSimpanWali').innerHTML = `<i class="fas fa-save me-1"></i> Update`;
+                window.scrollTo(0, 0);
+            } else {
+                document.getElementById('tMapelEditId').value = rowIndex;
+                document.getElementById('tMapelKelas').value = kelas;
+                populateSiswaMapel(kelas); // Load students for this class
+                setTimeout(() => { document.getElementById('tMapelSiswa').value = nisn; }, 100);
+                document.getElementById('tMapelCatatan').value = catatan;
+                document.getElementById('tMapelMasaBerlaku').value = masa;
+                document.getElementById('btnBatalEditMapel').classList.remove('d-none');
+                document.getElementById('btnSimpanMapel').innerHTML = `<i class="fas fa-save me-1"></i> Update`;
+                window.scrollTo(0, 0);
+            }
+        }
+        
+        // Panggil fungsi ini jika hapus_catatan atau hapus_pengumuman sukses dari hapusRowData
+        const originalHapusRowData = hapusRowData;
+        hapusRowData = function(actionName, rowIndex, label) {
+            if(confirm(`Yakin hapus ${label} ini?`)) { 
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: actionName, row_index: rowIndex }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+                .then(r => r.json())
+                .then(res => { 
+                    alert(res.message); 
+                    if(actionName === 'hapus_pengumuman') fetchPengumumanData();
+                    if(actionName === 'hapus_siswa') fetchSiswaData();
+                    if(actionName === 'hapus_guru') fetchGuruData();
+                    if(actionName === 'hapus_jadwal') fetchJadwalData();
+                    if(actionName === 'hapus_catatan') fetchCatatanData();
+                    if(actionName === 'hapus_rekap') fetchRekapData();
+                }); 
+            }
+        };
         
         function renderTeacherRealtimeSummary() {
             let container = document.getElementById('teacherRealtimeSummary');
@@ -2102,121 +2623,33 @@
             `;
         }
         
-        function loadIzinSakitWaliKelas(kelasBinaan) {
-            let container = document.getElementById('listIzinWaliContainer');
-            if(!container) return;
-            
-            let kBinaan = normalizeKelas(kelasBinaan);
-            let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
-            let dYear = today.getFullYear().toString();
-            
-            let izinSakitSiswa = globalRekapData.filter(r => {
-                let rK = normalizeKelas(r.kelas);
-                let matchKelas = (rK === kBinaan || rK.includes(kBinaan) || kBinaan.includes(rK));
+        // --- OVERRIDE FETCH OBSERVERS UNTUK REFRESH TAB GURU OTOMATIS ---
+        const originalFetchCatatan = fetchCatatanData;
+        fetchCatatanData = function() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { 
+                globalCatatanData = data.data; 
+                let tB = document.getElementById('tableCatatanBody'); if(tB){ tB.innerHTML=""; globalCatatanData.forEach(c => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; }); }
                 
-                let tgl = String(r.tanggal || "").trim();
-                let isToday = false;
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
-                    isToday = true;
-                } else {
-                    let dItem = new Date(tgl);
-                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                // Trigger reload tab history
+                if(document.getElementById('dashboard-teacher').classList.contains('active')) {
+                    if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(2)')?.classList.contains('active')) loadRiwayatCatatanTeacher('WALI KELAS');
+                    if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(3)')?.classList.contains('active')) loadRiwayatCatatanTeacher('MAPEL');
                 }
+            } });
+        };
+        
+        const originalFetchPengumuman = fetchPengumumanData;
+        fetchPengumumanData = function() {
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { 
+                globalPengumumanData = data.data; 
+                let tB = document.getElementById('tablePengumumanBody'); if(tB){ tB.innerHTML=""; globalPengumumanData.forEach(p => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(p.tanggal)}</td><td class="fw-bold">${p.judul}</td><td>${p.isi}</td><td class="text-center">${p.pembuat}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_pengumuman', ${p.row_index}, 'Pengumuman')"><i class="fas fa-trash"></i></button></td></tr>`; }); }
                 
-                return matchKelas && isToday && (String(r.status).toLowerCase().includes('izin') || String(r.status).toLowerCase().includes('sakit'));
-            });
-            
-            if(izinSakitSiswa.length === 0) {
-                container.innerHTML = `<span class="text-muted">Tidak ada siswa Izin/Sakit di kelas ${kelasBinaan} hari ini.</span>`;
-                return;
-            }
-            
-            container.innerHTML = "";
-            izinSakitSiswa.forEach(item => {
-                let fotoBukti = (item.foto && item.foto !== '-') ? `<a href="${item.foto}" target="_blank" class="btn btn-xs shopee-btn py-0 px-1" style="font-size:0.65rem; border-radius: 4px;"><i class="fas fa-image me-1"></i>Foto</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Foto</span>`;
-                container.innerHTML += `
-                    <div class="p-2 mb-1 bg-white border rounded d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong style="font-size:0.8rem; color:#ee4d2d;">${item.nama}</strong> <span class="badge bg-warning text-dark" style="font-size:0.6rem;">${item.status}</span><br>
-                            <small class="text-muted" style="font-size:0.65rem;">${formatTanggalIndonesia(item.tanggal)}</small>
-                        </div>
-                        <div>${fotoBukti}</div>
-                    </div>
-                `;
-            });
-        }
-        
-        function populateMapelDropdowns() {
-            let selK = document.getElementById('tMapelKelas');
-            if(!selK) return;
-            
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_siswa" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => {
-                if(res.status === "success" && Array.isArray(res.data)) {
-                    window.tempSiswaMapel = res.data;
-                    let kelasList = [...new Set(res.data.map(s => s.kelas))].filter(Boolean).sort();
-                    selK.innerHTML = `<option value="">-- Pilih Kelas --</option>` + kelasList.map(k => `<option value="${k}">Kelas ${k}</option>`).join('');
+                if(document.getElementById('dashboard-teacher').classList.contains('active') && document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(1)')?.classList.contains('active')) {
+                    loadKepsekPengumuman();
                 }
-            });
-        }
-        function populateSiswaMapel(kelas) {
-            let selS = document.getElementById('tMapelSiswa');
-            if(!selS || !window.tempSiswaMapel) return;
-            let siswaKelas = window.tempSiswaMapel.filter(s => String(s.kelas) === kelas);
-            
-            selS.innerHTML = `<option value="">-- Pilih Siswa / Target --</option>
-                              <option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] SEMUA SISWA DI KELAS INI</option>` 
-                              + siswaKelas.map(s => `<option value="${s.nisn}">${s.nama}</option>`).join('');
+            } });
         }
         
-        function kirimCatatanWaliKelas(kelasBinaan) {
-            let isi = document.getElementById('tWaliCatatan').value;
-            if(!isi) return alert("Catatan tidak boleh kosong!");
-            
-            let payload = { 
-                action: "tambah_catatan", 
-                nisn: "Semua Siswa", 
-                kelas: kelasBinaan, 
-                catatan: "[WALI KELAS] " + isi, 
-                guru: loggedInTeacherData.name + " (Wali Kelas " + kelasBinaan + ")" 
-            };
-            
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => { 
-                alert("Catatan wali kelas berhasil dikirim!"); 
-                document.getElementById('tWaliCatatan').value = ""; 
-            });
-        }
-        
-        function kirimCatatanGuruMapel() {
-            let kelas = document.getElementById('tMapelKelas').value;
-            let nisn = document.getElementById('tMapelSiswa').value;
-            let isi = document.getElementById('tMapelCatatan').value;
-            
-            if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
-            
-            let payload = {
-                 action: "tambah_catatan", 
-                 nisn: nisn,
-                 kelas: kelas,
-                 catatan: "[MAPEL] " + isi,
-                 guru: loggedInTeacherData.name + " (" + (loggedInTeacherData.mapel || 'Mapel') + ")"
-            };
-            
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
-            .then(r => r.json()).then(res => {
-                 alert("Catatan mapel berhasil dikirim dan disimpan!");
-                 document.getElementById('tMapelCatatan').value = "";
-                 document.getElementById('tMapelSiswa').value = "";
-            });
-        }
-        function logoutTeacher() {
-            document.getElementById('dashboard-teacher').classList.remove('active');
-            document.getElementById('mainBody').classList.remove('ortu-body');
-            document.getElementById('login-section').style.display = 'flex';
-        }
     </script>
 </body>
 </html>
