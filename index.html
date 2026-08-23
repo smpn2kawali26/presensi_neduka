@@ -1,7 +1,7 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED 4.1)
-     PERBAIKAN: DROPDOWN GURU MAPEL, LOGOUT TEACHER, 
-     & LOGIKA PENGUMUMAN TERBARU KEPSEK DI ORTU
+     FILE: index.html (FULL 100% FINAL - FIXED 4.2)
+     PERBAIKAN: RIWAYAT CATATAN GURU FLEKSIBEL &
+     SEMUA PENGUMUMAN MUNCUL DI ORTU + FOOTNOTE
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -504,7 +504,7 @@
                 <div id="notifBiodataOrtu" class="mt-2 d-none alert alert-success small py-1 mb-0 text-center" style="font-size: 0.75rem;"></div>
             </div>
             <div class="announcement-banner">
-                <div class="d-flex align-items-center mb-1"><i class="fas fa-bullhorn text-warning me-2 fs-5"></i><h6 class="fw-bold m-0 text-dark" style="font-size: 0.9rem;">Pengumuman Sekolah</h6></div>
+                <div class="d-flex align-items-center mb-2"><i class="fas fa-bullhorn text-warning me-2 fs-5"></i><h6 class="fw-bold m-0 text-dark" style="font-size: 0.9rem;">Pengumuman Sekolah</h6></div>
                 <div id="ortuPengumumanContainer" class="text-muted" style="font-size: 0.8rem;">Memuat pengumuman...</div>
             </div>
             <div class="px-3 mb-2"><h6 class="fw-bold text-dark mb-3 px-1" style="font-size: 0.95rem;"><i class="fas fa-th-large me-2 text-primary"></i>Menu Layanan Siswa</h6></div>
@@ -1624,7 +1624,7 @@
                 document.getElementById('ortuFotoSiswaDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Siswa')}&background=1e3c72&color=fff&size=60`;
             }
             
-            // PULL ANNOUNCEMENT LOGIC DENGAN PENGAMBILAN TERBARU
+            // PULL ANNOUNCEMENT LOGIC DENGAN PENGAMBILAN TERBARU (Menampilkan Semua + Footnote)
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resPeng => {
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
@@ -1632,8 +1632,17 @@
                     let validPengumuman = resPeng.data.filter(p => !p.masa_berlaku || String(p.masa_berlaku).trim() === '-' || String(p.masa_berlaku).trim() === '' || p.masa_berlaku >= todayIso);
                     
                     if(validPengumuman.length > 0) {
-                        let p = validPengumuman[validPengumuman.length - 1]; 
-                        document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                        let htmlAnnouncements = "";
+                        let sortedPengumuman = [...validPengumuman].reverse();
+                        sortedPengumuman.forEach(p => {
+                            htmlAnnouncements += `
+                            <div class="mb-2 pb-2 ${sortedPengumuman.length > 1 ? 'border-bottom border-warning' : ''}">
+                                <strong>${p.judul}</strong>
+                                <p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>
+                                <small class="text-muted" style="font-size: 0.65rem;"><em>Dibuat oleh: ${p.pembuat || 'Admin'}</em></small>
+                            </div>`;
+                        });
+                        document.getElementById('ortuPengumumanContainer').innerHTML = htmlAnnouncements;
                     } else {
                         document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Tidak ada pengumuman baru.</span>`;
                     }
@@ -2560,8 +2569,12 @@
             const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
             let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
             
-            // Filter hanya catatan milik guru yang sedang login
-            let myNotes = globalCatatanData.filter(c => String(c.guru).toLowerCase().includes(String(loggedInTeacherData.name).toLowerCase()) || String(c.guru).includes(tipe));
+            // PERBAIKAN: Flexible Matching Nama Guru
+            let teacherNameClean = String(loggedInTeacherData.name).split(',')[0].trim().toLowerCase();
+            let myNotes = globalCatatanData.filter(c => {
+                let guruDataStr = String(c.guru).toLowerCase();
+                return guruDataStr.includes(teacherNameClean) || guruDataStr.includes(String(loggedInTeacherData.name).toLowerCase()) || guruDataStr.includes(tipe.toLowerCase());
+            });
             
             if(tipe === 'WALI KELAS') myNotes = myNotes.filter(c => String(c.catatan).includes('[WALI KELAS]'));
             if(tipe === 'MAPEL') myNotes = myNotes.filter(c => String(c.catatan).includes('[MAPEL]'));
@@ -2709,9 +2722,14 @@
                 globalCatatanData = data.data; 
                 let tB = document.getElementById('tableCatatanBody'); if(tB){ tB.innerHTML=""; globalCatatanData.forEach(c => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; }); }
                 
+                // PERBAIKAN: Refresh riwayat otomatis berdasarkan tab aktif
                 if(document.getElementById('dashboard-teacher').classList.contains('active')) {
-                    if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(2)')?.classList.contains('active')) loadRiwayatCatatanTeacher('WALI KELAS');
-                    if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(3)')?.classList.contains('active')) loadRiwayatCatatanTeacher('MAPEL');
+                    let activeTab = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
+                    if(activeTab) {
+                        let tabText = activeTab.innerText.toLowerCase();
+                        if(tabText.includes('wali')) loadRiwayatCatatanTeacher('WALI KELAS');
+                        if(tabText.includes('mapel')) loadRiwayatCatatanTeacher('MAPEL');
+                    }
                 }
             } });
         };
@@ -2730,8 +2748,17 @@
                     let todayIso = new Date().toISOString().split('T')[0];
                     let validPengumuman = globalPengumumanData.filter(p => !p.masa_berlaku || String(p.masa_berlaku).trim() === '-' || String(p.masa_berlaku).trim() === '' || p.masa_berlaku >= todayIso);
                     if(validPengumuman.length > 0) {
-                        let p = validPengumuman[validPengumuman.length - 1]; 
-                        document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                        let htmlAnnouncements = "";
+                        let sortedPengumuman = [...validPengumuman].reverse();
+                        sortedPengumuman.forEach(p => {
+                            htmlAnnouncements += `
+                            <div class="mb-2 pb-2 ${sortedPengumuman.length > 1 ? 'border-bottom border-warning' : ''}">
+                                <strong>${p.judul}</strong>
+                                <p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>
+                                <small class="text-muted" style="font-size: 0.65rem;"><em>Dibuat oleh: ${p.pembuat || 'Admin'}</em></small>
+                            </div>`;
+                        });
+                        document.getElementById('ortuPengumumanContainer').innerHTML = htmlAnnouncements;
                     } else {
                         document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Tidak ada pengumuman baru.</span>`;
                     }
