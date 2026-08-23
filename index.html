@@ -1,7 +1,7 @@
 <!-- ==========================================
-     FILE: index.html (FULL 100% FINAL - FIXED 4.0)
-     FITUR BARU: KEPSEK CHART & REKAP KELAS, WALI KELAS PRIVATE NOTE, 
-     MANAJEMEN RIWAYAT CATATAN & PENGUMUMAN (EDIT, HAPUS, MASA BERLAKU)
+     FILE: index.html (FULL 100% FINAL - FIXED 4.1)
+     PERBAIKAN: DROPDOWN GURU MAPEL, LOGOUT TEACHER, 
+     & LOGIKA PENGUMUMAN TERBARU KEPSEK DI ORTU
      ========================================== -->
 <!DOCTYPE html>
 <html lang="id">
@@ -1623,14 +1623,16 @@
             } else {
                 document.getElementById('ortuFotoSiswaDisplay').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Siswa')}&background=1e3c72&color=fff&size=60`;
             }
+            
+            // PULL ANNOUNCEMENT LOGIC DENGAN PENGAMBILAN TERBARU
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resPeng => {
                 if(resPeng.status === "success" && Array.isArray(resPeng.data) && resPeng.data.length > 0) {
                     let todayIso = new Date().toISOString().split('T')[0];
-                    let validPengumuman = resPeng.data.filter(p => !p.masa_berlaku || p.masa_berlaku === '-' || p.masa_berlaku === '' || p.masa_berlaku >= todayIso);
+                    let validPengumuman = resPeng.data.filter(p => !p.masa_berlaku || String(p.masa_berlaku).trim() === '-' || String(p.masa_berlaku).trim() === '' || p.masa_berlaku >= todayIso);
                     
                     if(validPengumuman.length > 0) {
-                        let p = validPengumuman[0]; 
+                        let p = validPengumuman[validPengumuman.length - 1]; 
                         document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
                     } else {
                         document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Tidak ada pengumuman baru.</span>`;
@@ -1810,7 +1812,7 @@
             
             let filtered = globalOrtuCatatanData.filter(c => {
                 // Filter Masa Berlaku
-                if (c.masa_berlaku && c.masa_berlaku !== '-' && c.masa_berlaku !== '') {
+                if (c.masa_berlaku && String(c.masa_berlaku).trim() !== '-' && String(c.masa_berlaku).trim() !== '') {
                     if (c.masa_berlaku < todayIso) return false;
                 }
                 
@@ -2006,7 +2008,7 @@
             
             menuGrid.innerHTML = htmlButtons;
             
-            // Tarik ulang data pengumuman & catatan khusus guru
+            // Tarik ulang data
             fetchPengumumanData();
             fetchCatatanData();
             fetchSiswaData();
@@ -2378,7 +2380,42 @@
             });
         }
         
-        // --- LOGIKA DASHBOARD WALI KELAS & MAPEL ---
+        // --- FUNGSI TAMBAHAN UNTUK GURU MAPEL & WALI KELAS (YANG SEBELUMNYA HILANG) ---
+        function populateMapelDropdowns() {
+            let selKelas = document.getElementById('tMapelKelas');
+            if(!selKelas) return;
+            let kelasList = [];
+            if(globalSiswaData && globalSiswaData.length > 0) {
+                kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            } else {
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"]; 
+            }
+            selKelas.innerHTML = `<option value="">-- Pilih Kelas --</option>` + 
+                                 kelasList.map(k => `<option value="${k}">Kelas ${k}</option>`).join('');
+            document.getElementById('tMapelSiswa').innerHTML = `<option value="">-- Pilih Siswa / Kelas --</option>`;
+        }
+
+        function populateSiswaMapel(kelas) {
+            let selSiswa = document.getElementById('tMapelSiswa');
+            if(!selSiswa) return;
+            if(!kelas) {
+                selSiswa.innerHTML = `<option value="">-- Pilih Siswa / Kelas --</option>`;
+                return;
+            }
+            let kNorm = normalizeKelas(kelas);
+            let siswaKelas = globalSiswaData.filter(s => normalizeKelas(s.kelas) === kNorm);
+            selSiswa.innerHTML = `<option value="Semua Siswa" style="font-weight: bold; color: #1e3c72;">[+] MASSAL: Semua Siswa di Kelas ${kelas}</option>` + 
+                                 siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
+        }
+
+        function logoutTeacher() { 
+            document.getElementById('dashboard-teacher').classList.remove('active'); 
+            document.getElementById('mainBody').classList.remove('ortu-body'); 
+            document.getElementById('login-section').style.display = 'flex';
+            loggedInTeacherNip = null;
+            loggedInTeacherData = null;
+        }
+
         function populateSiswaWali(kelas) {
             let selS = document.getElementById('tWaliTarget');
             if(!selS || globalSiswaData.length === 0) return;
@@ -2388,6 +2425,51 @@
             
             selS.innerHTML = `<option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] MASSAL: Semua Siswa di Kelas ${kelas}</option>` 
                               + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
+        }
+
+        function loadIzinSakitWaliKelas(kelas) {
+            let container = document.getElementById('listIzinWaliContainer');
+            if(!container || globalRekapData.length === 0) return;
+            
+            let today = new Date();
+            let dDay = today.getDate().toString();
+            let dMonth = (today.getMonth() + 1).toString();
+            let dYear = today.getFullYear().toString();
+            
+            let rekapToday = globalRekapData.filter(r => {
+                if(normalizeKelas(r.kelas) !== normalizeKelas(kelas)) return false;
+                
+                let tgl = String(r.tanggal || "").trim();
+                let isToday = false;
+                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                return isToday;
+            });
+            
+            let izinSakitList = rekapToday.filter(r => {
+                let st = String(r.status || '').toLowerCase();
+                let tp = String(r.tipe || '').toLowerCase();
+                return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
+            });
+            
+            if(izinSakitList.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-2">Tidak ada siswa izin / sakit hari ini.</div>`;
+                return;
+            }
+            
+            let html = "";
+            izinSakitList.forEach(r => {
+                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
+                let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
+                let label = isSakit ? 'Sakit' : 'Izin';
+                let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-2 text-primary text-decoration-none"><i class="fas fa-image"></i> Cek Surat</a>` : `<span class="ms-2 text-muted" style="font-size:0.65rem;">(Tanpa Surat)</span>`;
+                html += `<div class="d-flex justify-content-between border-bottom py-1"><span><i class="fas fa-user-graduate text-muted me-1"></i> ${r.nama}</span> <span><span class="badge ${badge}">${label}</span> ${fotoLnk}</span></div>`;
+            });
+            container.innerHTML = html;
         }
         
         function batalEditCatatanTeacher(tipe) {
@@ -2478,10 +2560,9 @@
             const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
             let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
             
-            // Filter hanya catatan milik guru yang sedang login (pencocokan nama minimal)
+            // Filter hanya catatan milik guru yang sedang login
             let myNotes = globalCatatanData.filter(c => String(c.guru).toLowerCase().includes(String(loggedInTeacherData.name).toLowerCase()) || String(c.guru).includes(tipe));
             
-            // Filter tambahan sesuai label MAPEL atau WALI KELAS
             if(tipe === 'WALI KELAS') myNotes = myNotes.filter(c => String(c.catatan).includes('[WALI KELAS]'));
             if(tipe === 'MAPEL') myNotes = myNotes.filter(c => String(c.catatan).includes('[MAPEL]'));
             
@@ -2541,7 +2622,7 @@
             } else {
                 document.getElementById('tMapelEditId').value = rowIndex;
                 document.getElementById('tMapelKelas').value = kelas;
-                populateSiswaMapel(kelas); // Load students for this class
+                populateSiswaMapel(kelas); 
                 setTimeout(() => { document.getElementById('tMapelSiswa').value = nisn; }, 100);
                 document.getElementById('tMapelCatatan').value = catatan;
                 document.getElementById('tMapelMasaBerlaku').value = masa;
@@ -2551,7 +2632,6 @@
             }
         }
         
-        // Panggil fungsi ini jika hapus_catatan atau hapus_pengumuman sukses dari hapusRowData
         const originalHapusRowData = hapusRowData;
         hapusRowData = function(actionName, rowIndex, label) {
             if(confirm(`Yakin hapus ${label} ini?`)) { 
@@ -2623,14 +2703,12 @@
             `;
         }
         
-        // --- OVERRIDE FETCH OBSERVERS UNTUK REFRESH TAB GURU OTOMATIS ---
         const originalFetchCatatan = fetchCatatanData;
         fetchCatatanData = function() {
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { 
                 globalCatatanData = data.data; 
                 let tB = document.getElementById('tableCatatanBody'); if(tB){ tB.innerHTML=""; globalCatatanData.forEach(c => { tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; }); }
                 
-                // Trigger reload tab history
                 if(document.getElementById('dashboard-teacher').classList.contains('active')) {
                     if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(2)')?.classList.contains('active')) loadRiwayatCatatanTeacher('WALI KELAS');
                     if(document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(3)')?.classList.contains('active')) loadRiwayatCatatanTeacher('MAPEL');
@@ -2646,6 +2724,17 @@
                 
                 if(document.getElementById('dashboard-teacher').classList.contains('active') && document.querySelector('#dashboard-teacher .dana-menu-grid button:nth-child(1)')?.classList.contains('active')) {
                     loadKepsekPengumuman();
+                }
+                
+                if(document.getElementById('dashboard-ortu').classList.contains('active')) {
+                    let todayIso = new Date().toISOString().split('T')[0];
+                    let validPengumuman = globalPengumumanData.filter(p => !p.masa_berlaku || String(p.masa_berlaku).trim() === '-' || String(p.masa_berlaku).trim() === '' || p.masa_berlaku >= todayIso);
+                    if(validPengumuman.length > 0) {
+                        let p = validPengumuman[validPengumuman.length - 1]; 
+                        document.getElementById('ortuPengumumanContainer').innerHTML = `<strong>${p.judul}</strong><p class="m-0 text-dark" style="font-size: 0.75rem;">${p.isi}</p>`;
+                    } else {
+                        document.getElementById('ortuPengumumanContainer').innerHTML = `<span class="text-muted">Tidak ada pengumuman baru.</span>`;
+                    }
                 }
             } });
         }
