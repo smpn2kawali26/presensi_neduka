@@ -150,6 +150,7 @@
             <div class="text-center p-3 text-muted small" style="font-size: 0.75rem;"><i class="fas fa-lock text-success me-1"></i> Koneksi Aman & Terhubung Real-Time Database</div>
         </div>
     </div>
+    
     <!-- DASHBOARD ADMIN -->
     <div id="dashboard-admin" class="dashboard-container">
         <div id="wrapper">
@@ -678,10 +679,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
+        
+        // VARIABEL GLOBAL PENTING
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
         let useFrontCamera = true;
         let mediaStream = null;
+        
         let globalRekapData = [];
         let globalSiswaData = [];
         let globalGuruData = [];
@@ -691,6 +695,9 @@
         let globalOrtuRiwayatData = [];
         let globalOrtuCatatanData = [];
         let globalTeacherData = [];
+        
+        // FLAG UNTUK MENCEGAH BUG "MEMUAT DATA..."
+        let isCatatanLoaded = false; 
         
         let barChartInstance = null;
         let radarChartInstance = null;
@@ -1332,11 +1339,17 @@
             let payload = { action: "tambah_jadwal", hari: document.getElementById('tambahJadwalHari').value, kelas: document.getElementById('tambahJadwalKelas').value, jam: document.getElementById('tambahJadwalJam').value, mapel: document.getElementById('tambahJadwalMapel').value, guru: document.getElementById('tambahJadwalGuru').value };
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r => r.json()).then(res => { alert(res.message); bootstrap.Modal.getInstance(document.getElementById('modalTambahJadwal')).hide(); fetchJadwalData(); });
         }
+        
+        // --- PERBAIKAN MUTLAK FUNGSI FETCH CATATAN ---
         function fetchCatatanData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
-            .then(res => res.json()).then(data => { 
+            .then(res => res.json())
+            .then(data => { 
+                isCatatanLoaded = true; // Tandai data sudah berhasil ditarik
                 if(data.status === "success" && Array.isArray(data.data)) { 
                     globalCatatanData = data.data; 
+                    
+                    // Render untuk Admin
                     let tB = document.getElementById('tableCatatanBody'); 
                     if(tB){ 
                         tB.innerHTML=""; 
@@ -1345,17 +1358,18 @@
                         }); 
                     }
                     
-                    if(document.getElementById('dashboard-teacher').classList.contains('active')) {
-                        let activeTab = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
-                        if(activeTab) {
-                            let tabText = activeTab.innerText.toLowerCase();
-                            if(tabText.includes('wali')) loadRiwayatCatatanTeacher('WALI KELAS');
-                            if(tabText.includes('mapel')) loadRiwayatCatatanTeacher('MAPEL');
-                        }
-                    }
+                    // Eksekusi Panggilan Ulang (Auto Refresh Teacher UI) jika form sedang terbuka di layar
+                    if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
+                    if (document.getElementById('listRiwayatCatatanMapel')) loadRiwayatCatatanTeacher('MAPEL');
                 } 
-            }); 
+            })
+            .catch(err => {
+                isCatatanLoaded = true; // Bebaskan dari status loading meskipun error agar pesan berubah
+                if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
+                if (document.getElementById('listRiwayatCatatanMapel')) loadRiwayatCatatanTeacher('MAPEL');
+            });
         }
+        
         function openModalTambahCatatan() { alert("Tambah catatan dari akun guru piket."); }
         function fetchPengumumanData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_pengumuman" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
@@ -2112,15 +2126,14 @@
             
             menuGrid.innerHTML = htmlButtons;
             
+            // Render Mapel tab right away so the container ID exists when fetch finishes
+            let mapelBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button:last-child');
+            switchTeacherTab('mapel', mapelBtn);
+            
+            // FIRE FETCH ACTIONS
             fetchPengumumanData();
             fetchCatatanData();
             fetchSiswaData();
-            
-            setTimeout(() => {
-                let activeBtn = menuGrid.querySelector('button');
-                switchTeacherTab('mapel', activeBtn);
-            }, 50);
-            
             fetchRekapData();
         }
         
@@ -2221,8 +2234,22 @@
                     <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-secondary"></i> Riwayat Catatan Saya</h6>
                 </div>
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><select id="filterBulanWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')"><option value="">Semua Bulan</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Jul</option><option value="08" selected>Ags</option><option value="09">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option></select></div>
-                    <div class="col-6"><select id="filterTahunWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')"><option value="">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+                    <div class="col-6">
+                        <select id="filterBulanWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')">
+                            <option value="">Semua Bulan</option>
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select id="filterTahunWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')">
+                            <option value="">Semua Tahun</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="listRiwayatCatatanWali"></div>
             `;
@@ -2254,8 +2281,22 @@
                     <h6 class="fw-bold text-dark m-0" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-secondary"></i> Riwayat Catatan Saya</h6>
                 </div>
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><select id="filterBulanMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')"><option value="">Semua Bulan</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option><option value="07">Jul</option><option value="08" selected>Ags</option><option value="09">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option></select></div>
-                    <div class="col-6"><select id="filterTahunMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')"><option value="">Semua Tahun</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+                    <div class="col-6">
+                        <select id="filterBulanMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')">
+                            <option value="">Semua Bulan</option>
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select id="filterTahunMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')">
+                            <option value="">Semua Tahun</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="listRiwayatCatatanMapel"></div>
             `;
@@ -2634,6 +2675,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
+        // --- PERBAIKAN MUTLAK LOAD RIWAYAT ---
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2642,16 +2684,22 @@
             
             if(!container) return;
             
-            // Jika data catatan global masih kosong, coba ambil ulang
+            // JIKA DATA BELUM SELESAI DI LOAD DARI SERVER (MENCEGAH STUCK)
+            if(!isCatatanLoaded) {
+                container.innerHTML = `<div class="text-center text-muted small py-3"><i class="fas fa-spinner fa-spin"></i> Memuat data dari server...</div>`;
+                return;
+            }
+            
+            // JIKA SERVER SELESAI, TAPI DATABASENYA MEMANG KOSONG
             if(!globalCatatanData || globalCatatanData.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted small py-3"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>`;
+                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan di database.</div>`;
                 return;
             }
             
             let loggedName = String(loggedInTeacherData.name || '').trim().toLowerCase();
             let cleanLoggedName = loggedName.split(',')[0].trim(); // Ambil nama utama tanpa gelar
             
-            // 1. Filter berdasarkan Nama Guru
+            // 1. Filter berdasarkan Nama Guru secara fleksibel
             let myNotes = globalCatatanData.filter(c => {
                 let guruDataStr = String(c.guru || c.nama_guru || '').trim().toLowerCase();
                 if (!guruDataStr) return false;
@@ -2667,22 +2715,19 @@
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
             }
             
-            // 3. Filter berdasarkan Bulan & Tahun secara longgar
+            // 3. Filter berdasarkan Bulan & Tahun
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 
-                // Konversi dropdown filter bulan text (Ags) atau angka (08)
-                let bulanMap = { 'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'mei':'05', 'jun':'06', 'jul':'07', 'ags':'08', 'sep':'09', 'okt':'10', 'nov':'11', 'des':'12' };
-                let targetBulanNum = (bFilter && isNaN(bFilter)) ? (bulanMap[bFilter.toLowerCase()] || bFilter) : bFilter;
-                
-                let matchBulan = !bFilter || tglStr.includes(`-${targetBulanNum}-`) || tglStr.includes(`/${targetBulanNum}/`) || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
+                // Cek bulan (mendukung format angka misalnya '/08/' atau '-08-')
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 
                 return matchBulan && matchTahun;
             });
             
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan.</div>`;
+                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan pada filter bulan/tahun ini.</div>`;
                 return;
             }
             
