@@ -100,11 +100,11 @@
         .shopee-btn-outline:hover { background: #fff5f1; }
         
         /* Teacher Accordion / Minimalist Card */
-        .minimalist-card { border-left: 3px solid #ee4d2d; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .minimalist-card { border-left: 3px solid #ee4d2d; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 8px; }
         .minimalist-card-title { font-size: 0.8rem; font-weight: bold; color: #333; }
         .minimalist-card-date { font-size: 0.65rem; color: #888; }
         .minimalist-card-text { font-size: 0.75rem; color: #555; margin-top: 5px; }
-        .btn-action-micro { padding: 0.1rem 0.4rem; font-size: 0.7rem; border-radius: 4px; }
+        .btn-action-micro { padding: 0.15rem 0.45rem; font-size: 0.7rem; border-radius: 4px; }
         
         /* SCROLLBAR CUSTOM UNTUK RIWAYAT CATATAN */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -614,7 +614,7 @@
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="closeSubPage('page-izin')"><i class="fas fa-arrow-left me-1"></i> Kembali</button>
                     <h5 class="fw-bold m-0 text-info">Form Izin / Sakit</h5><div style="width: 70px;"></div>
                 </div>
-                <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+                <div class="card border-0 shadow-sm p-4 bg-white rounded-4 mb-3">
                     <form id="formPengajuanIzin">
                         <div class="mb-3"><label class="form-label small fw-bold text-muted">Status</label><select class="form-select" id="izinStatus" required><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div>
                         <div class="mb-3"><label class="form-label small fw-bold text-muted">Unggah Bukti Foto</label><input type="file" class="form-control" id="izinBuktiFile" accept="image/*" required></div>
@@ -622,6 +622,14 @@
                         <button type="submit" class="btn btn-info text-white w-100 fw-bold py-2 shadow-sm" id="btnKirimIzin"><i class="fas fa-paper-plane me-1"></i> Kirim Pengajuan</button>
                     </form>
                     <div id="notifPengajuan" class="mt-3 d-none alert alert-success small text-center"></div>
+                </div>
+
+                <!-- RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA -->
+                <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
+                    <h6 class="fw-bold text-dark mb-2" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-info"></i> Riwayat Pengajuan Saya</h6>
+                    <div id="listOrtuRiwayatIzin" class="custom-scrollbar" style="max-height: 220px; overflow-y: auto;">
+                        <div class="text-center text-muted small py-3">Memuat riwayat pengajuan...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1130,6 +1138,11 @@
                         let filteredOrtu = globalRekapData.filter(r => String(r.nisn).trim() === String(loggedInSiswaNisn).trim());
                         globalOrtuRiwayatData = filteredOrtu;
                         renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
+                        loadOrtuRiwayatIzin(loggedInSiswaNisn);
+                    }
+                    
+                    if(loggedInTeacherData && loggedInTeacherData.tugas && loggedInTeacherData.tugas.includes("Wali Kelas")) {
+                        loadIzinSakitWaliKelas(loggedInTeacherData.kelas_binaan || "8A");
                     }
                 } 
             }); 
@@ -1427,7 +1440,7 @@
                 fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: actionName, row_index: rowIndex }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
                 .then(r => r.json())
                 .then(res => { 
-                    alert(res.message); 
+                    alert(res.message || "Data berhasil dihapus!"); 
                     if(actionName === 'hapus_pengumuman') fetchPengumumanData();
                     if(actionName === 'hapus_siswa') fetchSiswaData();
                     if(actionName === 'hapus_guru') fetchGuruData();
@@ -1809,8 +1822,10 @@
                 if(resData.status === "success" && Array.isArray(resData.data)) {
                     globalOrtuRiwayatData = resData.data.filter(r => String(r.nisn).trim() === String(nisn).trim()); 
                     renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
+                    loadOrtuRiwayatIzin(nisn);
                 } else {
                     document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran tercatat.</td></tr>`;
+                    document.getElementById('listOrtuRiwayatIzin').innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin.</div>`;
                 }
             }).catch(() => {
                 document.getElementById('tableOrtuMatriksBody').innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Gagal memuat data kehadiran.</td></tr>`;
@@ -1966,6 +1981,46 @@
         function filterOrtuRiwayat() { 
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
+        
+        /* FUNGSI RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA */
+        function loadOrtuRiwayatIzin(nisn) {
+            let container = document.getElementById('listOrtuRiwayatIzin');
+            if(!container) return;
+            
+            let izinData = globalOrtuRiwayatData.filter(r => {
+                let st = String(r.status || '').toLowerCase();
+                let tp = String(r.tipe || '').toLowerCase();
+                return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
+            });
+            
+            if(izinData.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin/sakit.</div>`;
+                return;
+            }
+            
+            izinData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            
+            let html = "";
+            izinData.forEach(r => {
+                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
+                let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
+                let label = isSakit ? 'Sakit' : 'Izin';
+                let buktiLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
+                let ket = r.keterangan || r.catatan || 'Pengajuan via aplikasi Ortu';
+                
+                html += `
+                <div class="border-bottom py-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge ${badgeClass}">${label}</span>
+                        <small class="text-muted" style="font-size: 0.7rem;">${formatTanggalIndonesia(r.tanggal)}</small>
+                    </div>
+                    <div class="small text-dark mb-1">${ket}</div>
+                    <div class="text-end">${buktiLnk}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
         function filterOrtuCatatan() {
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
@@ -2125,10 +2180,12 @@
                         notifEl.innerText = "Pengajuan izin/sakit berhasil terkirim ke database sekolah!"; 
                         notifEl.classList.remove('d-none'); 
                         document.getElementById('formPengajuanIzin').reset(); 
+                        fetchRekapData();
                         setTimeout(() => { notifEl.classList.add('d-none'); closeSubPage('page-izin'); }, 3000); 
                     }).catch(() => {
                         notifEl.innerText = "Pengajuan izin berhasil dicatat!"; 
                         notifEl.classList.remove('d-none'); 
+                        fetchRekapData();
                         setTimeout(() => { notifEl.classList.add('d-none'); closeSubPage('page-izin'); }, 3000);
                     });
                 };
@@ -2253,7 +2310,7 @@
                 <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
                 
                 <div class="mb-3">
-                    <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
+                    <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Manajemen Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
                     <div id="listIzinWaliContainer" class="border rounded p-2 small custom-scrollbar" style="max-height: 180px; overflow-y: auto; background-color: #fdfbf7;">
                         Memuat data izin siswa...
                     </div>
@@ -2423,10 +2480,8 @@
             let html = `<div class="accordion accordion-flush border rounded overflow-hidden" id="accKepsekKelas">`;
             
             kelasList.forEach((kelas, idx) => {
-                // MENGHITUNG TOTAL SISWA PER KELAS
                 let siswaK = globalSiswaData.filter(s => normalizeKelas(s.kelas) === normalizeKelas(kelas));
                 let totSiswa = siswaK.length;
-
                 let rekapK = rekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
                 let h = 0, i = 0, s = 0, a = 0;
                 let listSakitIzinHtml = "";
@@ -2464,7 +2519,6 @@
                     <h2 class="accordion-header" id="hdKlk${idx}">
                         <button class="accordion-button collapsed py-2 px-3 fw-bold" style="font-size:0.85rem;" type="button" data-bs-toggle="collapse" data-bs-target="#clKlk${idx}">
                             Kelas ${kelas} 
-                            <!-- INDIKATOR JUMLAH TOTAL SISWA -->
                             <span class="ms-auto me-2 badge bg-light text-dark border border-secondary">Tot: ${totSiswa}</span>
                             <span class="me-1 badge bg-success">${h} H</span>
                             <span class="me-1 badge bg-secondary">${s} S</span>
@@ -2608,6 +2662,8 @@
             selS.innerHTML = `<option value="Semua Siswa" style="font-weight: bold; color: #ee4d2d;">[+] MASSAL: Semua Siswa di Kelas ${kelas}</option>` 
                               + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
         }
+        
+        /* FUNGSI MANAJEMEN IZIN / SAKIT KHUSUS WALI KELAS (DENGAN TAMPILAN BUKTI FISIK & TOMBOL HAPUS) */
         function loadIzinSakitWaliKelas(kelas) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container || globalRekapData.length === 0) return;
@@ -2640,7 +2696,7 @@
             });
             
             if(izinSakitList.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-2">Tidak ada siswa izin / sakit hari ini.</div>`;
+                container.innerHTML = `<div class="text-center text-muted py-2">Tidak ada data izin / sakit untuk kelas ${kelas} hari ini.</div>`;
                 return;
             }
             
@@ -2649,8 +2705,17 @@
                 let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
-                let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-2 text-primary text-decoration-none"><i class="fas fa-image"></i> Cek Surat</a>` : `<span class="ms-2 text-muted" style="font-size:0.65rem;">(Tanpa Surat)</span>`;
-                html += `<div class="d-flex justify-content-between border-bottom py-1"><span><i class="fas fa-user-graduate text-muted me-1"></i> ${r.nama}</span> <span><span class="badge ${badge}">${label}</span> ${fotoLnk}</span></div>`;
+                let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-1 text-primary text-decoration-none"><i class="fas fa-image"></i> Bukti</a>` : `<span class="ms-1 text-muted" style="font-size:0.65rem;">(Tanpa Bukti)</span>`;
+                
+                html += `
+                <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                    <span class="text-truncate" style="max-width: 50%;"><i class="fas fa-user-graduate text-muted me-1"></i> ${r.nama}</span> 
+                    <div class="d-flex align-items-center">
+                        <span class="badge ${badge}">${label}</span> 
+                        ${fotoLnk}
+                        <button class="btn btn-action-micro btn-danger ms-2" title="Hapus Data Izin" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Data Izin/Sakit Siswa')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
             });
             container.innerHTML = html;
         }
@@ -2732,7 +2797,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI PEMBERSIH NAMA & TAMPILAN CARD CATATAN YANG DIPERBARUI
+        // FUNGSI LOAD RIWAYAT CATATAN GURU MINIMALIS DENGAN EDIT & HAPUS
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2751,7 +2816,6 @@
                 return;
             }
             
-            // PEMBERSIH NAMA GURU YANG SANGAT ROBUST (Mengabaikan S.Pd.,Gr dll)
             function bersihkanNama(namaString) {
                 if(!namaString) return "";
                 return String(namaString).split(',')[0].split('(')[0].toLowerCase().trim().replace(/[^a-z0-9]/g, '');
@@ -2759,20 +2823,20 @@
             
             let normLoggedName = bersihkanNama(loggedInTeacherData.name);
             
-            // 1. Filter Nama Guru
+            // Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
                 let normGuru = bersihkanNama(c.guru || c.nama_guru || c.pembuat || '');
                 return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
             });
             
-            // 2. Filter berdasarkan Tipe (WALI KELAS atau MAPEL)
+            // Filter Tipe (WALI KELAS atau MAPEL)
             if(tipe === 'WALI KELAS') {
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]'));
             } else if(tipe === 'MAPEL') {
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
             }
             
-            // 3. Filter berdasarkan Bulan & Tahun
+            // Filter Bulan & Tahun
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
@@ -2800,26 +2864,27 @@
                     if (c.masa_berlaku < new Date().toISOString().split('T')[0]) isExpired = true;
                 }
                 
-                // Menentukan apakah Private atau Massal
                 let isMassal = (c.nisn === 'Semua Siswa' || !c.nisn);
                 let targetTxt = isMassal ? `MASSAL (${c.kelas || '-'})` : `PRIVATE (${c.nisn})`;
                 let badgeClass = isMassal ? 'bg-danger text-white' : 'bg-primary text-white';
                 if (tipe === 'MAPEL') badgeClass = isMassal ? 'bg-warning text-dark' : 'bg-info text-dark';
                 
-                // Tampilan Card (Rekomendasi UI yang elegan)
+                // Tampilan Card Minimalis & Rapi dengan Opsi Edit & Hapus
                 html += `
-                <div class="border rounded p-3 bg-white shadow-sm mb-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge ${badgeClass} text-uppercase" style="font-size: 0.65rem;">${targetTxt}</span>
-                        <span class="text-muted" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</span>
-                    </div>
-                    <p class="small text-dark mb-2" style="line-height: 1.5;">${rawCatatan}</p>
-                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
-                        <small class="text-muted ${isExpired ? 'text-danger fw-bold' : ''}" style="font-size: 0.65rem;">
-                            <i class="far fa-calendar-alt me-1"></i> Berlaku s.d: ${masaTxt}
-                        </small>
-                        <div>
-                            <button class="btn btn-action-micro btn-warning text-dark border-0 me-1" onclick="siapkanEditCatatanTeacher('${tipe}', ${c.row_index}, '${escapeHtml(c.nisn)}', '${escapeHtml(c.kelas)}', '${escapeHtml(rawCatatan)}', '${c.masa_berlaku || ''}')"><i class="fas fa-edit"></i></button>
+                <div class="minimalist-card p-2 mb-2 rounded border">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="width: 78%;">
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <span class="badge ${badgeClass}" style="font-size: 0.6rem;">${targetTxt}</span>
+                                <span class="minimalist-card-date">${formatTanggalIndonesia(c.tanggal)}</span>
+                            </div>
+                            <div class="minimalist-card-text">${rawCatatan}</div>
+                            <div class="mt-1" style="font-size:0.62rem; color:#888;">
+                                <i class="far fa-calendar-alt me-1"></i> Masa Berlaku: <span class="${isExpired ? 'text-danger fw-bold' : ''}">${masaTxt}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            <button class="btn btn-action-micro btn-warning text-dark border-0" onclick="siapkanEditCatatanTeacher('${tipe}', ${c.row_index}, '${escapeHtml(c.nisn)}', '${escapeHtml(c.kelas)}', '${escapeHtml(rawCatatan)}', '${c.masa_berlaku || ''}')"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-action-micro btn-danger border-0" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
