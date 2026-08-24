@@ -1566,9 +1566,15 @@
             
             let statusKehadiran = "Hadir"; let fotoBase64 = null;
             if(tipe === 'MASUK') {
-                if(jamStr > schoolConfig.waktu_toleransi) { statusKehadiran = "Terlambat"; }
-                const video = document.getElementById('cameraVideo'); const canvas = document.getElementById('cameraCanvas'); canvas.width = 240; canvas.height = 180;
-                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);
+                if(jamStr > schoolConfig.waktu_toleransi) { 
+                    statusKehadiran = "Terlambat"; 
+                    // FOTO HANYA DIAMBIL JIKA TERLAMBAT UNTUK MENGHEMAT PENYIMPANAN DRIVE
+                    const video = document.getElementById('cameraVideo'); 
+                    const canvas = document.getElementById('cameraCanvas'); 
+                    canvas.width = 240; 
+                    canvas.height = 180;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); 
+                    fotoBase64 = canvas.toDataURL('image/jpeg', 0.4);     
             }
             globalRekapData.push({
                 nisn: selectedSiswaData.nisn,
