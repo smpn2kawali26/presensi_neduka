@@ -2634,6 +2634,9 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
+        /* ----------------------------------------------------
+           FUNGSI YANG DIPERBAIKI: loadRiwayatCatatanTeacher
+           ---------------------------------------------------- */
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2643,16 +2646,16 @@
             if(!container) return;
             
             let loggedName = String(loggedInTeacherData.name || '').trim().toLowerCase();
+            // Membersihkan gelar untuk validasi pencocokan (ambil teks sebelum koma pertama)
+            let cleanLoggedName = loggedName.split(',')[0].trim(); 
             
             let myNotes = globalCatatanData.filter(c => {
                 let guruDataStr = String(c.guru || c.nama_guru || '').trim().toLowerCase();
                 if (!guruDataStr) return false;
                 
-                // Pencocokan fleksibel nama guru (mengabaikan gelar & spasi berlebih)
-                let cleanGuruData = guruDataStr.split(',')[0].replace(/[^a-z]/g, '');
-                let cleanLoggedName = loggedName.split(',')[0].replace(/[^a-z]/g, '');
-                
-                return guruDataStr.includes(loggedName) || loggedName.includes(guruDataStr) || (cleanGuruData && cleanGuruData === cleanLoggedName);
+                // Cek apakah data dari database mengandung nama guru yang sedang login (atau sebaliknya)
+                // Ini untuk menyiasati nama yang di DB terekam beserta keterangan ex: "(Wali Kelas VIIIA)"
+                return guruDataStr.includes(cleanLoggedName) || cleanLoggedName.includes(guruDataStr.split(',')[0].trim());
             });
             
             if(tipe === 'WALI KELAS') {
@@ -2663,12 +2666,10 @@
             
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
-                let d = new Date(c.tanggal);
-                let itemMonth = !isNaN(d.getTime()) ? (d.getMonth() + 1).toString().padStart(2, '0') : '';
-                let itemYear = !isNaN(d.getTime()) ? d.getFullYear().toString() : '';
                 
-                let matchBulan = !bFilter || itemMonth === bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
-                let matchTahun = !tFilter || itemYear === tFilter || tglStr.includes(tFilter);
+                // Toleransi tinggi terhadap format tanggal DD/MM/YYYY atau YYYY-MM-DD
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
@@ -2677,7 +2678,12 @@
                 return;
             }
             
-            filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            // Pengurutan tanggal yang aman
+            filtered.sort((a, b) => {
+                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
+                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+                return new Date(db) - new Date(da);
+            });
             
             let html = "";
             filtered.forEach(c => {
