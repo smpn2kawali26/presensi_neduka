@@ -105,6 +105,12 @@
         .minimalist-card-date { font-size: 0.65rem; color: #888; }
         .minimalist-card-text { font-size: 0.75rem; color: #555; margin-top: 5px; }
         .btn-action-micro { padding: 0.1rem 0.4rem; font-size: 0.7rem; border-radius: 4px; }
+        
+        /* SCROLLBAR CUSTOM UNTUK RIWAYAT CATATAN */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body id="mainBody">
@@ -621,7 +627,7 @@
         </div>
     </div>
     
-    <!-- DASHBOARD GURU / TEACHER (TEMA SHOPEE KHUSUS GURU) -->
+    <!-- DASHBOARD GURU / TEACHER -->
     <div id="dashboard-teacher" class="dashboard-container">
         <div class="mobile-app-wrapper position-relative">
             <!-- Header Shopee Style -->
@@ -696,7 +702,6 @@
         let globalOrtuCatatanData = [];
         let globalTeacherData = [];
         
-        // FLAG UNTUK MENCEGAH BUG "MEMUAT DATA..."
         let isCatatanLoaded = false; 
         
         let barChartInstance = null;
@@ -1604,7 +1609,6 @@
             });
         });
         
-        // PERBAIKAN: Validasi Anti-Ganda yang Super Ketat
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1708,7 +1712,6 @@
             }).catch(err => console.log("Gagal sync rekap petugas:", err));
         }
         
-        // PERBAIKAN: Daftar Kelas Full Dinamis dari Database
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
             
@@ -1716,7 +1719,7 @@
             if(globalSiswaData && globalSiswaData.length > 0) {
                 kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
             } else {
-                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"]; // Fallback jika data kosong
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
             }
             container.innerHTML = "";
             
@@ -2251,7 +2254,7 @@
                 
                 <div class="mb-3">
                     <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
-                    <div id="listIzinWaliContainer" class="border rounded p-2 small" style="max-height: 180px; overflow-y: auto; background-color: #fdfbf7;">
+                    <div id="listIzinWaliContainer" class="border rounded p-2 small custom-scrollbar" style="max-height: 180px; overflow-y: auto; background-color: #fdfbf7;">
                         Memuat data izin siswa...
                     </div>
                 </div>
@@ -2291,7 +2294,7 @@
                         </select>
                     </div>
                 </div>
-                <div id="listRiwayatCatatanWali"></div>
+                <div id="listRiwayatCatatanWali" class="custom-scrollbar" style="max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;"></div>
             `;
         }
         
@@ -2338,7 +2341,7 @@
                         </select>
                     </div>
                 </div>
-                <div id="listRiwayatCatatanMapel"></div>
+                <div id="listRiwayatCatatanMapel" class="custom-scrollbar" style="max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;"></div>
             `;
         }
         
@@ -2420,6 +2423,10 @@
             let html = `<div class="accordion accordion-flush border rounded overflow-hidden" id="accKepsekKelas">`;
             
             kelasList.forEach((kelas, idx) => {
+                // MENGHITUNG TOTAL SISWA PER KELAS
+                let siswaK = globalSiswaData.filter(s => normalizeKelas(s.kelas) === normalizeKelas(kelas));
+                let totSiswa = siswaK.length;
+
                 let rekapK = rekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
                 let h = 0, i = 0, s = 0, a = 0;
                 let listSakitIzinHtml = "";
@@ -2457,9 +2464,11 @@
                     <h2 class="accordion-header" id="hdKlk${idx}">
                         <button class="accordion-button collapsed py-2 px-3 fw-bold" style="font-size:0.85rem;" type="button" data-bs-toggle="collapse" data-bs-target="#clKlk${idx}">
                             Kelas ${kelas} 
-                            <span class="ms-auto me-2 badge bg-success">${h} H</span>
-                            <span class="me-2 badge bg-secondary">${s} S</span>
-                            <span class="me-2 badge bg-info text-dark">${i} I</span>
+                            <!-- INDIKATOR JUMLAH TOTAL SISWA -->
+                            <span class="ms-auto me-2 badge bg-light text-dark border border-secondary">Tot: ${totSiswa}</span>
+                            <span class="me-1 badge bg-success">${h} H</span>
+                            <span class="me-1 badge bg-secondary">${s} S</span>
+                            <span class="badge bg-info text-dark">${i} I</span>
                         </button>
                     </h2>
                     <div id="clKlk${idx}" class="accordion-collapse collapse" data-bs-parent="#accKepsekKelas">
@@ -2723,7 +2732,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // PERBAIKAN: Fungsi Pembersih Nama Anti-Gagal untuk Riwayat Catatan
+        // FUNGSI PEMBERSIH NAMA & TAMPILAN CARD CATATAN YANG DIPERBARUI
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2742,10 +2751,9 @@
                 return;
             }
             
-            // FUNGSI SUPER PEMBERSIH NAMA GURU
+            // PEMBERSIH NAMA GURU YANG SANGAT ROBUST (Mengabaikan S.Pd.,Gr dll)
             function bersihkanNama(namaString) {
                 if(!namaString) return "";
-                // Pecah berdasarkan koma (,) atau kurung buka (() untuk buang gelar, ambil kata pertama/kedua, hilangkan karakter aneh
                 return String(namaString).split(',')[0].split('(')[0].toLowerCase().trim().replace(/[^a-z0-9]/g, '');
             }
             
@@ -2754,7 +2762,6 @@
             // 1. Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
                 let normGuru = bersihkanNama(c.guru || c.nama_guru || c.pembuat || '');
-                // Selama namanya sama atau saling memuat, berarti valid!
                 return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
             });
             
@@ -2774,7 +2781,7 @@
             });
             
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat catatan Anda di database pada filter ini.</div>`;
+                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat catatan Anda pada periode ini.</div>`;
                 return;
             }
             
@@ -2787,23 +2794,30 @@
             let html = "";
             filtered.forEach(c => {
                 let rawCatatan = String(c.catatan || '').replace('[WALI KELAS]', '').replace('[MAPEL]', '').trim();
-                let masaTxt = c.masa_berlaku ? `Exp: ${formatTanggalIndonesia(c.masa_berlaku)}` : `Selamanya`;
+                let masaTxt = c.masa_berlaku ? `${formatTanggalIndonesia(c.masa_berlaku)}` : `Selamanya`;
                 let isExpired = false;
                 if (c.masa_berlaku && c.masa_berlaku !== '-' && c.masa_berlaku !== '') {
                     if (c.masa_berlaku < new Date().toISOString().split('T')[0]) isExpired = true;
                 }
                 
-                let targetTxt = (c.nisn === 'Semua Siswa' || !c.nisn) ? `Semua Siswa (${c.kelas || '-'})` : `Siswa NISN: ${c.nisn}`;
+                // Menentukan apakah Private atau Massal
+                let isMassal = (c.nisn === 'Semua Siswa' || !c.nisn);
+                let targetTxt = isMassal ? `MASSAL (${c.kelas || '-'})` : `PRIVATE (${c.nisn})`;
+                let badgeClass = isMassal ? 'bg-danger text-white' : 'bg-primary text-white';
+                if (tipe === 'MAPEL') badgeClass = isMassal ? 'bg-warning text-dark' : 'bg-info text-dark';
                 
+                // Tampilan Card (Rekomendasi UI yang elegan)
                 html += `
-                <div class="minimalist-card p-2 mb-2 rounded border" style="border-left-color: ${tipe==='WALI KELAS'? '#dc3545' : '#0d6efd'};">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <small class="fw-bold text-dark text-truncate" style="max-width: 65%;"><i class="fas ${tipe==='WALI KELAS'?'fa-users':'fa-user'} text-secondary me-1"></i>${targetTxt}</small>
-                        <small class="text-muted" style="font-size:0.65rem;">${formatTanggalIndonesia(c.tanggal)}</small>
+                <div class="border rounded p-3 bg-white shadow-sm mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge ${badgeClass} text-uppercase" style="font-size: 0.65rem;">${targetTxt}</span>
+                        <span class="text-muted" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</span>
                     </div>
-                    <div class="text-truncate small text-secondary mb-1" style="white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${rawCatatan}</div>
-                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-1">
-                        <span class="badge ${isExpired ? 'bg-danger' : 'bg-light text-muted border'}" style="font-size:0.6rem;">${masaTxt}</span>
+                    <p class="small text-dark mb-2" style="line-height: 1.5;">${rawCatatan}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
+                        <small class="text-muted ${isExpired ? 'text-danger fw-bold' : ''}" style="font-size: 0.65rem;">
+                            <i class="far fa-calendar-alt me-1"></i> Berlaku s.d: ${masaTxt}
+                        </small>
                         <div>
                             <button class="btn btn-action-micro btn-warning text-dark border-0 me-1" onclick="siapkanEditCatatanTeacher('${tipe}', ${c.row_index}, '${escapeHtml(c.nisn)}', '${escapeHtml(c.kelas)}', '${escapeHtml(rawCatatan)}', '${c.masa_berlaku || ''}')"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-action-micro btn-danger border-0" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button>
