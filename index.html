@@ -649,7 +649,7 @@
             <div class="px-3 mt-3">
                 <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Pilih Menu Akses</h6>
                 <div class="dana-menu-grid d-grid gap-2" style="grid-template-columns: repeat(3, 1fr);">
-                    <!-- Tombol menu akan otomatis muncul dengan class .shopee-menu-item -->
+                    <!-- Tombol menu otomatis muncul dengan class .shopee-menu-item -->
                 </div>
             </div>
             
@@ -1071,17 +1071,20 @@
                     let totalH = 0, totalT = 0, totalI = 0, totalS = 0, totalA = 0; 
                     
                     let today = new Date();
-                    let dDay = today.getDate().toString();
-                    let dMonth = (today.getMonth() + 1).toString();
+                    let dDay = today.getDate().toString().padStart(2, '0');
+                    let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
                     let dYear = today.getFullYear().toString();
+                    let dDayNoL = today.getDate().toString();
+                    let dMonthNoL = (today.getMonth() + 1).toString();
                     
                     globalRekapData.forEach(r => { 
                         let tgl = String(r.tanggal || "").trim();
                         let isToday = false;
                         
-                        if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || 
-                            tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || 
-                            tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                        if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || 
+                            tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
+                            tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
+                            tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                             isToday = true;
                         } else {
                             let dItem = new Date(tgl);
@@ -1262,13 +1265,15 @@
             tBody.innerHTML = "";
             
             let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
             let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = rekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) return true;
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
                 let dItem = new Date(tgl);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
@@ -1298,8 +1303,13 @@
             });
         }
         function renderDashboardCharts(rekapData) {
-            let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"];
-            let hadirCounts = kelasList.map(k => rekapData.filter(r => String(r.kelas).trim().toUpperCase() === k && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
+            let kelasList = [];
+            if(globalSiswaData && globalSiswaData.length > 0) {
+                kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            } else {
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
+            }
+            let hadirCounts = kelasList.map(k => rekapData.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
             const ctxBar = document.getElementById('barChartKelas').getContext('2d'); if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: kelasList, datasets: [{ label: 'Hadir', data: hadirCounts, backgroundColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
             const ctxRadar = document.getElementById('radarChartKelas').getContext('2d'); if(radarChartInstance) radarChartInstance.destroy();
@@ -1340,16 +1350,13 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(r => r.json()).then(res => { alert(res.message); bootstrap.Modal.getInstance(document.getElementById('modalTambahJadwal')).hide(); fetchJadwalData(); });
         }
         
-        // --- PERBAIKAN MUTLAK FUNGSI FETCH CATATAN ---
         function fetchCatatanData() { 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json())
             .then(data => { 
-                isCatatanLoaded = true; // Tandai data sudah berhasil ditarik
+                isCatatanLoaded = true;
                 if(data.status === "success" && Array.isArray(data.data)) { 
                     globalCatatanData = data.data; 
-                    
-                    // Render untuk Admin
                     let tB = document.getElementById('tableCatatanBody'); 
                     if(tB){ 
                         tB.innerHTML=""; 
@@ -1357,14 +1364,12 @@
                             tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru || c.nama_guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; 
                         }); 
                     }
-                    
-                    // Eksekusi Panggilan Ulang (Auto Refresh Teacher UI) jika form sedang terbuka di layar
                     if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
                     if (document.getElementById('listRiwayatCatatanMapel')) loadRiwayatCatatanTeacher('MAPEL');
                 } 
             })
             .catch(err => {
-                isCatatanLoaded = true; // Bebaskan dari status loading meskipun error agar pesan berubah
+                isCatatanLoaded = true;
                 if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
                 if (document.getElementById('listRiwayatCatatanMapel')) loadRiwayatCatatanTeacher('MAPEL');
             });
@@ -1598,6 +1603,8 @@
                 listEl.appendChild(item);
             });
         });
+        
+        // PERBAIKAN: Validasi Anti-Ganda yang Super Ketat
         function prosesAbsen(tipe) {
             if(!selectedSiswaData) { alert("Pilih siswa terlebih dahulu!"); return; }
             
@@ -1614,18 +1621,31 @@
             const todayStr = now.toISOString().split('T')[0];
             const todayLokal = now.toLocaleDateString('id-ID');
             
+            let dDay = now.getDate().toString().padStart(2, '0');
+            let dMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+            let dYear = now.getFullYear().toString();
+            let dDayNoL = now.getDate().toString();
+            let dMonthNoL = (now.getMonth() + 1).toString();
+            
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
                 let tglVal = String(r.tanggal || '').trim();
                 let isToday = false;
                 
-                let d1 = new Date(tglVal);
-                if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === new Date().setHours(0,0,0,0)) {
+                if (tglVal.includes(`${dDay}/${dMonth}/${dYear}`) || 
+                    tglVal.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
+                    tglVal.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
+                    tglVal.includes(`${dYear}-${dMonth}-${dDay}`) || 
+                    tglVal.includes(`${dYear}/${dMonth}/${dDay}`) || 
+                    tglVal.includes(todayStr) || 
+                    tglVal.includes(todayLokal)) {
                     isToday = true;
-                } 
-                else if (tglVal.includes(todayStr) || tglVal.includes(todayLokal) || tglVal.includes(now.getDate().toString().padStart(2, '0') + ' ' + ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][now.getMonth()])) {
-                    isToday = true;
+                } else {
+                    let d1 = new Date(tglVal);
+                    if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === now.setHours(0,0,0,0)) {
+                        isToday = true;
+                    } 
                 }
                 return matchNisn && matchTipe && isToday;
             });
@@ -1675,6 +1695,7 @@
                 notif.className = "mt-2 alert alert-success text-center fw-bold py-1 small"; 
                 notif.innerText = `TERCATAT! ${selectedSiswaData.nama}`; 
                 fetchRekapDataForPetugas(); 
+                setTimeout(() => { selectedSiswaData = null; document.getElementById('searchSiswaInput').value = ""; document.getElementById('selectedSiswaCard').classList.add('d-none'); notif.classList.add('d-none'); }, 3000);
             });
         }
         function fetchRekapDataForPetugas() {
@@ -1686,26 +1707,47 @@
                 } 
             }).catch(err => console.log("Gagal sync rekap petugas:", err));
         }
+        
+        // PERBAIKAN: Daftar Kelas Full Dinamis dari Database
         function renderRealtimeKelasSummary(rekapData) {
             const container = document.getElementById('realtimeKelasSummary'); if(!container) return;
-            let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B"]; container.innerHTML = "";
+            
+            let kelasList = [];
+            if(globalSiswaData && globalSiswaData.length > 0) {
+                kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            } else {
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"]; // Fallback jika data kosong
+            }
+            container.innerHTML = "";
+            
             let today = new Date();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+            let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             kelasList.forEach(kelas => {
                 let uniqueSiswaHadir = new Set();
                 rekapData.forEach(item => {
-                    let matchKelas = String(item.kelas || '').trim().toUpperCase() === kelas.toUpperCase();
+                    let matchKelas = String(item.kelas || '').trim().toUpperCase() === String(kelas).trim().toUpperCase();
                     let st = String(item.status || item.status_kehadiran || '').trim().toLowerCase();
                     let tp = String(item.tipe || '').trim().toUpperCase();
                     let isHadir = st === 'hadir' || st === 'terlambat' || st === 'h' || tp === 'MASUK' || tp === 'PULANG';
                     
                     let tglStr = String(item.tanggal || '');
-                    let dItem = new Date(tglStr);
                     let isToday = false;
-                    if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                    
+                    if (tglStr.includes(`${dDay}/${dMonth}/${dYear}`) || 
+                        tglStr.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
+                        tglStr.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
+                        tglStr.includes(`${dYear}-${dMonth}-${dDay}`)) {
                         isToday = true;
-                    } else if(tglStr.includes(today.getDate()) || tglStr.includes(today.toLocaleDateString('id-ID'))) {
-                        isToday = true;
+                    } else {
+                        let dItem = new Date(tglStr);
+                        if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                            isToday = true;
+                        }
                     }
                     
                     if(matchKelas && isHadir && (isToday || tglStr.length === 0)) {
@@ -2126,11 +2168,9 @@
             
             menuGrid.innerHTML = htmlButtons;
             
-            // Render Mapel tab right away so the container ID exists when fetch finishes
             let mapelBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button:last-child');
             switchTeacherTab('mapel', mapelBtn);
             
-            // FIRE FETCH ACTIONS
             fetchPengumumanData();
             fetchCatatanData();
             fetchSiswaData();
@@ -2307,14 +2347,16 @@
             if(!ctx || globalRekapData.length === 0) return;
             
             let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
             let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 let isToday = false;
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
                     let dItem = new Date(tgl);
@@ -2353,19 +2395,23 @@
             let container = document.getElementById('kepsekRekapKelasContainer');
             if(!container) return;
             
-            let kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
+            let kelasList = [];
             if(globalSiswaData.length > 0) {
                 kelasList = [...new Set(globalSiswaData.map(s => s.kelas))].filter(Boolean).sort();
+            } else {
+                kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
             }
             
             let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
             let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) return true;
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
                 let dItem = new Date(tgl);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
@@ -2558,16 +2604,18 @@
             if(!container || globalRekapData.length === 0) return;
             
             let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
             let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
                 if(normalizeKelas(r.kelas) !== normalizeKelas(kelas)) return false;
                 
                 let tgl = String(r.tanggal || "").trim();
                 let isToday = false;
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
                     let dItem = new Date(tgl);
@@ -2675,7 +2723,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // --- PERBAIKAN MUTLAK LOAD RIWAYAT ---
+        // PERBAIKAN: Fungsi Pembersih Nama Anti-Gagal untuk Riwayat Catatan
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2684,28 +2732,30 @@
             
             if(!container) return;
             
-            // JIKA DATA BELUM SELESAI DI LOAD DARI SERVER (MENCEGAH STUCK)
             if(!isCatatanLoaded) {
                 container.innerHTML = `<div class="text-center text-muted small py-3"><i class="fas fa-spinner fa-spin"></i> Memuat data dari server...</div>`;
                 return;
             }
             
-            // JIKA SERVER SELESAI, TAPI DATABASENYA MEMANG KOSONG
             if(!globalCatatanData || globalCatatanData.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan di database.</div>`;
                 return;
             }
             
-            let loggedName = String(loggedInTeacherData.name || '').trim().toLowerCase();
-            let cleanLoggedName = loggedName.split(',')[0].trim(); // Ambil nama utama tanpa gelar
+            // FUNGSI SUPER PEMBERSIH NAMA GURU
+            function bersihkanNama(namaString) {
+                if(!namaString) return "";
+                // Pecah berdasarkan koma (,) atau kurung buka (() untuk buang gelar, ambil kata pertama/kedua, hilangkan karakter aneh
+                return String(namaString).split(',')[0].split('(')[0].toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+            }
             
-            // 1. Filter berdasarkan Nama Guru secara fleksibel
+            let normLoggedName = bersihkanNama(loggedInTeacherData.name);
+            
+            // 1. Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
-                let guruDataStr = String(c.guru || c.nama_guru || '').trim().toLowerCase();
-                if (!guruDataStr) return false;
-                let cleanGuruData = guruDataStr.split(',')[0].trim();
-                
-                return guruDataStr.includes(cleanLoggedName) || cleanLoggedName.includes(cleanGuruData);
+                let normGuru = bersihkanNama(c.guru || c.nama_guru || c.pembuat || '');
+                // Selama namanya sama atau saling memuat, berarti valid!
+                return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
             });
             
             // 2. Filter berdasarkan Tipe (WALI KELAS atau MAPEL)
@@ -2718,20 +2768,16 @@
             // 3. Filter berdasarkan Bulan & Tahun
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
-                
-                // Cek bulan (mendukung format angka misalnya '/08/' atau '-08-')
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
-                
                 return matchBulan && matchTahun;
             });
             
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted small py-3">Tidak ada riwayat catatan pada filter bulan/tahun ini.</div>`;
+                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat catatan Anda di database pada filter ini.</div>`;
                 return;
             }
             
-            // Urutkan dari yang terbaru
             filtered.sort((a, b) => {
                 let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
                 let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
@@ -2795,14 +2841,16 @@
             if(!container || globalRekapData.length === 0) return;
             
             let today = new Date();
-            let dDay = today.getDate().toString();
-            let dMonth = (today.getMonth() + 1).toString();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
             let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 let isToday = false;
-                if (tgl.includes(dDay + '/' + dMonth + '/' + dYear) || tgl.includes(dDay + '/0' + dMonth + '/' + dYear) || tgl.includes(dYear + '-' + dMonth.padStart(2,'0') + '-' + dDay.padStart(2,'0'))) {
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
                     let dItem = new Date(tgl);
