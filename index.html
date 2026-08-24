@@ -2634,9 +2634,6 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        /* ----------------------------------------------------
-           FUNGSI YANG DIPERBAIKI: loadRiwayatCatatanTeacher
-           ---------------------------------------------------- */
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2645,31 +2642,42 @@
             
             if(!container) return;
             
-            let loggedName = String(loggedInTeacherData.name || '').trim().toLowerCase();
-            // Membersihkan gelar untuk validasi pencocokan (ambil teks sebelum koma pertama)
-            let cleanLoggedName = loggedName.split(',')[0].trim(); 
+            // Jika data catatan global masih kosong, coba ambil ulang
+            if(!globalCatatanData || globalCatatanData.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted small py-3"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>`;
+                return;
+            }
             
+            let loggedName = String(loggedInTeacherData.name || '').trim().toLowerCase();
+            let cleanLoggedName = loggedName.split(',')[0].trim(); // Ambil nama utama tanpa gelar
+            
+            // 1. Filter berdasarkan Nama Guru
             let myNotes = globalCatatanData.filter(c => {
                 let guruDataStr = String(c.guru || c.nama_guru || '').trim().toLowerCase();
                 if (!guruDataStr) return false;
+                let cleanGuruData = guruDataStr.split(',')[0].trim();
                 
-                // Cek apakah data dari database mengandung nama guru yang sedang login (atau sebaliknya)
-                // Ini untuk menyiasati nama yang di DB terekam beserta keterangan ex: "(Wali Kelas VIIIA)"
-                return guruDataStr.includes(cleanLoggedName) || cleanLoggedName.includes(guruDataStr.split(',')[0].trim());
+                return guruDataStr.includes(cleanLoggedName) || cleanLoggedName.includes(cleanGuruData);
             });
             
+            // 2. Filter berdasarkan Tipe (WALI KELAS atau MAPEL)
             if(tipe === 'WALI KELAS') {
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]'));
             } else if(tipe === 'MAPEL') {
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
             }
             
+            // 3. Filter berdasarkan Bulan & Tahun secara longgar
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 
-                // Toleransi tinggi terhadap format tanggal DD/MM/YYYY atau YYYY-MM-DD
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
+                // Konversi dropdown filter bulan text (Ags) atau angka (08)
+                let bulanMap = { 'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'mei':'05', 'jun':'06', 'jul':'07', 'ags':'08', 'sep':'09', 'okt':'10', 'nov':'11', 'des':'12' };
+                let targetBulanNum = (bFilter && isNaN(bFilter)) ? (bulanMap[bFilter.toLowerCase()] || bFilter) : bFilter;
+                
+                let matchBulan = !bFilter || tglStr.includes(`-${targetBulanNum}-`) || tglStr.includes(`/${targetBulanNum}/`) || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
+                
                 return matchBulan && matchTahun;
             });
             
@@ -2678,7 +2686,7 @@
                 return;
             }
             
-            // Pengurutan tanggal yang aman
+            // Urutkan dari yang terbaru
             filtered.sort((a, b) => {
                 let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
                 let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
