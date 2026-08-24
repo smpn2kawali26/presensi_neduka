@@ -1899,6 +1899,7 @@
                 reader.readAsDataURL(file);
             }
         }
+        
         function renderOrtuMatriksRiwayat(dataArray) {
             let tbody = document.getElementById('tableOrtuMatriksBody'); 
             if(!tbody) return;
@@ -1927,14 +1928,17 @@
                 }
                 let tipe = String(item.tipe || '').trim().toUpperCase();
                 let waktuVal = String(item.waktu || '-');
-                let statusVal = String(item.status || '-');
+                let statusVal = String(item.status || item.status_kehadiran || '-').trim();
                 
-                if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
+                // Menangkap status Izin atau Sakit baik dari tipe maupun status
+                if (tipe.includes('IZIN') || statusVal.toLowerCase().includes('izin')) {
+                    groupedByDate[cleanDate].status = 'Izin';
+                } else if (tipe.includes('SAKIT') || statusVal.toLowerCase().includes('sakit')) {
+                    groupedByDate[cleanDate].status = 'Sakit';
+                } else if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
                     groupedByDate[cleanDate].masuk = extractTime(waktuVal);
                     if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
-                }
-                
-                if (tipe.includes('PULANG')) {
+                } else if (tipe.includes('PULANG')) {
                     groupedByDate[cleanDate].pulang = extractTime(waktuVal);
                     if(statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') {
                         groupedByDate[cleanDate].status = statusVal;
@@ -1945,39 +1949,58 @@
                     groupedByDate[cleanDate].status = statusVal;
                 }
             });
+            
             let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
+            
             if(dates.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
             } else {
                 dates.forEach(dateStr => {
                     let d = groupedByDate[dateStr];
-                    let st = String(d.status).trim();
+                    let st = String(d.status).trim().toLowerCase();
                     let badgeClass = 'bg-success';
+                    let displayStatus = d.status;
                     
-                    if(st.toLowerCase().includes('terlambat')) { badgeClass = 'bg-warning text-dark'; countT++; }
-                    else if(st.toLowerCase().includes('hadir')) { countH++; }
-                    else if(st.toLowerCase().includes('izin')) { badgeClass = 'bg-info text-white'; countI++; }
-                    else if(st.toLowerCase().includes('sakit')) { badgeClass = 'bg-secondary text-white'; countS++; }
-                    else if(st.toLowerCase().includes('alpa')) { badgeClass = 'bg-danger'; countA++; }
-                    else { countH++; }
+                    if(st.includes('terlambat')) { 
+                        badgeClass = 'bg-warning text-dark'; 
+                        countT++; 
+                    } else if(st.includes('izin')) { 
+                        badgeClass = 'bg-info text-white'; 
+                        displayStatus = 'Izin';
+                        countI++; 
+                    } else if(st.includes('sakit')) { 
+                        badgeClass = 'bg-secondary text-white'; 
+                        displayStatus = 'Sakit';
+                        countS++; 
+                    } else if(st.includes('alpa')) { 
+                        badgeClass = 'bg-danger'; 
+                        countA++; 
+                    } else if(st.includes('hadir')) { 
+                        countH++; 
+                    } else {
+                        countH++;
+                    }
+                    
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
                             <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${d.masuk}</span></td>
                             <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${d.pulang}</span></td>
-                            <td><span class="badge ${badgeClass}">${st}</span></td>
+                            <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
                         </tr>
                     `;
                 });
             }
+            
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
             if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
             if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
             if(document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
             if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
+
         function filterOrtuRiwayat() { 
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
