@@ -324,6 +324,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                             <h4 class="fw-bold m-0">Rekapitulasi Absensi</h4>
                             <div class="d-flex gap-2 align-items-center">
+                                <input type="date" id="adminFilterTanggalRekap" class="form-control form-control-sm" title="Pilih Tanggal Spesifik" onchange="filterAdminRekap()">
                                 <select id="adminFilterBulanRekap" class="form-select form-select-sm" onchange="filterAdminRekap()">
                                     <option value="">Semua Bulan</option>
                                     <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
@@ -363,7 +364,7 @@
                             <form id="formSettingLokasi">
                                 <div class="mb-3"><label class="form-label">Latitude Sekolah</label><input type="text" class="form-control" id="lokasiLat" value="-7.1895" required></div>
                                 <div class="mb-3"><label class="form-label">Longitude Sekolah</label><input type="text" class="form-control" id="lokasiLng" value="108.3421" required></div>
-                                <div class="mb-3"><label class="form-label">Radius Maksimal (Meter)</label><input type="number" class="form-control" id="lokasiRadius" value="50" required></div>
+                                <div class="mb-3"><label class="form-label">Radius Maksimal (Meter)</label><input type="number" class="form-control" id="lokasiRadius" value="100" required></div>
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Lokasi & Radius ke Database</button>
                             </form>
                             <div id="notifLokasi" class="mt-2 d-none alert alert-success small"></div>
@@ -676,11 +677,15 @@
         </div>
     </div>
     
-    <!-- MODAL TAMBAH & EDIT ADMIN -->
+    <!-- MODAL TAMBAH & EDIT SISWA -->
     <div class="modal fade" id="modalTambahSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="tambahSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama Siswa</label><input type="text" class="form-control" id="tambahSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="tambahSiswaKelas" required placeholder="7A"></div><div class="mb-2"><label class="form-label">Nama Ortu</label><input type="text" class="form-control" id="tambahSiswaOrtu"></div><div class="mb-2"><label class="form-label">No HP Ortu</label><input type="text" class="form-control" id="tambahSiswaHp"></div><div class="mb-3"><label class="form-label">Wali Kelas</label><input type="text" class="form-control" id="tambahSiswaWali"></div><button type="button" onclick="simpanTambahSiswa()" class="btn btn-success w-100">Simpan Siswa Baru</button></form></div></div></div></div>
-    <div class="modal fade" id="modalTambahGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="tambahGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="tambahGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tambahGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="tambahGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanTambahGuru()" class="btn btn-success w-100">Simpan Guru Baru</button></form></div></div></div></div>
     <div class="modal fade" id="modalEditSiswa" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Edit Siswa</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><input type="hidden" id="editSiswaRowIndex"><div class="mb-2"><label class="form-label">NISN</label><input type="text" class="form-control" id="editSiswaNisn" required></div><div class="mb-2"><label class="form-label">Nama</label><input type="text" class="form-control" id="editSiswaNama" required></div><div class="mb-2"><label class="form-label">Kelas</label><input type="text" class="form-control" id="editSiswaKelas" required></div><div class="mb-2"><label class="form-label">Ortu</label><input type="text" class="form-control" id="editSiswaOrtu"></div><div class="mb-2"><label class="form-label">HP</label><input type="text" class="form-control" id="editSiswaHp"></div><div class="mb-3"><label class="form-label">Wali</label><input type="text" class="form-control" id="editSiswaWali"></div><button type="button" onclick="simpanEditSiswa()" class="btn btn-primary w-100">Simpan Perubahan</button></form></div></div></div></div>
     
+    <!-- MODAL TAMBAH & EDIT GURU -->
+    <div class="modal fade" id="modalTambahGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-success text-white"><h5 class="modal-title">Tambah Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="tambahGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="tambahGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="tambahGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="tambahGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanTambahGuru()" class="btn btn-success w-100">Simpan Guru Baru</button></form></div></div></div></div>
+    <!-- MODAL EDIT GURU -->
+    <div class="modal fade" id="modalEditGuru" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title">Edit Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><input type="hidden" id="editGuruRowIndex"><div class="mb-2"><label class="form-label">NIP</label><input type="text" class="form-control" id="editGuruNip" required></div><div class="mb-2"><label class="form-label">Nama Guru</label><input type="text" class="form-control" id="editGuruNama" required></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="editGuruMapel"></div><div class="mb-2"><label class="form-label">Tugas Tambahan</label><input type="text" class="form-control" id="editGuruTugas"></div><div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="editGuruStatus"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div><button type="button" onclick="simpanEditGuru()" class="btn btn-warning w-100">Simpan Perubahan</button></form></div></div></div></div>
+
     <!-- MODAL TAMBAH JADWAL -->
     <div class="modal fade" id="modalTambahJadwal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Tambah Jadwal Pelajaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form><div class="mb-2"><label class="form-label">Hari</label><select class="form-select" id="tambahJadwalHari"><option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option></select></div><div class="mb-2"><label class="form-label">Kelas</label><select class="form-select" id="tambahJadwalKelas"><option value="" disabled selected>-- Pilih Kelas --</option></select></div><div class="mb-2"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" id="tambahJadwalJam" required placeholder="Contoh: Matematika"></div><div class="mb-2"><label class="form-label">Waktu Jam Pelajaran</label><input type="text" class="form-control" id="tambahJadwalMapel" required placeholder="07:00 - 08:30"></div><div class="mb-3"><label class="form-label">Guru Pengajar</label><select class="form-select" id="tambahJadwalGuru"><option value="" disabled selected>-- Pilih Guru --</option></select></div><button type="button" onclick="simpanTambahJadwal()" class="btn btn-success w-100">Simpan Jadwal</button></form></div></div></div></div>
     
@@ -729,7 +734,7 @@
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
             lng_sekolah: 108.3421, 
-            radius_sekolah: 200, 
+            radius_sekolah: 100, 
             waktu_mulai_masuk: "06:00", 
             waktu_akhir_masuk: "07:30", 
             waktu_toleransi: "07:15", 
@@ -869,6 +874,7 @@
             str = str.replace('KELAS', '');
             return str;
         }
+        
         const DEFAULT_THEME = { primary: '#1e3c72', secondary: '#2a5298', font: "'Poppins', sans-serif", logo: 'logo.png', sekolah: 'SMP N 2 KAWALI', preset: 'digibjb' };
         
         function applyTheme(theme) {
@@ -991,8 +997,13 @@
                     if(role === 'admin') {
                         document.getElementById('mainBody').classList.remove('ortu-body');
                         document.getElementById('dashboard-admin').classList.add('active');
-                        document.getElementById('userProfileName').innerText = data.name;
-                        document.querySelector('.profil-nama').innerText = data.name;
+                        // Bersihkan sesi dan setel nama murni admin
+                        loggedInSiswaNisn = null;
+                        selectedSiswaData = null;
+                        let adminName = data.name || "Administrator Utama";
+                        document.getElementById('userProfileName').innerText = adminName;
+                        document.querySelector('.profil-nama').innerText = adminName;
+                        
                         fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData(); fetchPengumumanData();
                     } else if(role === 'petugas') {
                         document.getElementById('mainBody').classList.add('ortu-body');
@@ -1062,11 +1073,43 @@
         }
         
         function fetchGuruData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalGuruData = data.data; renderAdminGuruTable(globalGuruData); populateModalDropdowns(); } }); }
+        
+        // FUNGSI EDIT GURU
+        function openModalEditGuruById(nip) {
+            let g = globalGuruData.find(item => String(item.nip) === String(nip)); 
+            if(!g) return;
+            document.getElementById('editGuruRowIndex').value = g.row_index; 
+            document.getElementById('editGuruNip').value = g.nip || ''; 
+            document.getElementById('editGuruNama').value = g.nama || ''; 
+            document.getElementById('editGuruMapel').value = g.mapel || ''; 
+            document.getElementById('editGuruTugas').value = g.tugas || ''; 
+            document.getElementById('editGuruStatus').value = g.status || 'Aktif';
+            new bootstrap.Modal(document.getElementById('modalEditGuru')).show();
+        }
+        function simpanEditGuru() {
+            let payload = { 
+                action: "edit_guru", 
+                row_index: document.getElementById('editGuruRowIndex').value, 
+                nip: document.getElementById('editGuruNip').value, 
+                nama: document.getElementById('editGuruNama').value, 
+                mapel: document.getElementById('editGuruMapel').value, 
+                tugas: document.getElementById('editGuruTugas').value, 
+                status: document.getElementById('editGuruStatus').value 
+            };
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+            .then(r => r.json()).then(res => { 
+                alert(res.message || "Data Guru Tersimpan!"); 
+                bootstrap.Modal.getInstance(document.getElementById('modalEditGuru')).hide(); 
+                fetchGuruData(); 
+            });
+        }
         function renderAdminGuruTable(dataArray) {
             let tBody = document.getElementById('tableGuruBody'); if(!tBody) return;
             let state = paginationState.guru; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            paginatedItems.forEach((g) => { tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru || '-'}</td><td class="text-center">${g.nip || '-'}</td><td>${g.nama || '-'}</td><td>${g.mapel || '-'}</td><td>${g.tugas || '-'}</td><td class="text-center"><span class="badge bg-success">${g.status || 'Aktif'}</span></td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_guru', ${g.row_index}, 'Guru')"><i class="fas fa-trash"></i></button></td></tr>`; });
+            paginatedItems.forEach((g) => { 
+                tBody.innerHTML += `<tr><td class="text-center fw-bold">${g.id_guru || '-'}</td><td class="text-center">${g.nip || '-'}</td><td>${g.nama || '-'}</td><td>${g.mapel || '-'}</td><td>${g.tugas || '-'}</td><td class="text-center"><span class="badge ${g.status === 'Tidak Aktif' ? 'bg-danger' : 'bg-success'}">${g.status || 'Aktif'}</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-warning text-dark me-1" onclick="openModalEditGuruById('${g.nip}')" title="Edit Data Guru"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_guru', ${g.row_index}, 'Guru')" title="Hapus Data Guru"><i class="fas fa-trash"></i></button></td></tr>`; 
+            });
             renderPaginationControls(dataArray.length, 'guru', 'paginationGuruContainer');
         }
         function openModalTambahGuru() { new bootstrap.Modal(document.getElementById('modalTambahGuru')).show(); }
@@ -1149,12 +1192,37 @@
         }
         setInterval(fetchRekapData, 10000);
         
-        function filterAdminRekap() { let b = document.getElementById('adminFilterBulanRekap').value; let th = document.getElementById('adminFilterTahunRekap').value; let filtered = globalRekapData.filter(r => { let tgl = String(r.tanggal || ''); let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`Agustus`) && b === '08'; let matchTh = !th || tgl.includes(th); return matchB && matchTh; }); renderAdminRekapTable(filtered); }
+        // FILTER ADMIN REKAP DENGAN TAMBAHAN TANGGAL SPESIFIK
+        function filterAdminRekap() { 
+            let b = document.getElementById('adminFilterBulanRekap').value; 
+            let th = document.getElementById('adminFilterTahunRekap').value; 
+            let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format YYYY-MM-DD
+            
+            let filtered = globalRekapData.filter(r => { 
+                let tgl = String(r.tanggal || ''); 
+                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`) || (tgl.includes(`Agustus`) && b === '08'); 
+                let matchTh = !th || tgl.includes(th); 
+                
+                let matchTgl = true;
+                if(tglFilter) {
+                    let [y, m, d] = tglFilter.split('-');
+                    let f1 = `${d}/${m}/${y}`;
+                    let f2 = `${parseInt(d)}/${parseInt(m)}/${y}`;
+                    let f3 = `${d}/${parseInt(m)}/${y}`;
+                    let f4 = `${parseInt(d)}/${m}/${y}`;
+                    matchTgl = tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4);
+                }
+                
+                return matchB && matchTh && matchTgl; 
+            }); 
+            renderAdminRekapTable(filtered); 
+        }
+        
         function renderAdminRekapTable(dataArray) {
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
+            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center text-nowrap">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
             renderPaginationControls(dataArray.length, 'rekap', 'paginationRekapContainer');
         }
         function populateFilterKelasDropdown() {
@@ -1912,7 +1980,7 @@
             
             let filtered = dataArray.filter(r => {
                 let tglStr = String(r.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
@@ -1930,7 +1998,6 @@
                 let waktuVal = String(item.waktu || '-');
                 let statusVal = String(item.status || item.status_kehadiran || '-').trim();
                 
-                // Menangkap status Izin atau Sakit baik dari tipe maupun status
                 if (tipe.includes('IZIN') || statusVal.toLowerCase().includes('izin')) {
                     groupedByDate[cleanDate].status = 'Izin';
                 } else if (tipe.includes('SAKIT') || statusVal.toLowerCase().includes('sakit')) {
@@ -1950,7 +2017,12 @@
                 }
             });
             
-            let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+            let dates = Object.keys(groupedByDate).sort((a, b) => {
+                let da = a.includes('/') ? a.split('/').reverse().join('-') : a;
+                let db = b.includes('/') ? b.split('/').reverse().join('-') : b;
+                return new Date(db) - new Date(da);
+            });
+            
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
             
@@ -2058,12 +2130,17 @@
                 }
                 
                 let tglStr = String(c.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(targetMonthName);
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
-            filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            filtered.sort((a, b) => {
+                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
+                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+                return new Date(db) - new Date(da);
+            });
+            
             renderOrtuCatatanList(filtered);
         }
         
@@ -2820,7 +2897,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI LOAD RIWAYAT CATATAN GURU MINIMALIS DENGAN EDIT & HAPUS
+        // FUNGSI LOAD RIWAYAT CATATAN GURU (PERBAIKAN PENGABAIAN GELAR & FILTER TANGGAL DD/MM/YYYY)
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2839,16 +2916,19 @@
                 return;
             }
             
-            function bersihkanNama(namaString) {
-                if(!namaString) return "";
-                return String(namaString).split(',')[0].split('(')[0].toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+            // FUNGSI PEMBERSIH NAMA: Hapus teks dalam kurung, gelar setelah koma, dan karakter spesial
+            function bersihkanNamaGuru(namaStr) {
+                if(!namaStr) return "";
+                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, ''); // Hapus (Wali Kelas VIIIA)
+                clean = clean.split(',')[0]; // Ambil sebelum koma gelar
+                return clean.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
             }
             
-            let normLoggedName = bersihkanNama(loggedInTeacherData.name);
+            let normLoggedName = bersihkanNamaGuru(loggedInTeacherData.name);
             
             // Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
-                let normGuru = bersihkanNama(c.guru || c.nama_guru || c.pembuat || '');
+                let normGuru = bersihkanNamaGuru(c.guru || c.nama_guru || c.pembuat || '');
                 return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
             });
             
@@ -2859,10 +2939,10 @@
                 myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
             }
             
-            // Filter Bulan & Tahun
+            // Filter Bulan & Tahun (Menyesuaikan Format Tanggal DD/MM/YYYY)
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`);
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
