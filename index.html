@@ -1192,31 +1192,28 @@
         
         // FILTER ADMIN REKAP DENGAN TAMBAHAN TANGGAL SPESIFIK
         function filterAdminRekap() { 
-    let b = document.getElementById('adminFilterBulanRekap').value; 
-    let th = document.getElementById('adminFilterTahunRekap').value; 
-    let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format YYYY-MM-DD (contoh: 2026-08-24)
-    
-    let filtered = globalRekapData.filter(r => { 
-        let tgl = String(r.tanggal || '').trim(); 
-        
-        // Jika tanggal spesifik dipilih, prioritaskan pencocokan tanggal secara akurat
-        if(tglFilter) {
-            let [y, m, d] = tglFilter.split('-');
-            let f1 = `${d}/${m}/${y}`;             // 24/08/2026
-            let f2 = `${parseInt(d)}/${parseInt(m)}/${y}`; // 24/8/2026
-            let f3 = `${d}/${parseInt(m)}/${y}`;   // 24/8/2026
-            let f4 = `${parseInt(d)}/${m}/${y}`;   // 24/08/2026
+            let b = document.getElementById('adminFilterBulanRekap').value; 
+            let th = document.getElementById('adminFilterTahunRekap').value; 
+            let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format YYYY-MM-DD
             
-            return tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4);
-        }
-        
-        let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`) || (tgl.includes(`Agustus`) && b === '08'); 
-        let matchTh = !th || tgl.includes(th); 
-        
-        return matchB && matchTh; 
-    }); 
-    renderAdminRekapTable(filtered); 
-}
+            let filtered = globalRekapData.filter(r => { 
+                let tgl = String(r.tanggal || ''); 
+                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`) || (tgl.includes(`Agustus`) && b === '08'); 
+                let matchTh = !th || tgl.includes(th); 
+                
+                let matchTgl = true;
+                if(tglFilter) {
+                    let [y, m, d] = tglFilter.split('-');
+                    let f1 = `${d}/${m}/${y}`;
+                    let f2 = `${parseInt(d)}/${parseInt(m)}/${y}`;
+                    let f3 = `${d}/${parseInt(m)}/${y}`;
+                    let f4 = `${parseInt(d)}/${m}/${y}`;
+                    matchTgl = tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4);
+                }
+                
+                return matchB && matchTh && matchTgl; 
+            }); 
+            renderAdminRekapTable(filtered); 
         }
         
         function renderAdminRekapTable(dataArray) {
