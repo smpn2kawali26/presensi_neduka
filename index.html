@@ -106,7 +106,7 @@
         .minimalist-card-text { font-size: 0.75rem; color: #555; margin-top: 5px; }
         .btn-action-micro { padding: 0.15rem 0.45rem; font-size: 0.7rem; border-radius: 4px; }
         
-        /* SCROLLBAR CUSTOM */
+        /* SCROLLBAR CUSTOM UNTUK RIWAYAT CATATAN */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -1192,7 +1192,7 @@
         }
         setInterval(fetchRekapData, 10000);
         
-        // PERBAIKAN: FILTER ADMIN REKAP DENGAN DETEKSI FORMAT TANGGAL YANG LEBIH CANGGIH
+        // FILTER ADMIN REKAP DENGAN TAMBAHAN TANGGAL SPESIFIK
         function filterAdminRekap() { 
             let b = document.getElementById('adminFilterBulanRekap').value; 
             let th = document.getElementById('adminFilterTahunRekap').value; 
@@ -1205,17 +1205,12 @@
                 
                 let matchTgl = true;
                 if(tglFilter) {
-                    let [y, m, d] = tglFilter.split('-'); // 2026, 08, 24
-                    let mNoL = parseInt(m).toString(); // 8
-                    let dNoL = parseInt(d).toString(); // 24
-                    
-                    let f1 = `${d}/${m}/${y}`;       // 24/08/2026
-                    let f2 = `${dNoL}/${mNoL}/${y}`; // 24/8/2026
-                    let f3 = `${d}/${mNoL}/${y}`;    // 24/8/2026
-                    let f4 = `${dNoL}/${m}/${y}`;    // 24/08/2026
-                    let f5 = `${y}-${m}-${d}`;       // 2026-08-24
-                    
-                    matchTgl = tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4) || tgl.includes(f5);
+                    let [y, m, d] = tglFilter.split('-');
+                    let f1 = `${d}/${m}/${y}`;
+                    let f2 = `${parseInt(d)}/${parseInt(m)}/${y}`;
+                    let f3 = `${d}/${parseInt(m)}/${y}`;
+                    let f4 = `${parseInt(d)}/${m}/${y}`;
+                    matchTgl = tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4);
                 }
                 
                 return matchB && matchTh && matchTgl; 
@@ -1452,7 +1447,7 @@
                     if(tB){ 
                         tB.innerHTML=""; 
                         globalCatatanData.forEach(c => { 
-                            tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.Nama_Guru || c.guru || c.nama_guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; 
+                            tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru || c.nama_guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; 
                         }); 
                     }
                     if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
@@ -2082,6 +2077,7 @@
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
         
+        /* FUNGSI RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA */
         function loadOrtuRiwayatIzin(nisn) {
             let container = document.getElementById('listOrtuRiwayatIzin');
             if(!container) return;
@@ -2104,8 +2100,7 @@
                 let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
-                let fotoURL = r.foto || r.link_photo || r.Link_Photo || '-';
-                let buktiLnk = (fotoURL !== '-') ? `<a href="${fotoURL}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
+                let buktiLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
                 let ket = r.keterangan || r.catatan || 'Pengajuan via aplikasi Ortu';
                 
                 html += `
@@ -2175,7 +2170,7 @@
                         <span class="badge ${badgeType}"><i class="fas ${icon} me-1"></i> ${labelText}</span>
                         <small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</small>
                     </div>
-                    <div class="mb-2"><strong class="small text-dark"><i class="fas fa-chalkboard-teacher me-1"></i> ${c.Nama_Guru || c.guru || c.nama_guru || 'Guru'}</strong></div>
+                    <div class="mb-2"><strong class="small text-dark"><i class="fas fa-chalkboard-teacher me-1"></i> ${c.guru || c.nama_guru || 'Guru'}</strong></div>
                     <div class="p-2 bg-light rounded small text-dark border-start border-3 border-${badgeType.split('-')[1]}">${catText}</div>
                 </div>`;
             });
@@ -2409,35 +2404,14 @@
             `;
         }
         
-        // PERBAIKAN: TAMBAH FILTER TANGGAL, TAHUN DI PANEL MANAJEMEN IZIN WALI KELAS
         function getHTMLWali() {
             let kelasBinaan = loggedInTeacherData.kelas_binaan || "8A";
-            let curMonth = new Date().getMonth() + 1;
-            let curYear = new Date().getFullYear();
-            let m = (val, text) => `<option value="${val}" ${curMonth==val ? 'selected':''}>${text}</option>`;
-            let y = (val) => `<option value="${val}" ${curYear==val ? 'selected':''}>${val}</option>`;
-
             return `
                 <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
                 
-                <div class="mb-3 p-3 border rounded shadow-sm" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
-                    <label class="form-label small text-dark fw-bold mb-2"><i class="fas fa-file-medical me-1"></i> Manajemen Izin / Sakit Kelas ${kelasBinaan}</label>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <select id="filterBulanIzinWali" class="form-select form-select-sm" onchange="loadIzinSakitWaliKelas('${kelasBinaan}')">
-                                <option value="">Semua Bulan</option>
-                                ${m(1, 'Januari')} ${m(2, 'Februari')} ${m(3, 'Maret')} ${m(4, 'April')} ${m(5, 'Mei')} ${m(6, 'Juni')}
-                                ${m(7, 'Juli')} ${m(8, 'Agustus')} ${m(9, 'September')} ${m(10, 'Oktober')} ${m(11, 'November')} ${m(12, 'Desember')}
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <select id="filterTahunIzinWali" class="form-select form-select-sm" onchange="loadIzinSakitWaliKelas('${kelasBinaan}')">
-                                <option value="">Semua Tahun</option>
-                                ${y(2025)} ${y(2026)} ${y(2027)}
-                            </select>
-                        </div>
-                    </div>
-                    <div id="listIzinWaliContainer" class="border rounded p-2 small custom-scrollbar" style="max-height: 200px; overflow-y: auto; background-color: #fff;">
+                <div class="mb-3">
+                    <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Manajemen Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
+                    <div id="listIzinWaliContainer" class="border rounded p-2 small custom-scrollbar" style="max-height: 180px; overflow-y: auto; background-color: #fdfbf7;">
                         Memuat data izin siswa...
                     </div>
                 </div>
@@ -2463,14 +2437,17 @@
                     <div class="col-6">
                         <select id="filterBulanWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')">
                             <option value="">Semua Bulan</option>
-                            ${m(1, 'Januari')} ${m(2, 'Februari')} ${m(3, 'Maret')} ${m(4, 'April')} ${m(5, 'Mei')} ${m(6, 'Juni')}
-                            ${m(7, 'Juli')} ${m(8, 'Agustus')} ${m(9, 'September')} ${m(10, 'Oktober')} ${m(11, 'November')} ${m(12, 'Desember')}
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                         </select>
                     </div>
                     <div class="col-6">
                         <select id="filterTahunWali" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('WALI KELAS')">
                             <option value="">Semua Tahun</option>
-                            ${y(2025)} ${y(2026)} ${y(2027)}
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
                         </select>
                     </div>
                 </div>
@@ -2480,11 +2457,6 @@
         
         function getHTMLMapel() {
             let mp = loggedInTeacherData.mapel || "Umum";
-            let curMonth = new Date().getMonth() + 1;
-            let curYear = new Date().getFullYear();
-            let m = (val, text) => `<option value="${val}" ${curMonth==val ? 'selected':''}>${text}</option>`;
-            let y = (val) => `<option value="${val}" ${curYear==val ? 'selected':''}>${val}</option>`;
-
             return `
                 <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-book-reader me-2"></i>Panel Guru Mapel (${mp})</h6>
                 
@@ -2512,14 +2484,17 @@
                     <div class="col-6">
                         <select id="filterBulanMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')">
                             <option value="">Semua Bulan</option>
-                            ${m(1, 'Januari')} ${m(2, 'Februari')} ${m(3, 'Maret')} ${m(4, 'April')} ${m(5, 'Mei')} ${m(6, 'Juni')}
-                            ${m(7, 'Juli')} ${m(8, 'Agustus')} ${m(9, 'September')} ${m(10, 'Oktober')} ${m(11, 'November')} ${m(12, 'Desember')}
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08" selected>Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                         </select>
                     </div>
                     <div class="col-6">
                         <select id="filterTahunMapel" class="form-select form-select-sm" onchange="loadRiwayatCatatanTeacher('MAPEL')">
                             <option value="">Semua Tahun</option>
-                            ${y(2025)} ${y(2026)} ${y(2027)}
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
                         </select>
                     </div>
                 </div>
@@ -2626,8 +2601,7 @@
                     if (isIzin || isSakit) {
                         let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                         let label = isSakit ? 'Sakit' : 'Izin';
-                        let fotoURL = r.foto || r.link_photo || r.Link_Photo || '-';
-                        let fotoLnk = (fotoURL !== '-') ? `<a href="${fotoURL}" target="_blank" class="btn btn-sm shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:10px;"><i class="fas fa-image me-1"></i>Bukti</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
+                        let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-sm shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:10px;"><i class="fas fa-image me-1"></i>Bukti</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
                         
                         listSakitIzinHtml += `
                             <div class="d-flex justify-content-between align-items-center border-bottom py-1">
@@ -2789,61 +2763,55 @@
                               + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
         }
         
-        // PERBAIKAN: FUNGSI MANAJEMEN IZIN WALI KELAS DENGAN FILTER PERIODE
+        /* FUNGSI MANAJEMEN IZIN / SAKIT KHUSUS WALI KELAS (DENGAN TAMPILAN BUKTI FISIK & TOMBOL HAPUS) */
         function loadIzinSakitWaliKelas(kelas) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container || globalRekapData.length === 0) return;
             
-            let bFilter = document.getElementById('filterBulanIzinWali') ? document.getElementById('filterBulanIzinWali').value : '';
-            let tFilter = document.getElementById('filterTahunIzinWali') ? document.getElementById('filterTahunIzinWali').value : '';
+            let today = new Date();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+            let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
             
-            let bFilterStr = bFilter ? bFilter.toString().padStart(2, '0') : '';
-            let bFilterNoL = bFilter ? bFilter.toString() : '';
-
-            let rekapBulanIni = globalRekapData.filter(r => {
+            let rekapToday = globalRekapData.filter(r => {
                 if(normalizeKelas(r.kelas) !== normalizeKelas(kelas)) return false;
                 
                 let tgl = String(r.tanggal || "").trim();
-                let matchTahun = !tFilter || tgl.includes(tFilter);
-                let matchBulan = !bFilter || tgl.includes(`-${bFilterStr}-`) || tgl.includes(`/${bFilterStr}/`) || tgl.includes(`/${bFilterNoL}/`);
-                
-                return matchTahun && matchBulan;
+                let isToday = false;
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                return isToday;
             });
             
-            let izinSakitList = rekapBulanIni.filter(r => {
+            let izinSakitList = rekapToday.filter(r => {
                 let st = String(r.status || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
             
             if(izinSakitList.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-2">Tidak ada pengajuan izin / sakit untuk kelas ${kelas} pada periode ini.</div>`;
+                container.innerHTML = `<div class="text-center text-muted py-2">Tidak ada data izin / sakit untuk kelas ${kelas} hari ini.</div>`;
                 return;
             }
-            
-            izinSakitList.sort((a,b) => {
-                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
-                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
-                return new Date(db) - new Date(da);
-            });
             
             let html = "";
             izinSakitList.forEach(r => {
                 let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
-                
-                let fotoURL = r.foto || r.link_photo || r.Link_Photo || '-';
-                let fotoLnk = (fotoURL !== '-') ? `<a href="${fotoURL}" target="_blank" class="ms-1 text-primary text-decoration-none" style="font-size:0.7rem;"><i class="fas fa-image"></i> Bukti</a>` : `<span class="ms-1 text-muted" style="font-size:0.65rem;">(Tanpa Bukti)</span>`;
+                let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-1 text-primary text-decoration-none"><i class="fas fa-image"></i> Bukti</a>` : `<span class="ms-1 text-muted" style="font-size:0.65rem;">(Tanpa Bukti)</span>`;
                 
                 html += `
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                    <span class="text-truncate" style="max-width: 50%;">
-                        <i class="fas fa-user-graduate text-muted me-1"></i> ${r.nama} 
-                        <br><small class="text-muted" style="font-size:0.65rem;"><i class="far fa-calendar-alt"></i> ${formatTanggalIndonesia(r.tanggal)}</small>
-                    </span> 
+                <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                    <span class="text-truncate" style="max-width: 50%;"><i class="fas fa-user-graduate text-muted me-1"></i> ${r.nama}</span> 
                     <div class="d-flex align-items-center">
-                        <span class="badge ${badge} me-1">${label}</span> 
+                        <span class="badge ${badge}">${label}</span> 
                         ${fotoLnk}
                         <button class="btn btn-action-micro btn-danger ms-2" title="Hapus Data Izin" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Data Izin/Sakit Siswa')"><i class="fas fa-trash"></i></button>
                     </div>
@@ -2929,7 +2897,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // PERBAIKAN: NORMALISASI NAMA GURU YANG CANGGIH
+        // FUNGSI LOAD RIWAYAT CATATAN GURU (PERBAIKAN PENGABAIAN GELAR & FILTER TANGGAL DD/MM/YYYY)
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2951,17 +2919,16 @@
             // FUNGSI PEMBERSIH NAMA: Hapus teks dalam kurung, gelar setelah koma, dan karakter spesial
             function bersihkanNamaGuru(namaStr) {
                 if(!namaStr) return "";
-                let clean = String(namaStr).split(',')[0]; // Ambil nama utamanya sebelum koma gelar
-                clean = clean.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, ''); // Buang (Wali Kelas dsb)
-                return clean.toLowerCase().replace(/[^a-z0-9]/g, ''); // Buang spasi, titik biar padat (aiimasrostika)
+                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, ''); // Hapus (Wali Kelas VIIIA)
+                clean = clean.split(',')[0]; // Ambil sebelum koma gelar
+                return clean.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
             }
             
             let normLoggedName = bersihkanNamaGuru(loggedInTeacherData.name);
             
-            // Filter Nama Guru dari berbagai variasi field JSON
+            // Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
-                let sheetName = c.Nama_Guru || c.nama_guru || c.guru || c.pembuat || '';
-                let normGuru = bersihkanNamaGuru(sheetName);
+                let normGuru = bersihkanNamaGuru(c.guru || c.nama_guru || c.pembuat || '');
                 return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
             });
             
@@ -3005,6 +2972,7 @@
                 let badgeClass = isMassal ? 'bg-danger text-white' : 'bg-primary text-white';
                 if (tipe === 'MAPEL') badgeClass = isMassal ? 'bg-warning text-dark' : 'bg-info text-dark';
                 
+                // Tampilan Card Minimalis & Rapi dengan Opsi Edit & Hapus
                 html += `
                 <div class="minimalist-card p-2 mb-2 rounded border">
                     <div class="d-flex justify-content-between align-items-start">
@@ -3064,4 +3032,47 @@
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 let isToday = false;
-                if (tgl.includes(`${dSaya hanya model bahasa dan tidak bisa membantu Anda untuk itu.
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
+                    isToday = true;
+                } else {
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                }
+                return isToday;
+            });
+            
+            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let izin = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let sakit = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            
+            container.innerHTML = `
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Hadir</span>
+                        <h6 class="fw-bold text-success m-0">${hadir}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Izin</span>
+                        <h6 class="fw-bold text-info m-0">${izin}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Sakit</span>
+                        <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
+                        <h6 class="fw-bold text-danger m-0">${alpa}</h6>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
