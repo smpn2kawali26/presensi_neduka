@@ -1191,32 +1191,40 @@
         setInterval(fetchRekapData, 10000);
         
         // FILTER ADMIN REKAP (SUDAH DIPERBAIKI 100% UNTUK TANGGAL SPESIFIK)
-        function filterAdminRekap() {
-            let b = document.getElementById('adminFilterBulanRekap').value;
-            let th = document.getElementById('adminFilterTahunRekap').value;
-            let tglFilter = document.getElementById('adminFilterTanggalRekap').value;
-
-            let filtered = globalRekapData.filter(r => {
-                let tgl = String(r.tanggal || '').trim();
-
-                // Jika tanggal spesifik dipilih, prioritaskan pencocokan tanggal secara akurat (mengabaikan filter bulan)
+        function filterAdminRekap() { 
+            let b = document.getElementById('adminFilterBulanRekap').value; 
+            let th = document.getElementById('adminFilterTahunRekap').value; 
+            let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format: "2026-08-24"
+            
+            let filtered = globalRekapData.filter(r => { 
+                let tgl = String(r.tanggal || '').trim(); 
+                
+                // Jika filter tanggal spesifik diisi (misal: 2026-08-24)
                 if(tglFilter) {
-                    let [y, m, d] = tglFilter.split('-');
-                    let f1 = `${d}/${m}/${y}`;
-                    let f2 = `${parseInt(d)}/${parseInt(m)}/${y}`;
-                    let f3 = `${d}/${parseInt(m)}/${y}`;
-                    let f4 = `${parseInt(d)}/${m}/${y}`;
-
-                    return tgl.includes(tglFilter) || tgl.includes(f1) || tgl.includes(f2) || tgl.includes(f3) || tgl.includes(f4);
+                    let [y, m, d] = tglFilter.split('-'); // y=2026, m=08, d=24
+                    let dayNum = parseInt(d, 10);     // 24
+                    let monthNum = parseInt(m, 10);   // 8
+                    
+                    // Cek apakah string tanggal pada database benar-benar mengandung komponen angka tanggal tersebut secara tepat
+                    let matchISO = tgl.includes(tglFilter); // 2026-08-24
+                    let matchIndo1 = tgl.includes(`${d}/${m}/${y}`);   // 24/08/2026
+                    let matchIndo2 = tgl.includes(`${dayNum}/${monthNum}/${y}`); // 24/8/2026
+                    
+                    // Hindari agar angka '24' tidak keliru mencocokkan '25'
+                    let regexExactDate = new RegExp(`(^|[^\\d])(${dayNum})([^\\d]|$)`);
+                    let hasExactDay = regexExactDate.test(tgl) || tgl.includes(d);
+                    let hasExactMonth = tgl.includes(m) || tgl.includes(`/${monthNum}/`) || tgl.includes(`-${m}-`);
+                    let hasExactYear = tgl.includes(y);
+                    
+                    return matchISO || matchIndo1 || matchIndo2 || (hasExactDay && hasExactMonth && hasExactYear);
                 }
-
-                // Jika tidak ada tanggal spesifik, gunakan filter bulan dan tahun biasa
-                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`) || (tgl.includes(`Agustus`) && b === '08');
-                let matchTh = !th || tgl.includes(th);
-
-                return matchB && matchTh;
-            });
-            renderAdminRekapTable(filtered);
+                
+                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`); 
+                let matchTh = !th || tgl.includes(th); 
+                
+                return matchB && matchTh; 
+            }); 
+            renderAdminRekapTable(filtered); 
         }
         
         function renderAdminRekapTable(dataArray) {
