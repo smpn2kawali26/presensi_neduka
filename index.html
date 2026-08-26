@@ -2135,6 +2135,12 @@
                     if (c.masa_berlaku < todayIso) return false;
                 }
                 
+                // Cek apakah catatan ini milik NISN siswa yang login ATAU sesuai kelasnya (di-normalize)
+                let matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
+                let matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
+                
+                if (!matchNisn && !matchKelas) return false;
+                
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
