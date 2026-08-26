@@ -697,7 +697,72 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
         
-        // VARIABEL GLOBAL PENTING
+        // ==========================================
+        // FUNGSI BANTUAN UNTUK MENYERAGAMKAN TANGGAL & MENCEGAH GANDA
+        // ==========================================
+        function normalizeDateToYMD(dateStr) {
+            if (!dateStr) return "";
+            let s = String(dateStr).trim().toLowerCase();
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            
+            // Format 1: DD/MM/YYYY atau DD-MM-YYYY
+            let matchIndoNum = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            if (matchIndoNum) return `${matchIndoNum[3]}-${matchIndoNum[2].padStart(2,'0')}-${matchIndoNum[1].padStart(2,'0')}`;
+            
+            // Format 2: YYYY-MM-DD atau YYYY/MM/DD
+            let matchISO = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (matchISO) return `${matchISO[1]}-${matchISO[2].padStart(2,'0')}-${matchISO[3].padStart(2,'0')}`;
+            
+            // Format 3: DD Bulan YYYY (contoh: 26 Agustus 2026)
+            let parts = s.split(' ');
+            if (parts.length >= 3) {
+                let d = parts[0].padStart(2, '0');
+                let mIndex = monthNames.findIndex(m => parts[1].includes(m));
+                if (mIndex !== -1) {
+                    let m = (mIndex + 1).toString().padStart(2, '0');
+                    let y = parts[2];
+                    if (y.length === 4) return `${y}-${m}-${d}`;
+                }
+            }
+            
+            // Format Bawaan JS Fallback
+            try {
+                let d = new Date(dateStr);
+                if (!isNaN(d.getTime())) return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+            } catch(e) {}
+            
+            return s; 
+        }
+
+        function getUniqueDailyRekap(rekapArray) {
+            let unique = {};
+            rekapArray.forEach(r => {
+                let key = String(r.nisn).trim();
+                if(!unique[key]) {
+                    unique[key] = {...r}; 
+                } else {
+                    let st = String(r.status || '').toLowerCase();
+                    let tp = String(r.tipe || '').toLowerCase();
+                    let existSt = String(unique[key].status || '').toLowerCase();
+                    let existTp = String(unique[key].tipe || '').toLowerCase();
+                    
+                    let isNewIzinSakit = st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
+                    let isExistIzinSakit = existSt.includes('izin') || existTp.includes('izin') || existSt.includes('sakit') || existTp.includes('sakit');
+                    
+                    // Prioritaskan status Sakit/Izin/Alpa jika ada konflik pencatatan di hari yang sama
+                    if (isNewIzinSakit && !isExistIzinSakit) {
+                        unique[key].status = r.status;
+                        unique[key].tipe = r.tipe;
+                    }
+                    if(tp.includes('pulang') && r.foto && r.foto !== '-') {
+                        unique[key].foto = r.foto;
+                    }
+                }
+            });
+            return Object.values(unique);
+        }
+        // ==========================================
+        
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
         let useFrontCamera = true;
@@ -729,7 +794,6 @@
         let loggedInTeacherNip = null;
         let loggedInTeacherData = null;
         
-        // State paginasi untuk orang tua
         let ortuPaginationState = { page: 1, limit: 10 };
         
         let schoolConfig = { 
@@ -833,7 +897,12 @@
         }
         function formatTanggalIndonesia(dateString) {
             if (!dateString) return "-";
-            try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
+            try { 
+                let normDate = normalizeDateToYMD(dateString);
+                let d = new Date(normDate); 
+                if (isNaN(d.getTime())) return dateString; 
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); 
+            } catch (e) { return dateString; }
         }
         function extractTime(timeStr) {
             if (!timeStr || timeStr === '-') return '-';
@@ -998,7 +1067,6 @@
                     if(role === 'admin') {
                         document.getElementById('mainBody').classList.remove('ortu-body');
                         document.getElementById('dashboard-admin').classList.add('active');
-                        // Bersihkan sesi dan setel nama murni admin
                         loggedInSiswaNisn = null;
                         selectedSiswaData = null;
                         let adminName = data.name || "Administrator Utama";
@@ -1023,17 +1091,7 @@
                     }
                 } else { err.innerText = data.message; err.classList.remove('d-none'); }
             }).catch(e => { 
-                if(role === 'petugas') {
-                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
-                    currentPetugasName = inputId; document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
-                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
-                } else if(role === 'ortu') {
-                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
-                    loadOrtuDashboard(inputId, { name: "ADINDA SIPATUNISA", kelas: "9B", ortu: "Wali Murid", hp: "08123456789" });
-                } else if(role === 'teacher') {
-                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-teacher').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
-                    loadTeacherDashboard(inputId, { name: "AI IMAS ROSTIKA, S.Pd.,Gr", tugas: "Wali Kelas VIIIA", mapel: "Bahasa Indonesia" });
-                } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
+                err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
         
@@ -1075,7 +1133,6 @@
         
         function fetchGuruData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalGuruData = data.data; renderAdminGuruTable(globalGuruData); populateModalDropdowns(); } }); }
         
-        // FUNGSI EDIT GURU
         function openModalEditGuruById(nip) {
             let g = globalGuruData.find(item => String(item.nip) === String(nip)); 
             if(!g) return;
@@ -1134,31 +1191,32 @@
                     let dDayNoL = today.getDate().toString();
                     let dMonthNoL = (today.getMonth() + 1).toString();
                     
-                    globalRekapData.forEach(r => { 
+                    let rekapToday = globalRekapData.filter(r => { 
                         let tgl = String(r.tanggal || "").trim();
                         let isToday = false;
-                        
-                        if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || 
-                            tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
-                            tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
-                            tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
+                        if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                             isToday = true;
                         } else {
-                            let dItem = new Date(tgl);
+                            let normDate = normalizeDateToYMD(tgl);
+                            let dItem = new Date(normDate);
                             if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
                                 isToday = true;
                             }
                         }
-                        
-                        if (isToday) {
-                            let st = String(r.status || "").trim().toUpperCase();
-                            let tp = String(r.tipe || "").trim().toUpperCase();
-                            if (st === 'HADIR') totalH++; 
-                            else if (st === 'TERLAMBAT') totalT++; 
-                            else if (st === 'ALPA') totalA++;
-                            else if (st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) totalI++;
-                            else if (st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) totalS++;
-                        }
+                        return isToday;
+                    });
+                    
+                    // Deduplikasi unik harian untuk Dashboard Global Stats
+                    let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+                    
+                    uniqueRekapToday.forEach(r => { 
+                        let st = String(r.status || "").trim().toUpperCase();
+                        let tp = String(r.tipe || "").trim().toUpperCase();
+                        if (st === 'HADIR') totalH++; 
+                        else if (st === 'TERLAMBAT') totalT++; 
+                        else if (st === 'ALPA') totalA++;
+                        else if (st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) totalI++;
+                        else if (st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) totalS++;
                     }); 
                     
                     if(document.getElementById('dashTotalHadir')) document.getElementById('dashTotalHadir').innerText = totalH; 
@@ -1193,35 +1251,22 @@
         }
         setInterval(fetchRekapData, 10000);
         
-        // FILTER ADMIN REKAP
+        // FILTER ADMIN REKAP (Raw Data)
         function filterAdminRekap() { 
             let b = document.getElementById('adminFilterBulanRekap').value; 
             let th = document.getElementById('adminFilterTahunRekap').value; 
-            let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format: "2026-08-24"
+            let tglFilter = document.getElementById('adminFilterTanggalRekap').value;
             
             let filtered = globalRekapData.filter(r => { 
                 let tgl = String(r.tanggal || '').trim(); 
+                let normDate = normalizeDateToYMD(tgl); // YYYY-MM-DD
                 
-                // Jika filter tanggal spesifik diisi
                 if(tglFilter) {
-                    let [y, m, d] = tglFilter.split('-'); // y=2026, m=08, d=24
-                    let dayNum = parseInt(d, 10);     // 24
-                    let monthNum = parseInt(m, 10);   // 8
-                    
-                    let matchISO = tgl.includes(tglFilter); // 2026-08-24
-                    let matchIndo1 = tgl.includes(`${d}/${m}/${y}`);   // 24/08/2026
-                    let matchIndo2 = tgl.includes(`${dayNum}/${monthNum}/${y}`); // 24/8/2026
-                    
-                    let regexExactDate = new RegExp(`(^|[^\\d])(${dayNum})([^\\d]|$)`);
-                    let hasExactDay = regexExactDate.test(tgl) || tgl.includes(d);
-                    let hasExactMonth = tgl.includes(m) || tgl.includes(`/${monthNum}/`) || tgl.includes(`-${m}-`);
-                    let hasExactYear = tgl.includes(y);
-                    
-                    return matchISO || matchIndo1 || matchIndo2 || (hasExactDay && hasExactMonth && hasExactYear);
+                    return normDate === tglFilter;
                 }
                 
-                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`); 
-                let matchTh = !th || tgl.includes(th); 
+                let matchB = !b || normDate.split('-')[1] === b; 
+                let matchTh = !th || normDate.split('-')[0] === th; 
                 
                 return matchB && matchTh; 
             }); 
@@ -1297,34 +1342,13 @@
                     let targetDateNum = parseInt(dayStr);
                     let mStr = parseInt(activeMonthNum).toString();
                     let mStr0 = activeMonthNum.padStart(2, '0');
+                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`;
                     
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         if (!matchNisn) return false;
-                        
-                        let tglVal = String(r.tanggal || '').trim();
-                        let isMatchDate = false;
-                        
-                        if (tglVal.startsWith(`${dayStr}/${mStr}/`) || 
-                            tglVal.startsWith(`${dayStr0}/${mStr0}/`) || 
-                            tglVal.startsWith(`${dayStr}/${mStr0}/`) || 
-                            tglVal.startsWith(`${dayStr0}/${mStr}/`)) {
-                            if (tglVal.includes(activeYear)) isMatchDate = true;
-                        }
-                        else if (tglVal.startsWith(`${activeYear}-${mStr0}-${dayStr0}`) || 
-                                 tglVal.startsWith(`${activeYear}-${mStr}-${dayStr}`)) {
-                            isMatchDate = true;
-                        }
-                        else {
-                            let dItem = new Date(tglVal);
-                            if (!isNaN(dItem.getTime()) && 
-                                dItem.getFullYear().toString() === activeYear && 
-                                (dItem.getMonth() + 1) === parseInt(activeMonthNum) && 
-                                dItem.getDate() === targetDateNum) {
-                                isMatchDate = true;
-                            }
-                        }
-                        return isMatchDate;
+                        let normDate = normalizeDateToYMD(r.tanggal);
+                        return normDate === targetISODate;
                     });
                     
                     let statusKode = "";
@@ -1370,13 +1394,18 @@
             let rekapToday = rekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
-                let dItem = new Date(tgl);
+                let normDate = normalizeDateToYMD(tgl);
+                let dItem = new Date(normDate);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
             });
+            
+            // DEDUPLIKASI
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+            
             kelasList.forEach(kelas => {
                 let siswaKelas = siswaData.filter(s => String(s.kelas).trim() === String(kelas).trim());
-                let rekapKelas = rekapToday.filter(r => String(r.kelas).trim() === String(kelas).trim());
+                let rekapKelas = uniqueRekapToday.filter(r => String(r.kelas).trim() === String(kelas).trim());
                 
                 let hL = 0, hP = 0, tL = 0, tP = 0, iL = 0, iP = 0, sL = 0, sP = 0;
                 
@@ -1398,6 +1427,7 @@
                 tBody.innerHTML += `<tr><td class="fw-bold bg-light">Kelas ${kelas}</td><td>${siswaKelas.length}</td><td>${hL}</td><td>${hP}</td><td>${tL}</td><td>${tP}</td><td>${iL}</td><td>${iP}</td><td>${sL}</td><td>${sP}</td></tr>`;
             });
         }
+        
         function renderDashboardCharts(rekapData) {
             let kelasList = [];
             if(globalSiswaData && globalSiswaData.length > 0) {
@@ -1405,12 +1435,33 @@
             } else {
                 kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
             }
-            let hadirCounts = kelasList.map(k => rekapData.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
+            
+            let today = new Date();
+            let dDay = today.getDate().toString().padStart(2, '0');
+            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+            let dYear = today.getFullYear().toString();
+            let dDayNoL = today.getDate().toString();
+            let dMonthNoL = (today.getMonth() + 1).toString();
+            
+            let rekapToday = rekapData.filter(r => {
+                let tgl = String(r.tanggal || "").trim();
+                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
+                let normDate = normalizeDateToYMD(tgl);
+                let dItem = new Date(normDate);
+                if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
+                return false;
+            });
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+            
+            let hadirCounts = kelasList.map(k => uniqueRekapToday.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
+            
             const ctxBar = document.getElementById('barChartKelas').getContext('2d'); if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: kelasList, datasets: [{ label: 'Hadir', data: hadirCounts, backgroundColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
+            
             const ctxRadar = document.getElementById('radarChartKelas').getContext('2d'); if(radarChartInstance) radarChartInstance.destroy();
             radarChartInstance = new Chart(ctxRadar, { type: 'radar', data: { labels: kelasList, datasets: [{ label: 'Statistik', data: hadirCounts, backgroundColor: 'rgba(30,60,114,0.2)', borderColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
+        
         document.getElementById('formSettingLokasi').addEventListener('submit', function(e) {
             e.preventDefault();
             schoolConfig.lat_sekolah = parseFloat(document.getElementById('lokasiLat').value);
@@ -1600,8 +1651,8 @@
             siswaKelas.forEach((s) => {
                 let existingAbsen = globalRekapData.find(r => {
                     let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
-                    let matchTgl = String(r.tanggal).includes(tglSelect) || String(r.tanggal).includes(new Date(tglSelect).toLocaleDateString('id-ID'));
-                    return matchNisn && matchTgl;
+                    let normDate = normalizeDateToYMD(r.tanggal);
+                    return matchNisn && (normDate === tglSelect);
                 });
                 let currentStatus = existingAbsen ? String(existingAbsen.status) : "Hadir";
                 tBody.innerHTML += `<tr>
@@ -1719,35 +1770,12 @@
             const now = new Date(); 
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const todayStr = now.toISOString().split('T')[0];
-            const todayLokal = now.toLocaleDateString('id-ID');
-            
-            let dDay = now.getDate().toString().padStart(2, '0');
-            let dMonth = (now.getMonth() + 1).toString().padStart(2, '0');
-            let dYear = now.getFullYear().toString();
-            let dDayNoL = now.getDate().toString();
-            let dMonthNoL = (now.getMonth() + 1).toString();
             
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
-                let tglVal = String(r.tanggal || '').trim();
-                let isToday = false;
-                
-                if (tglVal.includes(`${dDay}/${dMonth}/${dYear}`) || 
-                    tglVal.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
-                    tglVal.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
-                    tglVal.includes(`${dYear}-${dMonth}-${dDay}`) || 
-                    tglVal.includes(`${dYear}/${dMonth}/${dDay}`) || 
-                    tglVal.includes(todayStr) || 
-                    tglVal.includes(todayLokal)) {
-                    isToday = true;
-                } else {
-                    let d1 = new Date(tglVal);
-                    if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === now.setHours(0,0,0,0)) {
-                        isToday = true;
-                    } 
-                }
-                return matchNisn && matchTipe && isToday;
+                let normDate = normalizeDateToYMD(r.tanggal);
+                return matchNisn && matchTipe && (normDate === todayStr);
             });
             
             if (isAlreadyAbsen) {
@@ -1843,7 +1871,8 @@
                         tglStr.includes(`${dYear}-${dMonth}-${dDay}`)) {
                         isToday = true;
                     } else {
-                        let dItem = new Date(tglStr);
+                        let normDate = normalizeDateToYMD(tglStr);
+                        let dItem = new Date(normDate);
                         if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
                             isToday = true;
                         }
@@ -1991,20 +2020,21 @@
             let targetMonthName = monthNames[parseInt(bFilter) - 1] || "";
             
             let filtered = dataArray.filter(r => {
-                let tglStr = String(r.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
-                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                let normDate = normalizeDateToYMD(r.tanggal);
+                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
+                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
                 return matchBulan && matchTahun;
             });
             
             if(filtered.length === 0 && dataArray.length > 0 && !bFilter) {
                 filtered = dataArray;
             }
+            
             let groupedByDate = {};
             filtered.forEach(item => {
-                let cleanDate = String(item.tanggal || '').trim();
+                let cleanDate = normalizeDateToYMD(item.tanggal);
                 if(!groupedByDate[cleanDate]) {
-                    groupedByDate[cleanDate] = { masuk: '-', pulang: '-', status: '-' };
+                    groupedByDate[cleanDate] = { displayDate: formatTanggalIndonesia(cleanDate), masuk: '-', pulang: '-', status: '-' };
                 }
                 let tipe = String(item.tipe || '').trim().toUpperCase();
                 let waktuVal = String(item.waktu || '-');
@@ -2029,11 +2059,7 @@
                 }
             });
             
-            let dates = Object.keys(groupedByDate).sort((a, b) => {
-                let da = a.includes('/') ? a.split('/').reverse().join('-') : a;
-                let db = b.includes('/') ? b.split('/').reverse().join('-') : b;
-                return new Date(db) - new Date(da);
-            });
+            let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
             
             // --- LOGIKA PAGINASI 10 BARIS ---
             let totalItems = dates.length;
@@ -2048,7 +2074,7 @@
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
             
-            // Hitung statistik keseluruhan (tidak terpengaruh paginasi)
+            // Hitung statistik keseluruhan berdasarkan jumlah HARI unik (bukan baris data)
             dates.forEach(dateStr => {
                 let d = groupedByDate[dateStr];
                 let st = String(d.status).trim().toLowerCase();
@@ -2075,7 +2101,7 @@
                     
                     tbody.innerHTML += `
                         <tr>
-                            <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
+                            <td class="fw-bold text-nowrap">${d.displayDate}</td>
                             <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${d.masuk}</span></td>
                             <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${d.pulang}</span></td>
                             <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
@@ -2099,7 +2125,6 @@
             let containerId = 'ortuPaginationContainer';
             let cardContainer = document.querySelector('#page-riwayat .card.overflow-hidden');
             
-            // Buat wadah navigasi jika belum ada di dalam card riwayat
             let existingContainer = document.getElementById(containerId);
             if (!existingContainer && cardContainer) {
                 existingContainer = document.createElement('div');
@@ -2149,15 +2174,18 @@
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
             
-            if(izinData.length === 0) {
+            // Deduplikasi izin/sakit per hari
+            let uniqueIzin = getUniqueDailyRekap(izinData);
+            
+            if(uniqueIzin.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin/sakit.</div>`;
                 return;
             }
             
-            izinData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            uniqueIzin.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
             
             let html = "";
-            izinData.forEach(r => {
+            uniqueIzin.forEach(r => {
                 let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
@@ -2182,9 +2210,6 @@
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
             let todayIso = new Date().toISOString().split('T')[0];
             
-            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
-            let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
-            
             let filtered = globalOrtuCatatanData.filter(c => {
                 if (c.masa_berlaku && String(c.masa_berlaku).trim() !== '-' && String(c.masa_berlaku).trim() !== '') {
                     if (c.masa_berlaku < todayIso) return false;
@@ -2195,18 +2220,13 @@
                 
                 if (!matchNisn && !matchKelas) return false;
                 
-                let tglStr = String(c.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
-                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                let normDate = normalizeDateToYMD(c.tanggal);
+                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
+                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
                 return matchBulan && matchTahun;
             });
             
-            filtered.sort((a, b) => {
-                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
-                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
-                return new Date(db) - new Date(da);
-            });
-            
+            filtered.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
             renderOrtuCatatanList(filtered);
         }
         
@@ -2587,16 +2607,19 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let dItem = new Date(tgl);
+                    let normDate = normalizeDateToYMD(tgl);
+                    let dItem = new Date(normDate);
                     if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
                 }
                 return isToday;
             });
             
-            let h = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
-            let i = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
-            let s = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
-            let a = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+            
+            let h = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let i = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let s = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let a = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             if(kepsekChartInstance) kepsekChartInstance.destroy();
             kepsekChartInstance = new Chart(ctx.getContext('2d'), {
@@ -2640,17 +2663,20 @@
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
-                let dItem = new Date(tgl);
+                let normDate = normalizeDateToYMD(tgl);
+                let dItem = new Date(normDate);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
             });
+            
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
             let html = `<div class="accordion accordion-flush border rounded overflow-hidden" id="accKepsekKelas">`;
             
             kelasList.forEach((kelas, idx) => {
                 let siswaK = globalSiswaData.filter(s => normalizeKelas(s.kelas) === normalizeKelas(kelas));
                 let totSiswa = siswaK.length;
-                let rekapK = rekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
+                let rekapK = uniqueRekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
                 let h = 0, i = 0, s = 0, a = 0;
                 let listSakitIzinHtml = "";
                 
@@ -2851,13 +2877,16 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let dItem = new Date(tgl);
+                    let normDate = normalizeDateToYMD(tgl);
+                    let dItem = new Date(normDate);
                     if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
                 }
                 return isToday;
             });
             
-            let izinSakitList = rekapToday.filter(r => {
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+            
+            let izinSakitList = uniqueRekapToday.filter(r => {
                 let st = String(r.status || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
@@ -3019,9 +3048,9 @@
             }
             
             let filtered = myNotes.filter(c => {
-                let tglStr = String(c.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`);
-                let matchTahun = !tFilter || tglStr.includes(tFilter);
+                let normDate = normalizeDateToYMD(c.tanggal);
+                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
+                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
                 return matchBulan && matchTahun;
             });
             
@@ -3030,11 +3059,7 @@
                 return;
             }
             
-            filtered.sort((a, b) => {
-                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
-                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
-                return new Date(db) - new Date(da);
-            });
+            filtered.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
             
             let html = "";
             filtered.forEach(c => {
@@ -3124,42 +3149,30 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let dItem = new Date(tgl);
-                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
+                    let normDate = normalizeDateToYMD(tgl);
+                    let dItem = new Date(normDate);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
+                        isToday = true;
+                    }
                 }
                 return isToday;
             });
             
-            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
-            let izin = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
-            let sakit = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
-            let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
+            
+            let h = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let i = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let s = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let a = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            
+            let targetLabel = isWaliTabActive ? `Kelas ${loggedInTeacherData.kelas_binaan || '8A'}` : "Global (Seluruh Siswa)";
             
             container.innerHTML = `
-                <div class="col-3">
-                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
-                        <span class="text-muted d-block" style="font-size: 0.65rem;">Hadir</span>
-                        <h6 class="fw-bold text-success m-0">${hadir}</h6>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
-                        <span class="text-muted d-block" style="font-size: 0.65rem;">Izin</span>
-                        <h6 class="fw-bold text-info m-0">${izin}</h6>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
-                        <span class="text-muted d-block" style="font-size: 0.65rem;">Sakit</span>
-                        <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
-                    </div>
-                </div>
-               <div class="col-3">
-                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
-                        <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
-                        <h6 class="fw-bold text-danger m-0">${alpa}</h6>
-                    </div>
-                </div>
+                <div class="col-12 mb-1"><span class="badge bg-light text-dark border border-secondary" style="font-size: 0.7rem;">Cakupan: ${targetLabel}</span></div>
+                <div class="col-3"><div class="p-2 bg-success text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0">${h}</h5></div></div>
+                <div class="col-3"><div class="p-2 bg-info text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Izin</span><h5 class="fw-bold m-0">${i}</h5></div></div>
+                <div class="col-3"><div class="p-2 bg-secondary text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Sakit</span><h5 class="fw-bold m-0">${s}</h5></div></div>
+                <div class="col-3"><div class="p-2 bg-danger text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Alpa</span><h5 class="fw-bold m-0">${a}</h5></div></div>
             `;
         }
     </script>
