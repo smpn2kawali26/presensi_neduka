@@ -702,36 +702,41 @@
         // ==========================================
         function normalizeDateToYMD(dateStr) {
             if (!dateStr) return "";
-            let s = String(dateStr).trim().toLowerCase();
-            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let s = String(dateStr).trim();
             
-            // Format 1: DD/MM/YYYY atau DD-MM-YYYY
-            let matchIndoNum = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-            if (matchIndoNum) return `${matchIndoNum[3]}-${matchIndoNum[2].padStart(2,'0')}-${matchIndoNum[1].padStart(2,'0')}`;
-            
-            // Format 2: YYYY-MM-DD atau YYYY/MM/DD
-            let matchISO = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-            if (matchISO) return `${matchISO[1]}-${matchISO[2].padStart(2,'0')}-${matchISO[3].padStart(2,'0')}`;
-            
-            // Format 3: DD Bulan YYYY (contoh: 26 Agustus 2026)
-            let parts = s.split(' ');
-            if (parts.length >= 3) {
-                let d = parts[0].padStart(2, '0');
-                let mIndex = monthNames.findIndex(m => parts[1].includes(m));
-                if (mIndex !== -1) {
-                    let m = (mIndex + 1).toString().padStart(2, '0');
-                    let y = parts[2];
-                    if (y.length === 4) return `${y}-${m}-${d}`;
-                }
+            if(s.includes('T')) {
+                return s.split('T')[0];
             }
             
-            // Format Bawaan JS Fallback
+            // Tangani format D/M/YYYY atau DD/MM/YYYY atau D-M-YYYY atau DD-MM-YYYY
+            let matchIndoNum = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            if (matchIndoNum) {
+                let day = matchIndoNum[1].padStart(2, '0');
+                let month = matchIndoNum[2].padStart(2, '0');
+                let year = matchIndoNum[3];
+                return `${year}-${month}-${day}`;
+            }
+            
+            // Tangani format YYYY-MM-DD
+            let matchISO = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (matchISO) {
+                let year = matchISO[1];
+                let month = matchISO[2].padStart(2, '0');
+                let day = matchISO[3].padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
             try {
                 let d = new Date(dateStr);
-                if (!isNaN(d.getTime())) return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+                if (!isNaN(d.getTime())) {
+                    let y = d.getFullYear();
+                    let m = String(d.getMonth() + 1).padStart(2, '0');
+                    let day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                }
             } catch(e) {}
             
-            return s; 
+            return s;
         }
 
         function getUniqueDailyRekap(rekapArray) {
@@ -2016,9 +2021,6 @@
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; 
             let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
             
-            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
-            let targetMonthName = monthNames[parseInt(bFilter) - 1] || "";
-            
             let filtered = dataArray.filter(r => {
                 let normDate = normalizeDateToYMD(r.tanggal);
                 let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
@@ -2031,26 +2033,48 @@
             }
             
             let groupedByDate = {};
+            
+            // Tahap 1: Petakan semua baris berdasarkan tanggal bersih (YYYY-MM-DD)
             filtered.forEach(item => {
                 let cleanDate = normalizeDateToYMD(item.tanggal);
+                if(!cleanDate || cleanDate === "invalid" || cleanDate === "NaN" || cleanDate.length < 8) return;
+                
                 if(!groupedByDate[cleanDate]) {
                     groupedByDate[cleanDate] = { displayDate: formatTanggalIndonesia(cleanDate), masuk: '-', pulang: '-', status: '-' };
                 }
+                
                 let tipe = String(item.tipe || '').trim().toUpperCase();
-                let waktuVal = String(item.waktu || '-');
+                let waktuVal = String(item.waktu || '').trim();
                 let statusVal = String(item.status || item.status_kehadiran || '-').trim();
+                let extractedTime = extractTime(waktuVal);
                 
                 if (tipe.includes('IZIN') || statusVal.toLowerCase().includes('izin')) {
                     groupedByDate[cleanDate].status = 'Izin';
                 } else if (tipe.includes('SAKIT') || statusVal.toLowerCase().includes('sakit')) {
                     groupedByDate[cleanDate].status = 'Sakit';
                 } else if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
-                    groupedByDate[cleanDate].masuk = extractTime(waktuVal);
-                    if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
+                    if(extractedTime && extractedTime !== '-') {
+                        groupedByDate[cleanDate].masuk = extractedTime;
+                    }
+                    if(statusVal && statusVal !== '-') {
+                        groupedByDate[cleanDate].status = statusVal;
+                    }
                 } else if (tipe.includes('PULANG')) {
-                    groupedByDate[cleanDate].pulang = extractTime(waktuVal);
+                    if(extractedTime && extractedTime !== '-') {
+                        groupedByDate[cleanDate].pulang = extractedTime;
+                    }
                     if(statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') {
                         groupedByDate[cleanDate].status = statusVal;
+                    }
+                } else {
+                    // Deteksi otomatis jika kolom tipe kosong tapi ada jam
+                    if(extractedTime && extractedTime !== '-') {
+                        let hour = parseInt(extractedTime.split(':')[0]);
+                        if(hour < 12) {
+                            if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = extractedTime;
+                        } else {
+                            if(groupedByDate[cleanDate].pulang === '-') groupedByDate[cleanDate].pulang = extractedTime;
+                        }
                     }
                 }
                 
@@ -2059,9 +2083,29 @@
                 }
             });
             
+            // Tahap 2: Tangani baris yang tanggalnya kosong/terpisah di sheet tapi jamnya ada di hari yang sama
+            filtered.forEach(item => {
+                let cleanDate = normalizeDateToYMD(item.tanggal);
+                let tipe = String(item.tipe || '').trim().toUpperCase();
+                let extractedTime = extractTime(item.waktu);
+                
+                if((!cleanDate || cleanDate.length < 8) && extractedTime !== '-') {
+                    let hour = parseInt(extractedTime.split(':')[0]);
+                    // Cari tanggal aktif yang ada di list groupedByDate untuk disematkan
+                    let existingKeys = Object.keys(groupedByDate);
+                    if(existingKeys.length > 0) {
+                        let latestKey = existingKeys[0]; // Ambil tanggal terdekat
+                        if(hour < 12 && groupedByDate[latestKey].masuk === '-') {
+                            groupedByDate[latestKey].masuk = extractedTime;
+                        } else if(hour >= 12 && groupedByDate[latestKey].pulang === '-') {
+                            groupedByDate[latestKey].pulang = extractedTime;
+                        }
+                    }
+                }
+            });
+            
             let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
             
-            // --- LOGIKA PAGINASI 10 BARIS ---
             let totalItems = dates.length;
             let totalPages = Math.ceil(totalItems / ortuPaginationState.limit) || 1;
             if(ortuPaginationState.page > totalPages) ortuPaginationState.page = totalPages;
@@ -2069,12 +2113,10 @@
             
             let startIdx = (ortuPaginationState.page - 1) * ortuPaginationState.limit;
             let paginatedDates = dates.slice(startIdx, startIdx + ortuPaginationState.limit);
-            // --------------------------------
             
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
             
-            // Hitung statistik keseluruhan berdasarkan jumlah HARI unik (bukan baris data)
             dates.forEach(dateStr => {
                 let d = groupedByDate[dateStr];
                 let st = String(d.status).trim().toLowerCase();
@@ -2094,10 +2136,10 @@
                     let badgeClass = 'bg-success';
                     let displayStatus = d.status;
                     
-                    if(st.includes('terlambat')) { badgeClass = 'bg-warning text-dark'; } 
+                    if(st.includes('terlambat')) { badgeClass = 'bg-warning text-dark'; displayStatus = d.status; } 
                     else if(st.includes('izin')) { badgeClass = 'bg-info text-white'; displayStatus = 'Izin'; } 
                     else if(st.includes('sakit')) { badgeClass = 'bg-secondary text-white'; displayStatus = 'Sakit'; } 
-                    else if(st.includes('alpa')) { badgeClass = 'bg-danger'; }
+                    else if(st.includes('alpa')) { badgeClass = 'bg-danger'; displayStatus = 'Alpa'; }
                     
                     tbody.innerHTML += `
                         <tr>
@@ -2110,7 +2152,6 @@
                 });
             }
             
-            // Render tombol navigasi halaman di bawah tabel
             renderOrtuPaginationControls(totalItems, totalPages);
             
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
@@ -3166,7 +3207,6 @@
             let a = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             let targetLabel = isWaliTabActive ? `Kelas ${loggedInTeacherData.kelas_binaan || '8A'}` : "Global (Seluruh Siswa)";
-            
             container.innerHTML = `
                 <div class="col-12 mb-1"><span class="badge bg-light text-dark border border-secondary" style="font-size: 0.7rem;">Cakupan: ${targetLabel}</span></div>
                 <div class="col-3"><div class="p-2 bg-success text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0">${h}</h5></div></div>
