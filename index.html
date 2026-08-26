@@ -393,7 +393,7 @@
                     <!-- SECTION CATATAN -->
                     <div id="section-catatan" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0">Catatan Guru</h4><button class="btn btn-sm btn-success" onclick="openModalTambahCatatan()"><i class="fas fa-plus me-1"></i> Tambah</button></div>
-                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Target</th><th>Kelas</th><th>Catatan</th><th>Pelapor</th><th>Aksi</th></tr></thead><tbody id="tableCatatanBody"><tr><td colspan="6" class="spinner-table">Memuat...</td></tr></tbody></table></div><div class="d-flex justify-content-between align-items-center mt-3" id="paginationCatatanContainer"></div></div></div>
+                        <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Target (Siswa/Kelas)</th><th>Kelas</th><th>Catatan</th><th>Pelapor</th><th>Aksi</th></tr></thead><tbody id="tableCatatanBody"><tr><td colspan="6" class="spinner-table">Memuat...</td></tr></tbody></table></div><div class="d-flex justify-content-between align-items-center mt-3" id="paginationCatatanContainer"></div></div></div>
                     </div>
                     <!-- SECTION PENGUMUMAN -->
                     <div id="section-pengumuman" class="content-section">
@@ -1454,7 +1454,8 @@
                     if(tB){ 
                         tB.innerHTML=""; 
                         globalCatatanData.forEach(c => { 
-                            tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${c.nisn||c.kelas}</td><td>${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru || c.nama_guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; 
+                            let targetNama = (c.nama && c.nama !== '-' && c.nama !== '') ? c.nama : (c.nisn === 'Semua Siswa' || !c.nisn ? 'Semua Siswa' : c.nisn);
+                            tB.innerHTML += `<tr><td class="text-center">${formatTanggalIndonesia(c.tanggal)}</td><td>${targetNama}</td><td class="text-center">${c.kelas||'-'}</td><td>${c.catatan}</td><td>${c.guru || c.nama_guru}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_catatan', ${c.row_index}, 'Catatan')"><i class="fas fa-trash"></i></button></td></tr>`; 
                         }); 
                     }
                     if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
@@ -2844,17 +2845,24 @@
         }
         
         function kirimCatatanWaliKelas(kelasBinaan) {
-            let targetNisn = document.getElementById('tWaliTarget').value;
+            let selTarget = document.getElementById('tWaliTarget');
+            let targetNisn = selTarget.value;
             let isi = document.getElementById('tWaliCatatan').value;
             let masa = document.getElementById('tWaliMasaBerlaku').value;
             let rowId = document.getElementById('tWaliEditId').value;
             
             if(!isi) return alert("Catatan tidak boleh kosong!");
             
+            let targetNama = "";
+            if(targetNisn !== "Semua Siswa") {
+                targetNama = selTarget.options[selTarget.selectedIndex].text.replace("Private: ", "").trim();
+            }
+            
             let actionName = rowId ? "edit_catatan" : "tambah_catatan";
             let payload = { 
                 action: actionName, 
                 nisn: targetNisn, 
+                nama: targetNama,
                 kelas: kelasBinaan, 
                 catatan: "[WALI KELAS] " + isi, 
                 guru: loggedInTeacherData.name,
@@ -2875,17 +2883,24 @@
         
         function kirimCatatanGuruMapel() {
             let kelas = document.getElementById('tMapelKelas').value;
-            let nisn = document.getElementById('tMapelSiswa').value;
+            let selSiswa = document.getElementById('tMapelSiswa');
+            let nisn = selSiswa.value;
             let isi = document.getElementById('tMapelCatatan').value;
             let masa = document.getElementById('tMapelMasaBerlaku').value;
             let rowId = document.getElementById('tMapelEditId').value;
             
             if(!kelas || !nisn || !isi) return alert("Mohon lengkapi kelas, siswa, dan isi catatan!");
             
+            let targetNama = "";
+            if(nisn !== "Semua Siswa" && nisn !== "") {
+                targetNama = selSiswa.options[selSiswa.selectedIndex].text.replace("Private: ", "").trim();
+            }
+            
             let actionName = rowId ? "edit_catatan" : "tambah_catatan";
             let payload = {
                  action: actionName, 
                  nisn: nisn,
+                 nama: targetNama,
                  kelas: kelas,
                  catatan: "[MAPEL] " + isi,
                  guru: loggedInTeacherData.name,
@@ -3086,7 +3101,7 @@
                         <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
                     </div>
                 </div>
-                <div class="col-3">
+               <div class="col-3">
                     <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
                         <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
                         <h6 class="fw-bold text-danger m-0">${alpa}</h6>
