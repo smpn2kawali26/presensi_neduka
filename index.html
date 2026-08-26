@@ -729,6 +729,9 @@
         let loggedInTeacherNip = null;
         let loggedInTeacherData = null;
         
+        // State paginasi untuk orang tua
+        let ortuPaginationState = { page: 1, limit: 10 };
+        
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
             lng_sekolah: 108.3421, 
@@ -2032,37 +2035,43 @@
                 return new Date(db) - new Date(da);
             });
             
+            // --- LOGIKA PAGINASI 10 BARIS ---
+            let totalItems = dates.length;
+            let totalPages = Math.ceil(totalItems / ortuPaginationState.limit) || 1;
+            if(ortuPaginationState.page > totalPages) ortuPaginationState.page = totalPages;
+            if(ortuPaginationState.page < 1) ortuPaginationState.page = 1;
+            
+            let startIdx = (ortuPaginationState.page - 1) * ortuPaginationState.limit;
+            let paginatedDates = dates.slice(startIdx, startIdx + ortuPaginationState.limit);
+            // --------------------------------
+            
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
             
-            if(dates.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
+            // Hitung statistik keseluruhan (tidak terpengaruh paginasi)
+            dates.forEach(dateStr => {
+                let d = groupedByDate[dateStr];
+                let st = String(d.status).trim().toLowerCase();
+                if(st.includes('terlambat')) countT++;
+                else if(st.includes('izin')) countI++;
+                else if(st.includes('sakit')) countS++;
+                else if(st.includes('alpa')) countA++;
+                else countH++;
+            });
+            
+            if(paginatedDates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada periode ini.</td></tr>`;
             } else {
-                dates.forEach(dateStr => {
+                paginatedDates.forEach(dateStr => {
                     let d = groupedByDate[dateStr];
                     let st = String(d.status).trim().toLowerCase();
                     let badgeClass = 'bg-success';
                     let displayStatus = d.status;
                     
-                    if(st.includes('terlambat')) { 
-                        badgeClass = 'bg-warning text-dark'; 
-                        countT++; 
-                    } else if(st.includes('izin')) { 
-                        badgeClass = 'bg-info text-white'; 
-                        displayStatus = 'Izin';
-                        countI++; 
-                    } else if(st.includes('sakit')) { 
-                        badgeClass = 'bg-secondary text-white'; 
-                        displayStatus = 'Sakit';
-                        countS++; 
-                    } else if(st.includes('alpa')) { 
-                        badgeClass = 'bg-danger'; 
-                        countA++; 
-                    } else if(st.includes('hadir')) { 
-                        countH++; 
-                    } else {
-                        countH++;
-                    }
+                    if(st.includes('terlambat')) { badgeClass = 'bg-warning text-dark'; } 
+                    else if(st.includes('izin')) { badgeClass = 'bg-info text-white'; displayStatus = 'Izin'; } 
+                    else if(st.includes('sakit')) { badgeClass = 'bg-secondary text-white'; displayStatus = 'Sakit'; } 
+                    else if(st.includes('alpa')) { badgeClass = 'bg-danger'; }
                     
                     tbody.innerHTML += `
                         <tr>
@@ -2075,13 +2084,57 @@
                 });
             }
             
+            // Render tombol navigasi halaman di bawah tabel
+            renderOrtuPaginationControls(totalItems, totalPages);
+            
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
             if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
             if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
             if(document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
             if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
+
+        // Fungsi pendukung untuk membuat tombol navigasi halaman Ortu
+        function renderOrtuPaginationControls(totalItems, totalPages) {
+            let containerId = 'ortuPaginationContainer';
+            let cardContainer = document.querySelector('#page-riwayat .card.overflow-hidden');
+            
+            // Buat wadah navigasi jika belum ada di dalam card riwayat
+            let existingContainer = document.getElementById(containerId);
+            if (!existingContainer && cardContainer) {
+                existingContainer = document.createElement('div');
+                existingContainer.id = containerId;
+                existingContainer.className = "d-flex justify-content-between align-items-center p-3 border-top bg-light";
+                cardContainer.appendChild(existingContainer);
+            }
+            if(!existingContainer) return;
+            
+            let startItem = totalItems === 0 ? 0 : (ortuPaginationState.page - 1) * ortuPaginationState.limit + 1;
+            let endItem = Math.min(ortuPaginationState.page * ortuPaginationState.limit, totalItems);
+            
+            existingContainer.innerHTML = `
+                <div class="text-muted" style="font-size: 0.75rem;">Menampilkan ${startItem}-${endItem} dari ${totalItems} hari</div>
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item ${ortuPaginationState.page === 1 ? 'disabled' : ''}">
+                        <button class="page-link" onclick="changeOrtuPage(${ortuPaginationState.page - 1})">Prev</button>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link bg-white text-dark">${ortuPaginationState.page}/${totalPages}</span>
+                    </li>
+                    <li class="page-item ${ortuPaginationState.page >= totalPages ? 'disabled' : ''}">
+                        <button class="page-link" onclick="changeOrtuPage(${ortuPaginationState.page + 1})">Next</button>
+                    </li>
+                </ul>
+            `;
+        }
+
+        function changeOrtuPage(targetPage) {
+            ortuPaginationState.page = targetPage;
+            renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
+        }
+
         function filterOrtuRiwayat() { 
+            ortuPaginationState.page = 1; // Reset ke halaman 1 saat filter bulan/tahun diubah
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
         
