@@ -1460,6 +1460,10 @@
                     }
                     if (document.getElementById('listRiwayatCatatanWali')) loadRiwayatCatatanTeacher('WALI KELAS');
                     if (document.getElementById('listRiwayatCatatanMapel')) loadRiwayatCatatanTeacher('MAPEL');
+                    
+                    if (loggedInSiswaNisn) {
+                        filterOrtuCatatan();
+                    }
                 } 
             })
             .catch(err => {
@@ -1910,10 +1914,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_catatan" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(resCatatan => {
                 if(resCatatan.status === "success" && Array.isArray(resCatatan.data)) {
-                    globalOrtuCatatanData = resCatatan.data.filter(c => 
-                        String(c.nisn||'').trim() === String(nisn).trim() || 
-                        normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas)
-                    );
+                    globalOrtuCatatanData = resCatatan.data;
                     filterOrtuCatatan();
                 } else {
                     document.getElementById('listOrtuCatatan').innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru untuk siswa ini.</div>`;
@@ -2122,6 +2123,7 @@
             });
             container.innerHTML = html;
         }
+        
         function filterOrtuCatatan() {
             let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
@@ -2135,7 +2137,6 @@
                     if (c.masa_berlaku < todayIso) return false;
                 }
                 
-                // Cek apakah catatan ini milik NISN siswa yang login ATAU sesuai kelasnya (di-normalize)
                 let matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
                 let matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
                 
@@ -2925,7 +2926,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI LOAD RIWAYAT CATATAN GURU (VERSI FLEKSIBEL)
+        // FUNGSI LOAD RIWAYAT CATATAN GURU
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2944,24 +2945,26 @@
                 return;
             }
             
-            // Filter Nama Guru yang Lebih Fleksibel
-            let myNotes = globalCatatanData.filter(c => {
-                let guruCatatan = String(c.guru || c.nama_guru || c.pembuat || '').toLowerCase();
-                let myName = String(loggedInTeacherData.name || '').toLowerCase();
-                
-                // Cek kecocokan nama secara longgar
-                let isMyNote = guruCatatan.includes(myName.split(' ')[0]) || myName.includes(guruCatatan.split(' ')[0]) || guruCatatan === "" || guruCatatan === "-";
-                return isMyNote;
-            });
-            
-            // Filter Tipe (WALI KELAS atau MAPEL)
-            if(tipe === 'WALI KELAS') {
-                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]') || !String(c.catatan || '').includes('[MAPEL]'));
-            } else if(tipe === 'MAPEL') {
-                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]') || !String(c.catatan || '').includes('[WALI KELAS]'));
+            function bersihkanNamaGuru(namaStr) {
+                if(!namaStr) return "";
+                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').split(',')[0];
+                let kataPertama = clean.trim().split(' ')[0] || "";
+                return kataPertama.toLowerCase();
             }
             
-            // Filter Bulan & Tahun
+            let normLoggedName = bersihkanNamaGuru(loggedInTeacherData.name);
+            
+            let myNotes = globalCatatanData.filter(c => {
+                let normGuru = bersihkanNamaGuru(c.guru || c.nama_guru || c.pembuat || '');
+                return normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru));
+            });
+            
+            if(tipe === 'WALI KELAS') {
+                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]'));
+            } else if(tipe === 'MAPEL') {
+                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
+            }
+            
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`);
@@ -2975,8 +2978,8 @@
             }
             
             filtered.sort((a, b) => {
-                let da = a.tanggal && a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : (a.tanggal || '');
-                let db = b.tanggal && b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : (b.tanggal || '');
+                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
+                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
                 return new Date(db) - new Date(da);
             });
             
@@ -3016,6 +3019,7 @@
             });
             container.innerHTML = html;
         }
+        
         function siapkanEditCatatanTeacher(tipe, rowIndex, nisn, kelas, catatan, masa) {
             if(tipe === 'WALI KELAS') {
                 document.getElementById('tWaliEditId').value = rowIndex;
@@ -3042,7 +3046,6 @@
             let container = document.getElementById('teacherRealtimeSummary');
             if(!container || globalRekapData.length === 0) return;
             
-            // Cek apakah tab "Wali Kelas" sedang aktif
             let isWaliTabActive = false;
             let activeBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
             if (activeBtn && activeBtn.innerText.toLowerCase().includes('wali kelas')) {
@@ -3059,7 +3062,6 @@
             let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
-                // Filter ketat untuk kelas binaan jika tab wali kelas aktif
                 if (isWaliTabActive && kelasBinaan) {
                     if (normalizeKelas(r.kelas) !== kelasBinaan) return false;
                 }
