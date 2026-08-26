@@ -2919,7 +2919,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI LOAD RIWAYAT CATATAN GURU
+        // FUNGSI LOAD RIWAYAT CATATAN GURU (VERSI FLEKSIBEL)
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2938,30 +2938,24 @@
                 return;
             }
             
-            // FUNGSI PEMBERSIH NAMA: Ambil kata pertama tanpa gelar
-            function bersihkanNamaGuru(namaStr) {
-                if(!namaStr) return "";
-                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').split(',')[0];
-                let kataPertama = clean.trim().split(' ')[0] || "";
-                return kataPertama.toLowerCase();
-            }
-            
-            let normLoggedName = bersihkanNamaGuru(loggedInTeacherData.name);
-            
-            // Filter Nama Guru
+            // Filter Nama Guru yang Lebih Fleksibel
             let myNotes = globalCatatanData.filter(c => {
-                let normGuru = bersihkanNamaGuru(c.guru || c.nama_guru || c.pembuat || '');
-                return normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru));
+                let guruCatatan = String(c.guru || c.nama_guru || c.pembuat || '').toLowerCase();
+                let myName = String(loggedInTeacherData.name || '').toLowerCase();
+                
+                // Cek kecocokan nama secara longgar
+                let isMyNote = guruCatatan.includes(myName.split(' ')[0]) || myName.includes(guruCatatan.split(' ')[0]) || guruCatatan === "" || guruCatatan === "-";
+                return isMyNote;
             });
             
             // Filter Tipe (WALI KELAS atau MAPEL)
             if(tipe === 'WALI KELAS') {
-                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]'));
+                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[WALI KELAS]') || !String(c.catatan || '').includes('[MAPEL]'));
             } else if(tipe === 'MAPEL') {
-                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]'));
+                myNotes = myNotes.filter(c => String(c.catatan || '').includes('[MAPEL]') || !String(c.catatan || '').includes('[WALI KELAS]'));
             }
             
-            // Filter Bulan & Tahun (Menyesuaikan Format Tanggal DD/MM/YYYY)
+            // Filter Bulan & Tahun
             let filtered = myNotes.filter(c => {
                 let tglStr = String(c.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`);
@@ -2975,8 +2969,8 @@
             }
             
             filtered.sort((a, b) => {
-                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
-                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+                let da = a.tanggal && a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : (a.tanggal || '');
+                let db = b.tanggal && b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : (b.tanggal || '');
                 return new Date(db) - new Date(da);
             });
             
@@ -2994,7 +2988,6 @@
                 let badgeClass = isMassal ? 'bg-danger text-white' : 'bg-primary text-white';
                 if (tipe === 'MAPEL') badgeClass = isMassal ? 'bg-warning text-dark' : 'bg-info text-dark';
                 
-                // Tampilan Card Minimalis & Rapi dengan Opsi Edit & Hapus
                 html += `
                 <div class="minimalist-card p-2 mb-2 rounded border">
                     <div class="d-flex justify-content-between align-items-start">
@@ -3017,7 +3010,6 @@
             });
             container.innerHTML = html;
         }
-        
         function siapkanEditCatatanTeacher(tipe, rowIndex, nisn, kelas, catatan, masa) {
             if(tipe === 'WALI KELAS') {
                 document.getElementById('tWaliEditId').value = rowIndex;
