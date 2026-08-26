@@ -1190,7 +1190,7 @@
         }
         setInterval(fetchRekapData, 10000);
         
-        // FILTER ADMIN REKAP (SUDAH DIPERBAIKI 100% UNTUK TANGGAL SPESIFIK)
+        // FILTER ADMIN REKAP
         function filterAdminRekap() { 
             let b = document.getElementById('adminFilterBulanRekap').value; 
             let th = document.getElementById('adminFilterTahunRekap').value; 
@@ -1199,18 +1199,16 @@
             let filtered = globalRekapData.filter(r => { 
                 let tgl = String(r.tanggal || '').trim(); 
                 
-                // Jika filter tanggal spesifik diisi (misal: 2026-08-24)
+                // Jika filter tanggal spesifik diisi
                 if(tglFilter) {
                     let [y, m, d] = tglFilter.split('-'); // y=2026, m=08, d=24
                     let dayNum = parseInt(d, 10);     // 24
                     let monthNum = parseInt(m, 10);   // 8
                     
-                    // Cek apakah string tanggal pada database benar-benar mengandung komponen angka tanggal tersebut secara tepat
                     let matchISO = tgl.includes(tglFilter); // 2026-08-24
                     let matchIndo1 = tgl.includes(`${d}/${m}/${y}`);   // 24/08/2026
                     let matchIndo2 = tgl.includes(`${dayNum}/${monthNum}/${y}`); // 24/8/2026
                     
-                    // Hindari agar angka '24' tidak keliru mencocokkan '25'
                     let regexExactDate = new RegExp(`(^|[^\\d])(${dayNum})([^\\d]|$)`);
                     let hasExactDay = regexExactDate.test(tgl) || tgl.includes(d);
                     let hasExactMonth = tgl.includes(m) || tgl.includes(`/${monthNum}/`) || tgl.includes(`-${m}-`);
@@ -2352,6 +2350,8 @@
             let contentArea = document.getElementById('teacherContentArea');
             if(!contentArea) return;
             
+            renderTeacherRealtimeSummary();
+            
             if(tab === 'kepsek') {
                 contentArea.innerHTML = getHTMLKepsek();
                 setTimeout(() => {
@@ -2904,7 +2904,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI LOAD RIWAYAT CATATAN GURU (PERBAIKAN PENGABAIAN GELAR & FILTER TANGGAL DD/MM/YYYY)
+        // FUNGSI LOAD RIWAYAT CATATAN GURU
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -2923,12 +2923,12 @@
                 return;
             }
             
-            // FUNGSI PEMBERSIH NAMA: Hapus teks dalam kurung, gelar setelah koma, dan karakter spesial
+            // FUNGSI PEMBERSIH NAMA: Ambil kata pertama tanpa gelar
             function bersihkanNamaGuru(namaStr) {
                 if(!namaStr) return "";
-                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, ''); // Hapus (Wali Kelas VIIIA)
-                clean = clean.split(',')[0]; // Ambil sebelum koma gelar
-                return clean.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+                let clean = String(namaStr).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').split(',')[0];
+                let kataPertama = clean.trim().split(' ')[0] || "";
+                return kataPertama.toLowerCase();
             }
             
             let normLoggedName = bersihkanNamaGuru(loggedInTeacherData.name);
@@ -2936,7 +2936,7 @@
             // Filter Nama Guru
             let myNotes = globalCatatanData.filter(c => {
                 let normGuru = bersihkanNamaGuru(c.guru || c.nama_guru || c.pembuat || '');
-                return normGuru === normLoggedName || (normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru)));
+                return normGuru !== "" && normLoggedName !== "" && (normGuru.includes(normLoggedName) || normLoggedName.includes(normGuru));
             });
             
             // Filter Tipe (WALI KELAS atau MAPEL)
@@ -3029,6 +3029,15 @@
             let container = document.getElementById('teacherRealtimeSummary');
             if(!container || globalRekapData.length === 0) return;
             
+            // Cek apakah tab "Wali Kelas" sedang aktif
+            let isWaliTabActive = false;
+            let activeBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
+            if (activeBtn && activeBtn.innerText.toLowerCase().includes('wali kelas')) {
+                isWaliTabActive = true;
+            }
+            
+            let kelasBinaan = isWaliTabActive ? normalizeKelas(loggedInTeacherData.kelas_binaan || "") : "";
+            
             let today = new Date();
             let dDay = today.getDate().toString().padStart(2, '0');
             let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
@@ -3037,6 +3046,11 @@
             let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
+                // Filter ketat untuk kelas binaan jika tab wali kelas aktif
+                if (isWaliTabActive && kelasBinaan) {
+                    if (normalizeKelas(r.kelas) !== kelasBinaan) return false;
+                }
+                
                 let tgl = String(r.tanggal || "").trim();
                 let isToday = false;
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
