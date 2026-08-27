@@ -698,7 +698,7 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
         
         // ==========================================
-        // FUNGSI BANTUAN UNTUK MENYERAGAMKAN TANGGAL & MENCEGAH GANDA
+        // FUNGSI BANTUAN NORMALISASI TANGGAL & UNIK
         // ==========================================
         function normalizeDateToYMD(dateStr) {
             if (!dateStr) return "";
@@ -708,7 +708,6 @@
                 return s.split('T')[0];
             }
             
-            // Tangani format D/M/YYYY atau DD/MM/YYYY atau D-M-YYYY atau DD-MM-YYYY
             let matchIndoNum = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
             if (matchIndoNum) {
                 let day = matchIndoNum[1].padStart(2, '0');
@@ -717,7 +716,6 @@
                 return `${year}-${month}-${day}`;
             }
             
-            // Tangani format YYYY-MM-DD
             let matchISO = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
             if (matchISO) {
                 let year = matchISO[1];
@@ -746,17 +744,16 @@
                 if(!unique[key]) {
                     unique[key] = {...r}; 
                 } else {
-                    let st = String(r.status || '').toLowerCase();
+                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
                     let tp = String(r.tipe || '').toLowerCase();
-                    let existSt = String(unique[key].status || '').toLowerCase();
+                    let existSt = String(unique[key].status || unique[key].status_kehadiran || '').toLowerCase();
                     let existTp = String(unique[key].tipe || '').toLowerCase();
                     
                     let isNewIzinSakit = st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
                     let isExistIzinSakit = existSt.includes('izin') || existTp.includes('izin') || existSt.includes('sakit') || existTp.includes('sakit');
                     
-                    // Prioritaskan status Sakit/Izin/Alpa jika ada konflik pencatatan di hari yang sama
                     if (isNewIzinSakit && !isExistIzinSakit) {
-                        unique[key].status = r.status;
+                        unique[key].status = r.status || r.status_kehadiran;
                         unique[key].tipe = r.tipe;
                     }
                     if(tp.includes('pulang') && r.foto && r.foto !== '-') {
@@ -766,7 +763,6 @@
             });
             return Object.values(unique);
         }
-        // ==========================================
         
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
@@ -1211,11 +1207,10 @@
                         return isToday;
                     });
                     
-                    // Deduplikasi unik harian untuk Dashboard Global Stats
                     let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
                     
                     uniqueRekapToday.forEach(r => { 
-                        let st = String(r.status || "").trim().toUpperCase();
+                        let st = String(r.status || r.status_kehadiran || "").trim().toUpperCase();
                         let tp = String(r.tipe || "").trim().toUpperCase();
                         if (st === 'HADIR') totalH++; 
                         else if (st === 'TERLAMBAT') totalT++; 
@@ -1256,7 +1251,6 @@
         }
         setInterval(fetchRekapData, 10000);
         
-        // FILTER ADMIN REKAP (Raw Data)
         function filterAdminRekap() { 
             let b = document.getElementById('adminFilterBulanRekap').value; 
             let th = document.getElementById('adminFilterTahunRekap').value; 
@@ -1264,7 +1258,7 @@
             
             let filtered = globalRekapData.filter(r => { 
                 let tgl = String(r.tanggal || '').trim(); 
-                let normDate = normalizeDateToYMD(tgl); // YYYY-MM-DD
+                let normDate = normalizeDateToYMD(tgl); 
                 
                 if(tglFilter) {
                     return normDate === tglFilter;
@@ -1282,7 +1276,10 @@
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center text-nowrap">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
+            paginatedItems.forEach(r => { 
+                let statVal = r.status || r.status_kehadiran || '-';
+                tBody.innerHTML += `<tr><td class="text-center text-nowrap">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe || '-'}</td><td class="text-center"><span class="badge ${statVal === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${statVal}</span></td><td>${r.petugas || '-'}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; 
+            });
             renderPaginationControls(dataArray.length, 'rekap', 'paginationRekapContainer');
         }
         function populateFilterKelasDropdown() {
@@ -1310,9 +1307,13 @@
             let state = paginationState.laporan; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
             if(paginatedItems.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada data laporan.</td></tr>`; return; }
-            paginatedItems.forEach((r, idx) => { tBody.innerHTML += `<tr><td class="text-center">${start + idx + 1}</td><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center">${r.status}</td></tr>`; });
+            paginatedItems.forEach((r, idx) => { 
+                let statVal = r.status || r.status_kehadiran || '-';
+                tBody.innerHTML += `<tr><td class="text-center">${start + idx + 1}</td><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe || '-'}</td><td class="text-center">${statVal}</td></tr>`; 
+            });
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
+        
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -1341,13 +1342,11 @@
                 html += `<tr><td>${idx+1}</td><td>&nbsp;${s.nisn||'-'}</td><td>&nbsp;${s.id_siswa||'-'}</td><td class="nama">${s.nama||'-'}</td><td>${lkValue}</td>`;
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
-                
                 for(let d=1; d<=31; d++) {
                     let dayStr0 = String(d).padStart(2, '0');
                     let mStr0 = String(parseInt(activeMonthNum)).padStart(2, '0');
                     let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`;
                     
-                    // Cari semua baris absensi untuk siswa ini pada tanggal target (bisa ada baris Masuk dan Pulang)
                     let matchedRows = globalRekapData.filter(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         if (!matchNisn) return false;
@@ -1411,7 +1410,6 @@
                 return false;
             });
             
-            // DEDUPLIKASI
             let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
             kelasList.forEach(kelas => {
@@ -1423,7 +1421,7 @@
                 rekapKelas.forEach(r => {
                     let sMatched = siswaKelas.find(siswa => String(siswa.nisn) === String(r.nisn));
                     let jk = sMatched ? String(sMatched.gender || '').toUpperCase() : '';
-                    let st = String(r.status || '').toLowerCase();
+                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
                     let tp = String(r.tipe || '').toLowerCase();
                     
                     let isIzin = st.includes('izin') || tp.includes('izin');
@@ -1464,7 +1462,7 @@
             });
             let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
-            let hadirCounts = kelasList.map(k => uniqueRekapToday.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
+            let hadirCounts = kelasList.map(k => uniqueRekapToday.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && ((r.status || r.status_kehadiran) === 'Hadir' || (r.status || r.status_kehadiran) === 'Terlambat')).length);
             
             const ctxBar = document.getElementById('barChartKelas').getContext('2d'); if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: kelasList, datasets: [{ label: 'Hadir', data: hadirCounts, backgroundColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
@@ -1665,7 +1663,7 @@
                     let normDate = normalizeDateToYMD(r.tanggal);
                     return matchNisn && (normDate === tglSelect);
                 });
-                let currentStatus = existingAbsen ? String(existingAbsen.status) : "Hadir";
+                let currentStatus = existingAbsen ? String(existingAbsen.status || existingAbsen.status_kehadiran) : "Hadir";
                 tBody.innerHTML += `<tr>
                     <td class="text-center">${s.nisn}</td>
                     <td>${s.nama}</td>
@@ -2029,8 +2027,14 @@
             
             let filtered = dataArray.filter(r => {
                 let normDate = normalizeDateToYMD(r.tanggal);
-                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
-                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
+                if(!normDate || normDate.length < 8) return false;
+                
+                let parts = normDate.split('-');
+                let tahunItem = parts[0];
+                let bulanItem = parts[1];
+                
+                let matchBulan = !bFilter || bulanItem === bFilter || parseInt(bulanItem) === parseInt(bFilter);
+                let matchTahun = !tFilter || tahunItem === tFilter;
                 return matchBulan && matchTahun;
             });
             
@@ -2040,7 +2044,6 @@
             
             let groupedByDate = {};
             
-            // Tahap 1: Petakan semua baris berdasarkan tanggal bersih (YYYY-MM-DD)
             filtered.forEach(item => {
                 let cleanDate = normalizeDateToYMD(item.tanggal);
                 if(!cleanDate || cleanDate === "invalid" || cleanDate === "NaN" || cleanDate.length < 8) return;
@@ -2049,7 +2052,7 @@
                     groupedByDate[cleanDate] = { displayDate: formatTanggalIndonesia(cleanDate), masuk: '-', pulang: '-', status: '-' };
                 }
                 
-                let tipe = String(item.tipe || '').trim().toUpperCase();
+                let tipe = String(item.tipe || item.tipe_absen || '').trim().toUpperCase();
                 let waktuVal = String(item.waktu || '').trim();
                 let statusVal = String(item.status || item.status_kehadiran || '-').trim();
                 let extractedTime = extractTime(waktuVal);
@@ -2073,7 +2076,6 @@
                         groupedByDate[cleanDate].status = statusVal;
                     }
                 } else {
-                    // Deteksi otomatis jika kolom tipe kosong tapi ada jam
                     if(extractedTime && extractedTime !== '-') {
                         let hour = parseInt(extractedTime.split(':')[0]);
                         if(hour < 12) {
@@ -2086,27 +2088,6 @@
                 
                 if (groupedByDate[cleanDate].status === '-' && statusVal && statusVal !== '-') {
                     groupedByDate[cleanDate].status = statusVal;
-                }
-            });
-            
-            // Tahap 2: Tangani baris yang tanggalnya kosong/terpisah di sheet tapi jamnya ada di hari yang sama
-            filtered.forEach(item => {
-                let cleanDate = normalizeDateToYMD(item.tanggal);
-                let tipe = String(item.tipe || '').trim().toUpperCase();
-                let extractedTime = extractTime(item.waktu);
-                
-                if((!cleanDate || cleanDate.length < 8) && extractedTime !== '-') {
-                    let hour = parseInt(extractedTime.split(':')[0]);
-                    // Cari tanggal aktif yang ada di list groupedByDate untuk disematkan
-                    let existingKeys = Object.keys(groupedByDate);
-                    if(existingKeys.length > 0) {
-                        let latestKey = existingKeys[0]; // Ambil tanggal terdekat
-                        if(hour < 12 && groupedByDate[latestKey].masuk === '-') {
-                            groupedByDate[latestKey].masuk = extractedTime;
-                        } else if(hour >= 12 && groupedByDate[latestKey].pulang === '-') {
-                            groupedByDate[latestKey].pulang = extractedTime;
-                        }
-                    }
                 }
             });
             
@@ -2167,7 +2148,6 @@
             if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
 
-        // Fungsi pendukung untuk membuat tombol navigasi halaman Ortu
         function renderOrtuPaginationControls(totalItems, totalPages) {
             let containerId = 'ortuPaginationContainer';
             let cardContainer = document.querySelector('#page-riwayat .card.overflow-hidden');
@@ -2206,22 +2186,20 @@
         }
 
         function filterOrtuRiwayat() { 
-            ortuPaginationState.page = 1; // Reset ke halaman 1 saat filter bulan/tahun diubah
+            ortuPaginationState.page = 1;
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
         
-        /* FUNGSI RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA */
         function loadOrtuRiwayatIzin(nisn) {
             let container = document.getElementById('listOrtuRiwayatIzin');
             if(!container) return;
             
             let izinData = globalOrtuRiwayatData.filter(r => {
-                let st = String(r.status || '').toLowerCase();
+                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
             
-            // Deduplikasi izin/sakit per hari
             let uniqueIzin = getUniqueDailyRekap(izinData);
             
             if(uniqueIzin.length === 0) {
@@ -2233,7 +2211,9 @@
             
             let html = "";
             uniqueIzin.forEach(r => {
-                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
+                let stVal = String(r.status || r.status_kehadiran || '').toLowerCase();
+                let tpVal = String(r.tipe || '').toLowerCase();
+                let isSakit = stVal.includes('sakit') || tpVal.includes('sakit');
                 let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
                 let buktiLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
@@ -2265,7 +2245,6 @@
                 let catatanNisn = String(c.nisn || '').trim();
                 let matchNisn = (catatanNisn === String(loggedInSiswaNisn).trim()) || (catatanNisn.toLowerCase() === 'semua siswa');
                 
-                // Normalisasi kelas agar 7A, 7-A, dan VIIA terbaca sama
                 let catatanKelasNorm = normalizeKelas(c.kelas);
                 let siswaKelasNorm = normalizeKelas(loggedInSiswaKelas);
                 let matchKelas = (catatanKelasNorm === siswaKelasNorm) || 
@@ -2322,7 +2301,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 if(data.status === "success" && Array.isArray(data.data)) {
-                    let jK = calculateJamKe(data.data).filter(j => String(j.kelas).trim().toLowerCase() === String(kelas).trim().toLowerCase());
+                    let jK = calculateJamKe(data.data).filter(j => normalizeKelas(j.kelas) === normalizeKelas(kelas));
                     if(jK.length === 0) { 
                         container.innerHTML = `<div class="text-muted text-center py-4 small">Jadwal pelajaran belum tersedia untuk Kelas ${kelas}.</div>`; 
                         return; 
@@ -2432,7 +2411,7 @@
             reader.readAsDataURL(file);
         });
         
-        // --- DASHBOARD GURU / TEACHER (FULL KOMPREHENSIF) ---
+        // --- DASHBOARD GURU / TEACHER ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
             loggedInTeacherData = data || {};
@@ -2669,10 +2648,10 @@
             
             let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
-            let h = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
-            let i = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
-            let s = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
-            let a = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            let h = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'hadir' || String(r.status || r.status_kehadiran).toLowerCase() === 'terlambat').length;
+            let i = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let s = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let a = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'alpa').length;
             
             if(kepsekChartInstance) kepsekChartInstance.destroy();
             kepsekChartInstance = new Chart(ctx.getContext('2d'), {
@@ -2734,7 +2713,7 @@
                 let listSakitIzinHtml = "";
                 
                 rekapK.forEach(r => {
-                    let st = String(r.status || '').toLowerCase();
+                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
                     let tp = String(r.tipe || '').toLowerCase();
                     let nama = r.nama || '-';
                     let isIzin = st.includes('izin') || tp.includes('izin');
@@ -2910,7 +2889,6 @@
                               + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
         }
         
-        /* FUNGSI MANAJEMEN IZIN / SAKIT KHUSUS WALI KELAS (DENGAN TAMPILAN BUKTI FISIK & TOMBOL HAPUS) */
         function loadIzinSakitWaliKelas(kelas) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container || globalRekapData.length === 0) return;
@@ -2940,7 +2918,7 @@
             let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
             let izinSakitList = uniqueRekapToday.filter(r => {
-                let st = String(r.status || '').toLowerCase();
+                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
@@ -2952,7 +2930,9 @@
             
             let html = "";
             izinSakitList.forEach(r => {
-                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
+                let stVal = String(r.status || r.status_kehadiran || '').toLowerCase();
+                let tpVal = String(r.tipe || '').toLowerCase();
+                let isSakit = stVal.includes('sakit') || tpVal.includes('sakit');
                 let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
                 let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-1 text-primary text-decoration-none"><i class="fas fa-image"></i> Bukti</a>` : `<span class="ms-1 text-muted" style="font-size:0.65rem;">(Tanpa Bukti)</span>`;
@@ -3061,7 +3041,6 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
-        // FUNGSI LOAD RIWAYAT CATATAN GURU
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -3175,7 +3154,7 @@
         
         function renderTeacherRealtimeSummary() {
             let container = document.getElementById('teacherRealtimeSummary');
-            if(!container) return;
+            if(!container || globalRekapData.length === 0) return;
             
             let isWaliTabActive = false;
             let activeBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
