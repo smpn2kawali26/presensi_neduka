@@ -1342,25 +1342,24 @@
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
                 for(let d=1; d<=31; d++) {
-                    let dayStr = d.toString();
-                    let dayStr0 = dayStr.padStart(2, '0');
-                    let targetDateNum = parseInt(dayStr);
-                    let mStr = parseInt(activeMonthNum).toString();
-                    let mStr0 = activeMonthNum.padStart(2, '0');
-                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`;
+                    let dayStr0 = String(d).padStart(2, '0');
+                    let mStr0 = String(parseInt(activeMonthNum)).padStart(2, '0');
+                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`; // Format standar YYYY-MM-DD
                     
                     let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         if (!matchNisn) return false;
+                        
+                        // Normalisasi tanggal baris sheet agar akurat dicocokkan ke tanggal Excel
                         let normDate = normalizeDateToYMD(r.tanggal);
                         return normDate === targetISODate;
                     });
                     
                     let statusKode = "";
                     if(absenMatch && d <= daysInMonth) {
-                        let st = String(absenMatch.status || '').toUpperCase();
+                        let st = String(absenMatch.status || absenMatch.status_kehadiran || '').toUpperCase();
                         let tp = String(absenMatch.tipe || '').toUpperCase();
-                        if(st === 'HADIR' || st === 'TERLAMBAT' || st === 'H') { statusKode = "H"; countH++; }
+                        if(st === 'HADIR' || st === 'TERLAMBAT' || st === 'H' || tp === 'MASUK' || tp === 'PULANG') { statusKode = "H"; countH++; }
                         else if(tp === 'IZIN' || st === 'IZIN' || st.includes('IZIN') || st === 'I') { statusKode = "I"; countI++; }
                         else if(tp === 'SAKIT' || st === 'SAKIT' || st.includes('SAKIT') || st === 'S') { statusKode = "S"; countS++; }
                         else if(st === 'ALPA' || st === 'A') { statusKode = "A"; countA++; }
