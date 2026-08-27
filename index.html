@@ -1341,28 +1341,35 @@
                 html += `<tr><td>${idx+1}</td><td>&nbsp;${s.nisn||'-'}</td><td>&nbsp;${s.id_siswa||'-'}</td><td class="nama">${s.nama||'-'}</td><td>${lkValue}</td>`;
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
+                
                 for(let d=1; d<=31; d++) {
                     let dayStr0 = String(d).padStart(2, '0');
                     let mStr0 = String(parseInt(activeMonthNum)).padStart(2, '0');
-                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`; // Format standar YYYY-MM-DD
+                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`;
                     
-                    let absenMatch = globalRekapData.find(r => {
+                    // Cari semua baris absensi untuk siswa ini pada tanggal target (bisa ada baris Masuk dan Pulang)
+                    let matchedRows = globalRekapData.filter(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         if (!matchNisn) return false;
-                        
-                        // Normalisasi tanggal baris sheet agar akurat dicocokkan ke tanggal Excel
                         let normDate = normalizeDateToYMD(r.tanggal);
                         return normDate === targetISODate;
                     });
                     
                     let statusKode = "";
-                    if(absenMatch && d <= daysInMonth) {
-                        let st = String(absenMatch.status || absenMatch.status_kehadiran || '').toUpperCase();
-                        let tp = String(absenMatch.tipe || '').toUpperCase();
-                        if(st === 'HADIR' || st === 'TERLAMBAT' || st === 'H' || tp === 'MASUK' || tp === 'PULANG') { statusKode = "H"; countH++; }
-                        else if(tp === 'IZIN' || st === 'IZIN' || st.includes('IZIN') || st === 'I') { statusKode = "I"; countI++; }
-                        else if(tp === 'SAKIT' || st === 'SAKIT' || st.includes('SAKIT') || st === 'S') { statusKode = "S"; countS++; }
-                        else if(st === 'ALPA' || st === 'A') { statusKode = "A"; countA++; }
+                    if(matchedRows.length > 0 && d <= daysInMonth) {
+                        let statusFinal = "Hadir";
+                        matchedRows.forEach(r => {
+                            let st = String(r.status || r.status_kehadiran || '').toUpperCase();
+                            let tp = String(r.tipe || '').toUpperCase();
+                            if(st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) statusFinal = "Izin";
+                            else if(st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) statusFinal = "Sakit";
+                            else if(st === 'ALPA') statusFinal = "Alpa";
+                        });
+                        
+                        if(statusFinal === 'Hadir' || statusFinal === 'Terlambat') { statusKode = "H"; countH++; }
+                        else if(statusFinal === 'Izin') { statusKode = "I"; countI++; }
+                        else if(statusFinal === 'Sakit') { statusKode = "S"; countS++; }
+                        else if(statusFinal === 'Alpa') { statusKode = "A"; countA++; }
                     }
                     html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
