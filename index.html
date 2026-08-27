@@ -1825,6 +1825,13 @@
             
             kelasList.forEach(kelas => {
                 let uniqueSiswaHadir = new Set();
+                let totalSiswaKelas = 0;
+                
+                // Hitung total master siswa di kelas ini
+                if(globalSiswaData && globalSiswaData.length > 0) {
+                    totalSiswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === String(kelas).trim().toUpperCase()).length;
+                }
+
                 rekapData.forEach(item => {
                     let matchKelas = String(item.kelas || '').trim().toUpperCase() === String(kelas).trim().toUpperCase();
                     let st = String(item.status || item.status_kehadiran || '').trim().toLowerCase();
@@ -1850,9 +1857,14 @@
                         uniqueSiswaHadir.add(String(item.nisn).trim());
                     }
                 });
-                container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge" style="background: var(--primary-bg); font-size: 0.7rem;">${uniqueSiswaHadir.size} Siswa</span></div></div>`;
+                
+                let hadirCount = uniqueSiswaHadir.size;
+                let displayFormat = totalSiswaKelas > 0 ? `${hadirCount} / ${totalSiswaKelas} Siswa` : `${hadirCount} Siswa`;
+                
+                container.innerHTML += `<div class="col-4"><div class="p-2 border rounded bg-light text-center"><span class="d-block fw-bold text-secondary" style="font-size: 0.75rem;">Kelas ${kelas}</span><span class="badge" style="background: var(--primary-bg); font-size: 0.7rem;">${displayFormat}</span></div></div>`;
             });
         }
+
         function logoutPetugas() { if(mediaStream) mediaStream.getTracks().forEach(t => t.stop()); document.getElementById('dashboard-petugas').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; }
         function logoutOrtu() { document.getElementById('dashboard-ortu').classList.remove('active'); document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('login-section').style.display = 'flex'; }
         
@@ -3101,7 +3113,7 @@
                         <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
                     </div>
                 </div>
-               <div class="col-3">
+                <div class="col-3">
                     <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
                         <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
                         <h6 class="fw-bold text-danger m-0">${alpa}</h6>
