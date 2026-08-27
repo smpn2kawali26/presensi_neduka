@@ -697,73 +697,7 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
         
-        // ==========================================
-        // FUNGSI BANTUAN NORMALISASI TANGGAL & UNIK
-        // ==========================================
-        function normalizeDateToYMD(dateStr) {
-            if (!dateStr) return "";
-            let s = String(dateStr).trim();
-            
-            if(s.includes('T')) {
-                return s.split('T')[0];
-            }
-            
-            let matchIndoNum = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-            if (matchIndoNum) {
-                let day = matchIndoNum[1].padStart(2, '0');
-                let month = matchIndoNum[2].padStart(2, '0');
-                let year = matchIndoNum[3];
-                return `${year}-${month}-${day}`;
-            }
-            
-            let matchISO = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-            if (matchISO) {
-                let year = matchISO[1];
-                let month = matchISO[2].padStart(2, '0');
-                let day = matchISO[3].padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-            
-            try {
-                let d = new Date(dateStr);
-                if (!isNaN(d.getTime())) {
-                    let y = d.getFullYear();
-                    let m = String(d.getMonth() + 1).padStart(2, '0');
-                    let day = String(d.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${day}`;
-                }
-            } catch(e) {}
-            
-            return s;
-        }
-
-        function getUniqueDailyRekap(rekapArray) {
-            let unique = {};
-            rekapArray.forEach(r => {
-                let key = String(r.nisn).trim();
-                if(!unique[key]) {
-                    unique[key] = {...r}; 
-                } else {
-                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
-                    let tp = String(r.tipe || '').toLowerCase();
-                    let existSt = String(unique[key].status || unique[key].status_kehadiran || '').toLowerCase();
-                    let existTp = String(unique[key].tipe || '').toLowerCase();
-                    
-                    let isNewIzinSakit = st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
-                    let isExistIzinSakit = existSt.includes('izin') || existTp.includes('izin') || existSt.includes('sakit') || existTp.includes('sakit');
-                    
-                    if (isNewIzinSakit && !isExistIzinSakit) {
-                        unique[key].status = r.status || r.status_kehadiran;
-                        unique[key].tipe = r.tipe;
-                    }
-                    if(tp.includes('pulang') && r.foto && r.foto !== '-') {
-                        unique[key].foto = r.foto;
-                    }
-                }
-            });
-            return Object.values(unique);
-        }
-        
+        // VARIABEL GLOBAL PENTING
         let listSiswaAbsen = [];
         let selectedSiswaData = null;
         let useFrontCamera = true;
@@ -794,8 +728,6 @@
         
         let loggedInTeacherNip = null;
         let loggedInTeacherData = null;
-        
-        let ortuPaginationState = { page: 1, limit: 10 };
         
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
@@ -898,12 +830,7 @@
         }
         function formatTanggalIndonesia(dateString) {
             if (!dateString) return "-";
-            try { 
-                let normDate = normalizeDateToYMD(dateString);
-                let d = new Date(normDate); 
-                if (isNaN(d.getTime())) return dateString; 
-                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); 
-            } catch (e) { return dateString; }
+            try { let d = new Date(dateString); if (isNaN(d.getTime())) return dateString; return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); } catch (e) { return dateString; }
         }
         function extractTime(timeStr) {
             if (!timeStr || timeStr === '-') return '-';
@@ -1068,6 +995,7 @@
                     if(role === 'admin') {
                         document.getElementById('mainBody').classList.remove('ortu-body');
                         document.getElementById('dashboard-admin').classList.add('active');
+                        // Bersihkan sesi dan setel nama murni admin
                         loggedInSiswaNisn = null;
                         selectedSiswaData = null;
                         let adminName = data.name || "Administrator Utama";
@@ -1092,7 +1020,17 @@
                     }
                 } else { err.innerText = data.message; err.classList.remove('d-none'); }
             }).catch(e => { 
-                err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); 
+                if(role === 'petugas') {
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-petugas').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
+                    currentPetugasName = inputId; document.getElementById('namaPetugasLabel').innerText = currentPetugasName;
+                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas();
+                } else if(role === 'ortu') {
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-ortu').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
+                    loadOrtuDashboard(inputId, { name: "ADINDA SIPATUNISA", kelas: "9B", ortu: "Wali Murid", hp: "08123456789" });
+                } else if(role === 'teacher') {
+                    document.getElementById('login-section').style.display = 'none'; document.getElementById('dashboard-teacher').classList.add('active'); document.getElementById('mainBody').classList.add('ortu-body');
+                    loadTeacherDashboard(inputId, { name: "AI IMAS ROSTIKA, S.Pd.,Gr", tugas: "Wali Kelas VIIIA", mapel: "Bahasa Indonesia" });
+                } else { err.innerText = "Gagal terhubung ke server."; err.classList.remove('d-none'); }
             }).finally(() => { btn.innerHTML = 'LOGIN KE PORTAL'; btn.disabled = false; });
         });
         
@@ -1134,6 +1072,7 @@
         
         function fetchGuruData() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_guru" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(res => res.json()).then(data => { if(data.status === "success" && Array.isArray(data.data)) { globalGuruData = data.data; renderAdminGuruTable(globalGuruData); populateModalDropdowns(); } }); }
         
+        // FUNGSI EDIT GURU
         function openModalEditGuruById(nip) {
             let g = globalGuruData.find(item => String(item.nip) === String(nip)); 
             if(!g) return;
@@ -1192,31 +1131,31 @@
                     let dDayNoL = today.getDate().toString();
                     let dMonthNoL = (today.getMonth() + 1).toString();
                     
-                    let rekapToday = globalRekapData.filter(r => { 
+                    globalRekapData.forEach(r => { 
                         let tgl = String(r.tanggal || "").trim();
                         let isToday = false;
-                        if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
+                        
+                        if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || 
+                            tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
+                            tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
+                            tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                             isToday = true;
                         } else {
-                            let normDate = normalizeDateToYMD(tgl);
-                            let dItem = new Date(normDate);
+                            let dItem = new Date(tgl);
                             if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
                                 isToday = true;
                             }
                         }
-                        return isToday;
-                    });
-                    
-                    let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-                    
-                    uniqueRekapToday.forEach(r => { 
-                        let st = String(r.status || r.status_kehadiran || "").trim().toUpperCase();
-                        let tp = String(r.tipe || "").trim().toUpperCase();
-                        if (st === 'HADIR') totalH++; 
-                        else if (st === 'TERLAMBAT') totalT++; 
-                        else if (st === 'ALPA') totalA++;
-                        else if (st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) totalI++;
-                        else if (st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) totalS++;
+                        
+                        if (isToday) {
+                            let st = String(r.status || "").trim().toUpperCase();
+                            let tp = String(r.tipe || "").trim().toUpperCase();
+                            if (st === 'HADIR') totalH++; 
+                            else if (st === 'TERLAMBAT') totalT++; 
+                            else if (st === 'ALPA') totalA++;
+                            else if (st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) totalI++;
+                            else if (st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) totalS++;
+                        }
                     }); 
                     
                     if(document.getElementById('dashTotalHadir')) document.getElementById('dashTotalHadir').innerText = totalH; 
@@ -1251,21 +1190,35 @@
         }
         setInterval(fetchRekapData, 10000);
         
+        // FILTER ADMIN REKAP
         function filterAdminRekap() { 
             let b = document.getElementById('adminFilterBulanRekap').value; 
             let th = document.getElementById('adminFilterTahunRekap').value; 
-            let tglFilter = document.getElementById('adminFilterTanggalRekap').value;
+            let tglFilter = document.getElementById('adminFilterTanggalRekap').value; // format: "2026-08-24"
             
             let filtered = globalRekapData.filter(r => { 
                 let tgl = String(r.tanggal || '').trim(); 
-                let normDate = normalizeDateToYMD(tgl); 
                 
+                // Jika filter tanggal spesifik diisi
                 if(tglFilter) {
-                    return normDate === tglFilter;
+                    let [y, m, d] = tglFilter.split('-'); // y=2026, m=08, d=24
+                    let dayNum = parseInt(d, 10);     // 24
+                    let monthNum = parseInt(m, 10);   // 8
+                    
+                    let matchISO = tgl.includes(tglFilter); // 2026-08-24
+                    let matchIndo1 = tgl.includes(`${d}/${m}/${y}`);   // 24/08/2026
+                    let matchIndo2 = tgl.includes(`${dayNum}/${monthNum}/${y}`); // 24/8/2026
+                    
+                    let regexExactDate = new RegExp(`(^|[^\\d])(${dayNum})([^\\d]|$)`);
+                    let hasExactDay = regexExactDate.test(tgl) || tgl.includes(d);
+                    let hasExactMonth = tgl.includes(m) || tgl.includes(`/${monthNum}/`) || tgl.includes(`-${m}-`);
+                    let hasExactYear = tgl.includes(y);
+                    
+                    return matchISO || matchIndo1 || matchIndo2 || (hasExactDay && hasExactMonth && hasExactYear);
                 }
                 
-                let matchB = !b || normDate.split('-')[1] === b; 
-                let matchTh = !th || normDate.split('-')[0] === th; 
+                let matchB = !b || tgl.includes(`-${b}-`) || tgl.includes(`/${b}/`) || tgl.includes(`/${parseInt(b)}/`); 
+                let matchTh = !th || tgl.includes(th); 
                 
                 return matchB && matchTh; 
             }); 
@@ -1276,10 +1229,7 @@
             let tBody = document.getElementById('tableRekapBody'); if(!tBody) return;
             let state = paginationState.rekap; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
-            paginatedItems.forEach(r => { 
-                let statVal = r.status || r.status_kehadiran || '-';
-                tBody.innerHTML += `<tr><td class="text-center text-nowrap">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe || '-'}</td><td class="text-center"><span class="badge ${statVal === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${statVal}</span></td><td>${r.petugas || '-'}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; 
-            });
+            paginatedItems.forEach(r => { tBody.innerHTML += `<tr><td class="text-center text-nowrap">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${extractTime(r.waktu)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center"><span class="badge ${r.status === 'Hadir' ? 'bg-success' : 'bg-warning text-dark'}">${r.status}</span></td><td>${r.petugas}</td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="hapusRowData('hapus_rekap', ${r.row_index}, 'Rekap')"><i class="fas fa-trash"></i></button></td></tr>`; });
             renderPaginationControls(dataArray.length, 'rekap', 'paginationRekapContainer');
         }
         function populateFilterKelasDropdown() {
@@ -1307,13 +1257,9 @@
             let state = paginationState.laporan; let start = (state.page - 1) * state.limit; let paginatedItems = dataArray.slice(start, start + state.limit);
             tBody.innerHTML = "";
             if(paginatedItems.length === 0) { tBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada data laporan.</td></tr>`; return; }
-            paginatedItems.forEach((r, idx) => { 
-                let statVal = r.status || r.status_kehadiran || '-';
-                tBody.innerHTML += `<tr><td class="text-center">${start + idx + 1}</td><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe || '-'}</td><td class="text-center">${statVal}</td></tr>`; 
-            });
+            paginatedItems.forEach((r, idx) => { tBody.innerHTML += `<tr><td class="text-center">${start + idx + 1}</td><td class="text-center">${formatTanggalIndonesia(r.tanggal)}</td><td class="text-center">${r.nisn}</td><td>${r.nama}</td><td class="text-center">${r.kelas}</td><td class="text-center">${r.tipe}</td><td class="text-center">${r.status}</td></tr>`; });
             renderPaginationControls(dataArray.length, 'laporan', 'paginationLaporanContainer');
         }
-        
         function downloadExcelPresensiHarian() {
             let selectedKelas = document.getElementById('filterKelasLaporan').value || "7A";
             let siswaKelas = globalSiswaData.filter(s => String(s.kelas).trim().toUpperCase() === selectedKelas.toUpperCase());
@@ -1343,32 +1289,49 @@
                 
                 let countH = 0, countS = 0, countI = 0, countA = 0;
                 for(let d=1; d<=31; d++) {
-                    let dayStr0 = String(d).padStart(2, '0');
-                    let mStr0 = String(parseInt(activeMonthNum)).padStart(2, '0');
-                    let targetISODate = `${activeYear}-${mStr0}-${dayStr0}`;
+                    let dayStr = d.toString();
+                    let dayStr0 = dayStr.padStart(2, '0');
+                    let targetDateNum = parseInt(dayStr);
+                    let mStr = parseInt(activeMonthNum).toString();
+                    let mStr0 = activeMonthNum.padStart(2, '0');
                     
-                    let matchedRows = globalRekapData.filter(r => {
+                    let absenMatch = globalRekapData.find(r => {
                         let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
                         if (!matchNisn) return false;
-                        let normDate = normalizeDateToYMD(r.tanggal);
-                        return normDate === targetISODate;
+                        
+                        let tglVal = String(r.tanggal || '').trim();
+                        let isMatchDate = false;
+                        
+                        if (tglVal.startsWith(`${dayStr}/${mStr}/`) || 
+                            tglVal.startsWith(`${dayStr0}/${mStr0}/`) || 
+                            tglVal.startsWith(`${dayStr}/${mStr0}/`) || 
+                            tglVal.startsWith(`${dayStr0}/${mStr}/`)) {
+                            if (tglVal.includes(activeYear)) isMatchDate = true;
+                        }
+                        else if (tglVal.startsWith(`${activeYear}-${mStr0}-${dayStr0}`) || 
+                                 tglVal.startsWith(`${activeYear}-${mStr}-${dayStr}`)) {
+                            isMatchDate = true;
+                        }
+                        else {
+                            let dItem = new Date(tglVal);
+                            if (!isNaN(dItem.getTime()) && 
+                                dItem.getFullYear().toString() === activeYear && 
+                                (dItem.getMonth() + 1) === parseInt(activeMonthNum) && 
+                                dItem.getDate() === targetDateNum) {
+                                isMatchDate = true;
+                            }
+                        }
+                        return isMatchDate;
                     });
                     
                     let statusKode = "";
-                    if(matchedRows.length > 0 && d <= daysInMonth) {
-                        let statusFinal = "Hadir";
-                        matchedRows.forEach(r => {
-                            let st = String(r.status || r.status_kehadiran || '').toUpperCase();
-                            let tp = String(r.tipe || '').toUpperCase();
-                            if(st === 'IZIN' || tp === 'IZIN' || st.includes('IZIN')) statusFinal = "Izin";
-                            else if(st === 'SAKIT' || tp === 'SAKIT' || st.includes('SAKIT')) statusFinal = "Sakit";
-                            else if(st === 'ALPA') statusFinal = "Alpa";
-                        });
-                        
-                        if(statusFinal === 'Hadir' || statusFinal === 'Terlambat') { statusKode = "H"; countH++; }
-                        else if(statusFinal === 'Izin') { statusKode = "I"; countI++; }
-                        else if(statusFinal === 'Sakit') { statusKode = "S"; countS++; }
-                        else if(statusFinal === 'Alpa') { statusKode = "A"; countA++; }
+                    if(absenMatch && d <= daysInMonth) {
+                        let st = String(absenMatch.status || '').toUpperCase();
+                        let tp = String(absenMatch.tipe || '').toUpperCase();
+                        if(st === 'HADIR' || st === 'TERLAMBAT' || st === 'H') { statusKode = "H"; countH++; }
+                        else if(tp === 'IZIN' || st === 'IZIN' || st.includes('IZIN') || st === 'I') { statusKode = "I"; countI++; }
+                        else if(tp === 'SAKIT' || st === 'SAKIT' || st.includes('SAKIT') || st === 'S') { statusKode = "S"; countS++; }
+                        else if(st === 'ALPA' || st === 'A') { statusKode = "A"; countA++; }
                     }
                     html += `<td>${d <= daysInMonth ? statusKode : ''}</td>`;
                 }
@@ -1404,24 +1367,20 @@
             let rekapToday = rekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
-                let normDate = normalizeDateToYMD(tgl);
-                let dItem = new Date(normDate);
+                let dItem = new Date(tgl);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
             });
-            
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-            
             kelasList.forEach(kelas => {
                 let siswaKelas = siswaData.filter(s => String(s.kelas).trim() === String(kelas).trim());
-                let rekapKelas = uniqueRekapToday.filter(r => String(r.kelas).trim() === String(kelas).trim());
+                let rekapKelas = rekapToday.filter(r => String(r.kelas).trim() === String(kelas).trim());
                 
                 let hL = 0, hP = 0, tL = 0, tP = 0, iL = 0, iP = 0, sL = 0, sP = 0;
                 
                 rekapKelas.forEach(r => {
                     let sMatched = siswaKelas.find(siswa => String(siswa.nisn) === String(r.nisn));
                     let jk = sMatched ? String(sMatched.gender || '').toUpperCase() : '';
-                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
+                    let st = String(r.status || '').toLowerCase();
                     let tp = String(r.tipe || '').toLowerCase();
                     
                     let isIzin = st.includes('izin') || tp.includes('izin');
@@ -1436,7 +1395,6 @@
                 tBody.innerHTML += `<tr><td class="fw-bold bg-light">Kelas ${kelas}</td><td>${siswaKelas.length}</td><td>${hL}</td><td>${hP}</td><td>${tL}</td><td>${tP}</td><td>${iL}</td><td>${iP}</td><td>${sL}</td><td>${sP}</td></tr>`;
             });
         }
-        
         function renderDashboardCharts(rekapData) {
             let kelasList = [];
             if(globalSiswaData && globalSiswaData.length > 0) {
@@ -1444,33 +1402,12 @@
             } else {
                 kelasList = ["7A", "7B", "8A", "8B", "9A", "9B", "9C"];
             }
-            
-            let today = new Date();
-            let dDay = today.getDate().toString().padStart(2, '0');
-            let dMonth = (today.getMonth() + 1).toString().padStart(2, '0');
-            let dYear = today.getFullYear().toString();
-            let dDayNoL = today.getDate().toString();
-            let dMonthNoL = (today.getMonth() + 1).toString();
-            
-            let rekapToday = rekapData.filter(r => {
-                let tgl = String(r.tanggal || "").trim();
-                if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
-                let normDate = normalizeDateToYMD(tgl);
-                let dItem = new Date(normDate);
-                if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
-                return false;
-            });
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-            
-            let hadirCounts = kelasList.map(k => uniqueRekapToday.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && ((r.status || r.status_kehadiran) === 'Hadir' || (r.status || r.status_kehadiran) === 'Terlambat')).length);
-            
+            let hadirCounts = kelasList.map(k => rekapData.filter(r => String(r.kelas).trim().toUpperCase() === String(k).toUpperCase() && (r.status === 'Hadir' || r.status === 'Terlambat')).length);
             const ctxBar = document.getElementById('barChartKelas').getContext('2d'); if(barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(ctxBar, { type: 'bar', data: { labels: kelasList, datasets: [{ label: 'Hadir', data: hadirCounts, backgroundColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
-            
             const ctxRadar = document.getElementById('radarChartKelas').getContext('2d'); if(radarChartInstance) radarChartInstance.destroy();
             radarChartInstance = new Chart(ctxRadar, { type: 'radar', data: { labels: kelasList, datasets: [{ label: 'Statistik', data: hadirCounts, backgroundColor: 'rgba(30,60,114,0.2)', borderColor: '#1e3c72' }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
-        
         document.getElementById('formSettingLokasi').addEventListener('submit', function(e) {
             e.preventDefault();
             schoolConfig.lat_sekolah = parseFloat(document.getElementById('lokasiLat').value);
@@ -1660,10 +1597,10 @@
             siswaKelas.forEach((s) => {
                 let existingAbsen = globalRekapData.find(r => {
                     let matchNisn = String(r.nisn).trim() === String(s.nisn).trim();
-                    let normDate = normalizeDateToYMD(r.tanggal);
-                    return matchNisn && (normDate === tglSelect);
+                    let matchTgl = String(r.tanggal).includes(tglSelect) || String(r.tanggal).includes(new Date(tglSelect).toLocaleDateString('id-ID'));
+                    return matchNisn && matchTgl;
                 });
-                let currentStatus = existingAbsen ? String(existingAbsen.status || existingAbsen.status_kehadiran) : "Hadir";
+                let currentStatus = existingAbsen ? String(existingAbsen.status) : "Hadir";
                 tBody.innerHTML += `<tr>
                     <td class="text-center">${s.nisn}</td>
                     <td>${s.nama}</td>
@@ -1779,12 +1716,35 @@
             const now = new Date(); 
             const jamStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const todayStr = now.toISOString().split('T')[0];
+            const todayLokal = now.toLocaleDateString('id-ID');
+            
+            let dDay = now.getDate().toString().padStart(2, '0');
+            let dMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+            let dYear = now.getFullYear().toString();
+            let dDayNoL = now.getDate().toString();
+            let dMonthNoL = (now.getMonth() + 1).toString();
             
             let isAlreadyAbsen = globalRekapData.some(r => {
                 let matchNisn = String(r.nisn).trim() === String(selectedSiswaData.nisn).trim();
                 let matchTipe = String(r.tipe || '').trim().toUpperCase() === tipe.toUpperCase();
-                let normDate = normalizeDateToYMD(r.tanggal);
-                return matchNisn && matchTipe && (normDate === todayStr);
+                let tglVal = String(r.tanggal || '').trim();
+                let isToday = false;
+                
+                if (tglVal.includes(`${dDay}/${dMonth}/${dYear}`) || 
+                    tglVal.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || 
+                    tglVal.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || 
+                    tglVal.includes(`${dYear}-${dMonth}-${dDay}`) || 
+                    tglVal.includes(`${dYear}/${dMonth}/${dDay}`) || 
+                    tglVal.includes(todayStr) || 
+                    tglVal.includes(todayLokal)) {
+                    isToday = true;
+                } else {
+                    let d1 = new Date(tglVal);
+                    if (!isNaN(d1.getTime()) && d1.setHours(0,0,0,0) === now.setHours(0,0,0,0)) {
+                        isToday = true;
+                    } 
+                }
+                return matchNisn && matchTipe && isToday;
             });
             
             if (isAlreadyAbsen) {
@@ -1880,8 +1840,7 @@
                         tglStr.includes(`${dYear}-${dMonth}-${dDay}`)) {
                         isToday = true;
                     } else {
-                        let normDate = normalizeDateToYMD(tglStr);
-                        let dItem = new Date(normDate);
+                        let dItem = new Date(tglStr);
                         if(!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
                             isToday = true;
                         }
@@ -2025,64 +1984,40 @@
             let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; 
             let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
             
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let targetMonthName = monthNames[parseInt(bFilter) - 1] || "";
+            
             let filtered = dataArray.filter(r => {
-                let normDate = normalizeDateToYMD(r.tanggal);
-                if(!normDate || normDate.length < 8) return false;
-                
-                let parts = normDate.split('-');
-                let tahunItem = parts[0];
-                let bulanItem = parts[1];
-                
-                let matchBulan = !bFilter || bulanItem === bFilter || parseInt(bulanItem) === parseInt(bFilter);
-                let matchTahun = !tFilter || tahunItem === tFilter;
+                let tglStr = String(r.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
             if(filtered.length === 0 && dataArray.length > 0 && !bFilter) {
                 filtered = dataArray;
             }
-            
             let groupedByDate = {};
-            
             filtered.forEach(item => {
-                let cleanDate = normalizeDateToYMD(item.tanggal);
-                if(!cleanDate || cleanDate === "invalid" || cleanDate === "NaN" || cleanDate.length < 8) return;
-                
+                let cleanDate = String(item.tanggal || '').trim();
                 if(!groupedByDate[cleanDate]) {
-                    groupedByDate[cleanDate] = { displayDate: formatTanggalIndonesia(cleanDate), masuk: '-', pulang: '-', status: '-' };
+                    groupedByDate[cleanDate] = { masuk: '-', pulang: '-', status: '-' };
                 }
-                
-                let tipe = String(item.tipe || item.tipe_absen || '').trim().toUpperCase();
-                let waktuVal = String(item.waktu || '').trim();
+                let tipe = String(item.tipe || '').trim().toUpperCase();
+                let waktuVal = String(item.waktu || '-');
                 let statusVal = String(item.status || item.status_kehadiran || '-').trim();
-                let extractedTime = extractTime(waktuVal);
                 
                 if (tipe.includes('IZIN') || statusVal.toLowerCase().includes('izin')) {
                     groupedByDate[cleanDate].status = 'Izin';
                 } else if (tipe.includes('SAKIT') || statusVal.toLowerCase().includes('sakit')) {
                     groupedByDate[cleanDate].status = 'Sakit';
                 } else if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
-                    if(extractedTime && extractedTime !== '-') {
-                        groupedByDate[cleanDate].masuk = extractedTime;
-                    }
-                    if(statusVal && statusVal !== '-') {
-                        groupedByDate[cleanDate].status = statusVal;
-                    }
+                    groupedByDate[cleanDate].masuk = extractTime(waktuVal);
+                    if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
                 } else if (tipe.includes('PULANG')) {
-                    if(extractedTime && extractedTime !== '-') {
-                        groupedByDate[cleanDate].pulang = extractedTime;
-                    }
+                    groupedByDate[cleanDate].pulang = extractTime(waktuVal);
                     if(statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') {
                         groupedByDate[cleanDate].status = statusVal;
-                    }
-                } else {
-                    if(extractedTime && extractedTime !== '-') {
-                        let hour = parseInt(extractedTime.split(':')[0]);
-                        if(hour < 12) {
-                            if(groupedByDate[cleanDate].masuk === '-') groupedByDate[cleanDate].masuk = extractedTime;
-                        } else {
-                            if(groupedByDate[cleanDate].pulang === '-') groupedByDate[cleanDate].pulang = extractedTime;
-                        }
                     }
                 }
                 
@@ -2091,46 +2026,47 @@
                 }
             });
             
-            let dates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
-            
-            let totalItems = dates.length;
-            let totalPages = Math.ceil(totalItems / ortuPaginationState.limit) || 1;
-            if(ortuPaginationState.page > totalPages) ortuPaginationState.page = totalPages;
-            if(ortuPaginationState.page < 1) ortuPaginationState.page = 1;
-            
-            let startIdx = (ortuPaginationState.page - 1) * ortuPaginationState.limit;
-            let paginatedDates = dates.slice(startIdx, startIdx + ortuPaginationState.limit);
+            let dates = Object.keys(groupedByDate).sort((a, b) => {
+                let da = a.includes('/') ? a.split('/').reverse().join('-') : a;
+                let db = b.includes('/') ? b.split('/').reverse().join('-') : b;
+                return new Date(db) - new Date(da);
+            });
             
             tbody.innerHTML = "";
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
             
-            dates.forEach(dateStr => {
-                let d = groupedByDate[dateStr];
-                let st = String(d.status).trim().toLowerCase();
-                if(st.includes('terlambat')) countT++;
-                else if(st.includes('izin')) countI++;
-                else if(st.includes('sakit')) countS++;
-                else if(st.includes('alpa')) countA++;
-                else countH++;
-            });
-            
-            if(paginatedDates.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada periode ini.</td></tr>`;
+            if(dates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
             } else {
-                paginatedDates.forEach(dateStr => {
+                dates.forEach(dateStr => {
                     let d = groupedByDate[dateStr];
                     let st = String(d.status).trim().toLowerCase();
                     let badgeClass = 'bg-success';
                     let displayStatus = d.status;
                     
-                    if(st.includes('terlambat')) { badgeClass = 'bg-warning text-dark'; displayStatus = d.status; } 
-                    else if(st.includes('izin')) { badgeClass = 'bg-info text-white'; displayStatus = 'Izin'; } 
-                    else if(st.includes('sakit')) { badgeClass = 'bg-secondary text-white'; displayStatus = 'Sakit'; } 
-                    else if(st.includes('alpa')) { badgeClass = 'bg-danger'; displayStatus = 'Alpa'; }
+                    if(st.includes('terlambat')) { 
+                        badgeClass = 'bg-warning text-dark'; 
+                        countT++; 
+                    } else if(st.includes('izin')) { 
+                        badgeClass = 'bg-info text-white'; 
+                        displayStatus = 'Izin';
+                        countI++; 
+                    } else if(st.includes('sakit')) { 
+                        badgeClass = 'bg-secondary text-white'; 
+                        displayStatus = 'Sakit';
+                        countS++; 
+                    } else if(st.includes('alpa')) { 
+                        badgeClass = 'bg-danger'; 
+                        countA++; 
+                    } else if(st.includes('hadir')) { 
+                        countH++; 
+                    } else {
+                        countH++;
+                    }
                     
                     tbody.innerHTML += `
                         <tr>
-                            <td class="fw-bold text-nowrap">${d.displayDate}</td>
+                            <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
                             <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${d.masuk}</span></td>
                             <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${d.pulang}</span></td>
                             <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
@@ -2139,81 +2075,37 @@
                 });
             }
             
-            renderOrtuPaginationControls(totalItems, totalPages);
-            
             if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
             if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
             if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
             if(document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
             if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
-
-        function renderOrtuPaginationControls(totalItems, totalPages) {
-            let containerId = 'ortuPaginationContainer';
-            let cardContainer = document.querySelector('#page-riwayat .card.overflow-hidden');
-            
-            let existingContainer = document.getElementById(containerId);
-            if (!existingContainer && cardContainer) {
-                existingContainer = document.createElement('div');
-                existingContainer.id = containerId;
-                existingContainer.className = "d-flex justify-content-between align-items-center p-3 border-top bg-light";
-                cardContainer.appendChild(existingContainer);
-            }
-            if(!existingContainer) return;
-            
-            let startItem = totalItems === 0 ? 0 : (ortuPaginationState.page - 1) * ortuPaginationState.limit + 1;
-            let endItem = Math.min(ortuPaginationState.page * ortuPaginationState.limit, totalItems);
-            
-            existingContainer.innerHTML = `
-                <div class="text-muted" style="font-size: 0.75rem;">Menampilkan ${startItem}-${endItem} dari ${totalItems} hari</div>
-                <ul class="pagination pagination-sm m-0">
-                    <li class="page-item ${ortuPaginationState.page === 1 ? 'disabled' : ''}">
-                        <button class="page-link" onclick="changeOrtuPage(${ortuPaginationState.page - 1})">Prev</button>
-                    </li>
-                    <li class="page-item disabled">
-                        <span class="page-link bg-white text-dark">${ortuPaginationState.page}/${totalPages}</span>
-                    </li>
-                    <li class="page-item ${ortuPaginationState.page >= totalPages ? 'disabled' : ''}">
-                        <button class="page-link" onclick="changeOrtuPage(${ortuPaginationState.page + 1})">Next</button>
-                    </li>
-                </ul>
-            `;
-        }
-
-        function changeOrtuPage(targetPage) {
-            ortuPaginationState.page = targetPage;
-            renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
-        }
-
         function filterOrtuRiwayat() { 
-            ortuPaginationState.page = 1;
             renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
         }
         
+        /* FUNGSI RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA */
         function loadOrtuRiwayatIzin(nisn) {
             let container = document.getElementById('listOrtuRiwayatIzin');
             if(!container) return;
             
             let izinData = globalOrtuRiwayatData.filter(r => {
-                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
+                let st = String(r.status || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
             
-            let uniqueIzin = getUniqueDailyRekap(izinData);
-            
-            if(uniqueIzin.length === 0) {
+            if(izinData.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin/sakit.</div>`;
                 return;
             }
             
-            uniqueIzin.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
+            izinData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
             
             let html = "";
-            uniqueIzin.forEach(r => {
-                let stVal = String(r.status || r.status_kehadiran || '').toLowerCase();
-                let tpVal = String(r.tipe || '').toLowerCase();
-                let isSakit = stVal.includes('sakit') || tpVal.includes('sakit');
+            izinData.forEach(r => {
+                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
                 let buktiLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
@@ -2237,28 +2129,31 @@
             let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
             let todayIso = new Date().toISOString().split('T')[0];
             
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
+            
             let filtered = globalOrtuCatatanData.filter(c => {
                 if (c.masa_berlaku && String(c.masa_berlaku).trim() !== '-' && String(c.masa_berlaku).trim() !== '') {
                     if (c.masa_berlaku < todayIso) return false;
                 }
                 
-                let catatanNisn = String(c.nisn || '').trim();
-                let matchNisn = (catatanNisn === String(loggedInSiswaNisn).trim()) || (catatanNisn.toLowerCase() === 'semua siswa');
-                
-                let catatanKelasNorm = normalizeKelas(c.kelas);
-                let siswaKelasNorm = normalizeKelas(loggedInSiswaKelas);
-                let matchKelas = (catatanKelasNorm === siswaKelasNorm) || 
-                                 (String(c.kelas || '').trim().toUpperCase() === String(loggedInSiswaKelas || '').trim().toUpperCase());
+                let matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
+                let matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
                 
                 if (!matchNisn && !matchKelas) return false;
                 
-                let normDate = normalizeDateToYMD(c.tanggal);
-                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
-                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
+                let tglStr = String(c.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
-            filtered.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
+            filtered.sort((a, b) => {
+                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
+                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+                return new Date(db) - new Date(da);
+            });
+            
             renderOrtuCatatanList(filtered);
         }
         
@@ -2301,7 +2196,7 @@
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "get_jadwal" }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 if(data.status === "success" && Array.isArray(data.data)) {
-                    let jK = calculateJamKe(data.data).filter(j => normalizeKelas(j.kelas) === normalizeKelas(kelas));
+                    let jK = calculateJamKe(data.data).filter(j => String(j.kelas).trim().toLowerCase() === String(kelas).trim().toLowerCase());
                     if(jK.length === 0) { 
                         container.innerHTML = `<div class="text-muted text-center py-4 small">Jadwal pelajaran belum tersedia untuk Kelas ${kelas}.</div>`; 
                         return; 
@@ -2411,7 +2306,7 @@
             reader.readAsDataURL(file);
         });
         
-        // --- DASHBOARD GURU / TEACHER ---
+        // --- DASHBOARD GURU / TEACHER (FULL KOMPREHENSIF) ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
             loggedInTeacherData = data || {};
@@ -2639,19 +2534,16 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let normDate = normalizeDateToYMD(tgl);
-                    let dItem = new Date(normDate);
+                    let dItem = new Date(tgl);
                     if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
                 }
                 return isToday;
             });
             
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-            
-            let h = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'hadir' || String(r.status || r.status_kehadiran).toLowerCase() === 'terlambat').length;
-            let i = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
-            let s = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
-            let a = uniqueRekapToday.filter(r => String(r.status || r.status_kehadiran).toLowerCase() === 'alpa').length;
+            let h = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let i = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let s = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let a = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             if(kepsekChartInstance) kepsekChartInstance.destroy();
             kepsekChartInstance = new Chart(ctx.getContext('2d'), {
@@ -2695,25 +2587,22 @@
             let rekapToday = globalRekapData.filter(r => {
                 let tgl = String(r.tanggal || "").trim();
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) return true;
-                let normDate = normalizeDateToYMD(tgl);
-                let dItem = new Date(normDate);
+                let dItem = new Date(tgl);
                 if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) return true;
                 return false;
             });
-            
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
             let html = `<div class="accordion accordion-flush border rounded overflow-hidden" id="accKepsekKelas">`;
             
             kelasList.forEach((kelas, idx) => {
                 let siswaK = globalSiswaData.filter(s => normalizeKelas(s.kelas) === normalizeKelas(kelas));
                 let totSiswa = siswaK.length;
-                let rekapK = uniqueRekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
+                let rekapK = rekapToday.filter(r => normalizeKelas(r.kelas) === normalizeKelas(kelas));
                 let h = 0, i = 0, s = 0, a = 0;
                 let listSakitIzinHtml = "";
                 
                 rekapK.forEach(r => {
-                    let st = String(r.status || r.status_kehadiran || '').toLowerCase();
+                    let st = String(r.status || '').toLowerCase();
                     let tp = String(r.tipe || '').toLowerCase();
                     let nama = r.nama || '-';
                     let isIzin = st.includes('izin') || tp.includes('izin');
@@ -2889,6 +2778,7 @@
                               + siswaKelas.map(s => `<option value="${s.nisn}">Private: ${s.nama}</option>`).join('');
         }
         
+        /* FUNGSI MANAJEMEN IZIN / SAKIT KHUSUS WALI KELAS (DENGAN TAMPILAN BUKTI FISIK & TOMBOL HAPUS) */
         function loadIzinSakitWaliKelas(kelas) {
             let container = document.getElementById('listIzinWaliContainer');
             if(!container || globalRekapData.length === 0) return;
@@ -2908,17 +2798,14 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let normDate = normalizeDateToYMD(tgl);
-                    let dItem = new Date(normDate);
+                    let dItem = new Date(tgl);
                     if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
                 }
                 return isToday;
             });
             
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-            
-            let izinSakitList = uniqueRekapToday.filter(r => {
-                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
+            let izinSakitList = rekapToday.filter(r => {
+                let st = String(r.status || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
@@ -2930,9 +2817,7 @@
             
             let html = "";
             izinSakitList.forEach(r => {
-                let stVal = String(r.status || r.status_kehadiran || '').toLowerCase();
-                let tpVal = String(r.tipe || '').toLowerCase();
-                let isSakit = stVal.includes('sakit') || tpVal.includes('sakit');
+                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
                 let badge = isSakit ? 'bg-secondary' : 'bg-info text-dark';
                 let label = isSakit ? 'Sakit' : 'Izin';
                 let fotoLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="ms-1 text-primary text-decoration-none"><i class="fas fa-image"></i> Bukti</a>` : `<span class="ms-1 text-muted" style="font-size:0.65rem;">(Tanpa Bukti)</span>`;
@@ -3041,6 +2926,7 @@
             }).finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fas fa-paper-plane me-1"></i> Kirim`; });
         }
         
+        // FUNGSI LOAD RIWAYAT CATATAN GURU
         function loadRiwayatCatatanTeacher(tipe) {
             let bFilter = tipe === 'WALI KELAS' ? document.getElementById('filterBulanWali')?.value : document.getElementById('filterBulanMapel')?.value;
             let tFilter = tipe === 'WALI KELAS' ? document.getElementById('filterTahunWali')?.value : document.getElementById('filterTahunMapel')?.value;
@@ -3080,9 +2966,9 @@
             }
             
             let filtered = myNotes.filter(c => {
-                let normDate = normalizeDateToYMD(c.tanggal);
-                let matchBulan = !bFilter || normDate.split('-')[1] === bFilter;
-                let matchTahun = !tFilter || normDate.split('-')[0] === tFilter;
+                let tglStr = String(c.tanggal || '').toLowerCase();
+                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`);
+                let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
             
@@ -3091,7 +2977,11 @@
                 return;
             }
             
-            filtered.sort((a, b) => new Date(normalizeDateToYMD(b.tanggal)) - new Date(normalizeDateToYMD(a.tanggal)));
+            filtered.sort((a, b) => {
+                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
+                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+                return new Date(db) - new Date(da);
+            });
             
             let html = "";
             filtered.forEach(c => {
@@ -3162,8 +3052,7 @@
                 isWaliTabActive = true;
             }
             
-            let kelasBinaanRaw = isWaliTabActive ? (loggedInTeacherData.kelas_binaan || "") : "";
-            let kelasBinaanNorm = normalizeKelas(kelasBinaanRaw);
+            let kelasBinaan = isWaliTabActive ? normalizeKelas(loggedInTeacherData.kelas_binaan || "") : "";
             
             let today = new Date();
             let dDay = today.getDate().toString().padStart(2, '0');
@@ -3173,11 +3062,8 @@
             let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
-                if (isWaliTabActive && kelasBinaanNorm) {
-                    let rKelasNorm = normalizeKelas(r.kelas);
-                    if (rKelasNorm !== kelasBinaanNorm && String(r.kelas).trim().toUpperCase() !== String(kelasBinaanRaw).trim().toUpperCase()) {
-                        return false;
-                    }
+                if (isWaliTabActive && kelasBinaan) {
+                    if (normalizeKelas(r.kelas) !== kelasBinaan) return false;
                 }
                 
                 let tgl = String(r.tanggal || "").trim();
@@ -3185,41 +3071,42 @@
                 if (tgl.includes(`${dDay}/${dMonth}/${dYear}`) || tgl.includes(`${dDayNoL}/${dMonthNoL}/${dYear}`) || tgl.includes(`${dDayNoL}/0${dMonthNoL}/${dYear}`) || tgl.includes(`${dYear}-${dMonth}-${dDay}`)) {
                     isToday = true;
                 } else {
-                    let normDate = normalizeDateToYMD(tgl);
-                    let dItem = new Date(normDate);
-                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) {
-                        isToday = true;
-                    }
+                    let dItem = new Date(tgl);
+                    if (!isNaN(dItem.getTime()) && dItem.setHours(0,0,0,0) === today.setHours(0,0,0,0)) { isToday = true; }
                 }
                 return isToday;
             });
             
-            let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
-            
-            let h = 0, i = 0, s = 0, a = 0;
-            uniqueRekapToday.forEach(r => {
-                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
-                let tp = String(r.tipe || '').toLowerCase();
-                
-                if (st.includes('hadir') || st.includes('terlambat') || st === 'h' || tp === 'masuk' || tp === 'pulang') {
-                    h++;
-                } else if (st.includes('izin') || tp.includes('izin') || st === 'i') {
-                    i++;
-                } else if (st.includes('sakit') || tp.includes('sakit') || st === 's') {
-                    s++;
-                } else if (st.includes('alpa') || st === 'a') {
-                    a++;
-                }
-            });
-            
-            let targetLabel = isWaliTabActive ? `Kelas ${kelasBinaanRaw || 'VIIA'}` : "Global (Seluruh Siswa)";
+            let hadir = rekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
+            let izin = rekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
+            let sakit = rekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
+            let alpa = rekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
             
             container.innerHTML = `
-                <div class="col-12 mb-1"><span class="badge bg-light text-dark border border-secondary" style="font-size: 0.7rem;">Cakupan: ${targetLabel}</span></div>
-                <div class="col-3"><div class="p-2 bg-success text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0">${h}</h5></div></div>
-                <div class="col-3"><div class="p-2 bg-info text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Izin</span><h5 class="fw-bold m-0">${i}</h5></div></div>
-                <div class="col-3"><div class="p-2 bg-secondary text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Sakit</span><h5 class="fw-bold m-0">${s}</h5></div></div>
-                <div class="col-3"><div class="p-2 bg-danger text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Alpa</span><h5 class="fw-bold m-0">${a}</h5></div></div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Hadir</span>
+                        <h6 class="fw-bold text-success m-0">${hadir}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Izin</span>
+                        <h6 class="fw-bold text-info m-0">${izin}</h6>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Sakit</span>
+                        <h6 class="fw-bold text-secondary m-0">${sakit}</h6>
+                    </div>
+                </div>
+               <div class="col-3">
+                    <div class="p-1 border rounded" style="background-color: #fdfbf7; border-color: #e0e0e0 !important;">
+                        <span class="text-muted d-block" style="font-size: 0.65rem;">Alpa</span>
+                        <h6 class="fw-bold text-danger m-0">${alpa}</h6>
+                    </div>
+                </div>
             `;
         }
     </script>
