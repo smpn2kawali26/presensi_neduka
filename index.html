@@ -2256,8 +2256,14 @@
                     if (c.masa_berlaku < todayIso) return false;
                 }
                 
-                let matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
-                let matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
+                let catatanNisn = String(c.nisn || '').trim();
+                let matchNisn = (catatanNisn === String(loggedInSiswaNisn).trim()) || (catatanNisn.toLowerCase() === 'semua siswa');
+                
+                // Normalisasi kelas agar 7A, 7-A, dan VIIA terbaca sama
+                let catatanKelasNorm = normalizeKelas(c.kelas);
+                let siswaKelasNorm = normalizeKelas(loggedInSiswaKelas);
+                let matchKelas = (catatanKelasNorm === siswaKelasNorm) || 
+                                 (String(c.kelas || '').trim().toUpperCase() === String(loggedInSiswaKelas || '').trim().toUpperCase());
                 
                 if (!matchNisn && !matchKelas) return false;
                 
