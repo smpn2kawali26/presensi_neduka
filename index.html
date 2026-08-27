@@ -3163,7 +3163,7 @@
         
         function renderTeacherRealtimeSummary() {
             let container = document.getElementById('teacherRealtimeSummary');
-            if(!container || globalRekapData.length === 0) return;
+            if(!container) return;
             
             let isWaliTabActive = false;
             let activeBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button.active');
@@ -3171,7 +3171,8 @@
                 isWaliTabActive = true;
             }
             
-            let kelasBinaan = isWaliTabActive ? normalizeKelas(loggedInTeacherData.kelas_binaan || "") : "";
+            let kelasBinaanRaw = isWaliTabActive ? (loggedInTeacherData.kelas_binaan || "") : "";
+            let kelasBinaanNorm = normalizeKelas(kelasBinaanRaw);
             
             let today = new Date();
             let dDay = today.getDate().toString().padStart(2, '0');
@@ -3181,8 +3182,11 @@
             let dMonthNoL = (today.getMonth() + 1).toString();
             
             let rekapToday = globalRekapData.filter(r => {
-                if (isWaliTabActive && kelasBinaan) {
-                    if (normalizeKelas(r.kelas) !== kelasBinaan) return false;
+                if (isWaliTabActive && kelasBinaanNorm) {
+                    let rKelasNorm = normalizeKelas(r.kelas);
+                    if (rKelasNorm !== kelasBinaanNorm && String(r.kelas).trim().toUpperCase() !== String(kelasBinaanRaw).trim().toUpperCase()) {
+                        return false;
+                    }
                 }
                 
                 let tgl = String(r.tanggal || "").trim();
@@ -3201,12 +3205,24 @@
             
             let uniqueRekapToday = getUniqueDailyRekap(rekapToday);
             
-            let h = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'hadir' || String(r.status).toLowerCase() === 'terlambat').length;
-            let i = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'izin' || String(r.tipe).toLowerCase() === 'izin').length;
-            let s = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'sakit' || String(r.tipe).toLowerCase() === 'sakit').length;
-            let a = uniqueRekapToday.filter(r => String(r.status).toLowerCase() === 'alpa').length;
+            let h = 0, i = 0, s = 0, a = 0;
+            uniqueRekapToday.forEach(r => {
+                let st = String(r.status || r.status_kehadiran || '').toLowerCase();
+                let tp = String(r.tipe || '').toLowerCase();
+                
+                if (st.includes('hadir') || st.includes('terlambat') || st === 'h' || tp === 'masuk' || tp === 'pulang') {
+                    h++;
+                } else if (st.includes('izin') || tp.includes('izin') || st === 'i') {
+                    i++;
+                } else if (st.includes('sakit') || tp.includes('sakit') || st === 's') {
+                    s++;
+                } else if (st.includes('alpa') || st === 'a') {
+                    a++;
+                }
+            });
             
-            let targetLabel = isWaliTabActive ? `Kelas ${loggedInTeacherData.kelas_binaan || '8A'}` : "Global (Seluruh Siswa)";
+            let targetLabel = isWaliTabActive ? `Kelas ${kelasBinaanRaw || 'VIIA'}` : "Global (Seluruh Siswa)";
+            
             container.innerHTML = `
                 <div class="col-12 mb-1"><span class="badge bg-light text-dark border border-secondary" style="font-size: 0.7rem;">Cakupan: ${targetLabel}</span></div>
                 <div class="col-3"><div class="p-2 bg-success text-white rounded shadow-sm"><span class="d-block" style="font-size:0.6rem;">Hadir</span><h5 class="fw-bold m-0">${h}</h5></div></div>
