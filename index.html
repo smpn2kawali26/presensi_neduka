@@ -122,7 +122,14 @@
         .public7-photo { width:100%; height:190px; object-fit:cover; border-radius:12px; background:#eef2ef; }
         .public7-item { border-left:4px solid #198754; }
         .public7-logo { width:72px; height:72px; object-fit:contain; background:#fff; border-radius:50%; padding:5px; }
-        @media (max-width:576px){ .public7-photo{height:150px;} .public7-hero{padding-top:25px;} }
+        .public7-pagination .page-link { color:#198754; }
+        .public7-pagination .page-item.active .page-link { background:#198754; border-color:#198754; color:#fff; }
+        #portalToast7KAIH { position:fixed; right:18px; top:18px; z-index:20000; min-width:280px; max-width:420px; display:none; }
+        #public7Lightbox { display:none; position:fixed; inset:0; z-index:21000; background:rgba(0,0,0,.88); align-items:center; justify-content:center; padding:20px; }
+        #public7Lightbox.show { display:flex; }
+        #public7Lightbox img { max-width:95vw; max-height:90vh; object-fit:contain; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.35); }
+        #public7Lightbox .close-btn { position:absolute; top:18px; right:22px; border:0; background:#fff; width:42px; height:42px; border-radius:50%; font-size:24px; line-height:1; }
+        @media (max-width:576px){ .public7-photo{height:150px;} .public7-hero{padding-top:25px;} #portalToast7KAIH{left:12px;right:12px;min-width:0;} }
     </style>
 </head>
 <body id="mainBody">
@@ -152,9 +159,12 @@
             </div>
             <div id="public7Summary" class="small text-muted mb-2"></div>
             <div id="public7List"><div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div></div>
+            <div id="public7Pagination" class="mt-3"></div>
             <div class="text-center text-muted small mt-4">Portal Bukti 7KAIH • SMP Negeri 2 Kawali</div>
         </div>
     </div>
+    <div id="public7Lightbox" onclick="if(event.target===this)closePublic7Lightbox()"><button class="close-btn" type="button" onclick="closePublic7Lightbox()">&times;</button><img id="public7LightboxImg" src="" alt="Dokumentasi"></div>
+    <div id="portalToast7KAIH" class="alert alert-success shadow-lg mb-0" role="alert"></div>
 
     <!-- LOGIN SECTION -->
     <div id="login-section">
@@ -448,6 +458,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div><h4 class="fw-bold m-0"><i class="fas fa-seedling text-success me-2"></i>Jurnal 7KAIH</h4><small class="text-muted">Dokumentasi Gerakan 7 Kebiasaan Anak Indonesia Hebat</small></div>
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="backupDataPortal7KAIH(event)"><i class="fas fa-database me-1"></i> Backup Data</button>
                                 <button class="btn btn-outline-success btn-sm" onclick="siapkanDanSalinLinkBukti7KAIH(event)"><i class="fas fa-link me-1"></i> Link Bukti Dinas</button>
                                 <button class="btn btn-success btn-sm" onclick="openForm7KAIH('admin')"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
                             </div>
@@ -804,6 +815,8 @@
         
         let loggedInTeacherNip = null;
         let loggedInTeacherData = null;
+        // V1.1.2: hanya disimpan di memori browser selama sesi Admin untuk mengotorisasi proses backup.
+        let currentAdminBackupPassword = '';
         
         let schoolConfig = { 
             lat_sekolah: -7.1895, 
@@ -1069,6 +1082,7 @@
                 if(data.status === "success") {
                     document.getElementById('login-section').style.display = 'none';
                     if(role === 'admin') {
+                        currentAdminBackupPassword = document.getElementById('password').value || '';
                         document.getElementById('mainBody').classList.remove('ortu-body');
                         document.getElementById('dashboard-admin').classList.add('active');
                         // Bersihkan sesi dan setel nama murni admin
@@ -1658,7 +1672,7 @@
         document.getElementById('nav-7kaih').addEventListener('click', () => { changePage('section-7kaih', 'nav-7kaih'); init7KAIHMonth(); loadJurnal7KAIH('admin'); });
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
-        document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; });
+        document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); currentAdminBackupPassword=''; document.getElementById('dashboard-admin').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; });
         function loadSiswaForAdminInput() {
             let k = document.getElementById('filterInputKelas').value;
             let tBody = document.getElementById('tableInputAbsenBody');
@@ -3234,79 +3248,92 @@ async function hapusJurnal7KAIH(row){if(!confirm('Hapus data jurnal ini? Foto ar
 function getHTML7KAIHTeacher(){return `<div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="fw-bold m-0 text-success"><i class="fas fa-seedling me-2"></i>Jurnal 7KAIH</h5><small class="text-muted">Dokumentasi kegiatan sekolah</small></div><button class="btn btn-sm btn-success" onclick="openForm7KAIH('teacher')"><i class="fas fa-plus me-1"></i>Upload</button></div><div id="teacher7Rekap" class="row g-2 mb-3"></div><div class="row g-2 mb-3"><div class="col-6"><input type="month" id="teacher7Bulan" class="form-control form-control-sm" onchange="loadJurnal7KAIH('teacher')"></div><div class="col-6"><select id="teacher7Kebiasaan" class="form-select form-select-sm" onchange="loadJurnal7KAIH('teacher')"><option value="">Semua Kebiasaan</option>${Object.keys(kegiatan7KAIH).map(k=>`<option>${k}</option>`).join('')}</select></div></div><div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Tanggal</th><th>Kebiasaan</th><th>Kegiatan</th><th>Sasaran</th><th>Pelaksana</th><th>Foto</th><th></th></tr></thead><tbody id="teacher7Body"><tr><td colspan="7" class="text-center">Memuat...</td></tr></tbody></table></div>`;}
 
 
-// ===== LINK BUKTI DINAS 7KAIH V1.1 =====
+// ===== LINK BUKTI DINAS 7KAIH V1.1.2 =====
+let public7State={data:[],page:1,limit:10,response:null,bulan:'',kebiasaan:''};
 function getPublic7KAIHUrl(){
     return window.location.origin + window.location.pathname + '?bukti7kaih=1';
 }
+function showToast7KAIH(message,type){
+    const el=document.getElementById('portalToast7KAIH');
+    if(!el)return;
+    el.className='alert shadow-lg mb-0 '+(type==='error'?'alert-danger':type==='warning'?'alert-warning':'alert-success');
+    el.innerHTML=(type==='error'?'<i class="fas fa-circle-exclamation me-2"></i>':'<i class="fas fa-circle-check me-2"></i>')+escapeHtml(String(message||''));
+    el.style.display='block';
+    clearTimeout(window.__toast7Timer);
+    window.__toast7Timer=setTimeout(()=>{el.style.display='none';},3200);
+}
 async function copyText7KAIH_(text){
     try{
-        if(navigator.clipboard && window.isSecureContext){
-            await navigator.clipboard.writeText(text);
-            return true;
-        }
+        if(navigator.clipboard && window.isSecureContext){await navigator.clipboard.writeText(text);return true;}
     }catch(e){}
     try{
-        const ta=document.createElement('textarea');
-        ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
-        document.body.appendChild(ta); ta.focus(); ta.select();
-        const ok=document.execCommand('copy'); document.body.removeChild(ta);
-        return ok;
-    }catch(e){ return false; }
+        const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+        document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok;
+    }catch(e){return false;}
 }
 async function siapkanDanSalinLinkBukti7KAIH(ev){
-    const btn=(ev && ev.currentTarget) ? ev.currentTarget : null;
+    const btn=(ev&&ev.currentTarget)?ev.currentTarget:null;
     const url=getPublic7KAIHUrl();
     const copied=await copyText7KAIH_(url);
-    if(!copied){ window.prompt('Salin link bukti berikut:',url); }
-    else { alert('Link Bukti Dinas sudah disalin.\n\n'+url); }
-
-    // Sinkronisasi izin foto lama dilakukan setelah link tersedia, sehingga pengguna tidak perlu menunggu untuk menyalin link.
+    if(copied) showToast7KAIH('Link Bukti Dinas berhasil disalin.');
+    else {window.prompt('Salin link bukti berikut:',url);showToast7KAIH('Clipboard tidak tersedia. Silakan salin link yang tampil.','warning');}
+    // Sinkron izin foto lama tetap dijalankan di belakang, tanpa menahan proses copy link.
     if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Sinkron foto...';}
     try{
         let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'siapkan_link_bukti_7kaih'}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
-        if(r.status==='success') console.log('7KAIH:',r.message);
-        else console.warn('7KAIH:',r.message||'Sinkronisasi foto lama belum selesai.');
-    }catch(e){ console.warn('Sinkronisasi foto lama gagal:',e); }
-    finally{
-        if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-link me-1"></i> Link Bukti Dinas';}
-    }
+        if(r.status!=='success')console.warn('7KAIH:',r.message||'Sinkronisasi foto belum selesai.');
+    }catch(e){console.warn('Sinkronisasi foto lama gagal:',e);}
+    finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-link me-1"></i> Link Bukti Dinas';}}
 }
-function driveThumb7KAIH(url){
-    let s=String(url||'');
-    let m=s.match(/\/d\/([a-zA-Z0-9_-]+)/)||s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    return m ? 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1200' : s;
+async function backupDataPortal7KAIH(ev){
+    const btn=(ev&&ev.currentTarget)?ev.currentTarget:null;
+    if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Backup...';}
+    try{
+        if(!currentAdminBackupPassword)throw new Error('Sesi Admin tidak ditemukan. Silakan login ulang sebagai Admin.');
+        const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'backup_data_portal',admin_password:currentAdminBackupPassword}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
+        if(r.status!=='success')throw new Error(r.message||'Backup gagal.');
+        showToast7KAIH('Backup data portal berhasil dibuat di Google Drive.');
+        if(r.folder_url) console.log('Folder backup:',r.folder_url);
+    }catch(e){showToast7KAIH('Backup gagal: '+String(e.message||e),'error');}
+    finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-database me-1"></i> Backup Data';}}
 }
-function fmtDatePublic7(s){
-    if(!s)return '-'; let p=String(s).slice(0,10).split('-');
-    if(p.length!==3)return s; return p[2]+'/'+p[1]+'/'+p[0];
+function driveThumb7KAIH(url,size){
+    let s=String(url||'');let m=s.match(/\/d\/([a-zA-Z0-9_-]+)/)||s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    return m?'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w'+(size||1200):s;
 }
+function openPublic7Lightbox(url){const box=document.getElementById('public7Lightbox'),img=document.getElementById('public7LightboxImg');if(!box||!img)return;img.src=driveThumb7KAIH(url,2000);box.classList.add('show');document.body.style.overflow='hidden';}
+function closePublic7Lightbox(){const box=document.getElementById('public7Lightbox'),img=document.getElementById('public7LightboxImg');if(box)box.classList.remove('show');if(img)img.src='';document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePublic7Lightbox();});
+function fmtDatePublic7(s){if(!s)return '-';let p=String(s).slice(0,10).split('-');if(p.length!==3)return s;return p[2]+'/'+p[1]+'/'+p[0];}
 function public7Icon(k){return {'Bangun Pagi':'fa-sun','Beribadah':'fa-hands-praying','Berolahraga':'fa-person-running','Makan Sehat & Bergizi':'fa-bowl-food','Gemar Belajar':'fa-book-open','Bermasyarakat':'fa-people-group','Tidur Cepat':'fa-moon'}[k]||'fa-check';}
 async function loadPublicBukti7KAIH(){
-    let bulan=document.getElementById('public7Bulan')?.value||'';
-    let keb=document.getElementById('public7Kebiasaan')?.value||'';
-    let list=document.getElementById('public7List');
-    if(list) list.innerHTML='<div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div>';
+    let bulan=document.getElementById('public7Bulan')?.value||'';let keb=document.getElementById('public7Kebiasaan')?.value||'';
+    let list=document.getElementById('public7List');if(list)list.innerHTML='<div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div>';
     try{
         let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_bukti_public_7kaih',bulan:bulan,kebiasaan:keb}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
         if(r.status!=='success')throw new Error(r.message||'Data tidak dapat dimuat.');
-        renderPublic7KAIH(r, bulan, keb);
-    }catch(e){ if(list)list.innerHTML='<div class="alert alert-danger">Gagal memuat bukti: '+escapeHtml(String(e.message||e))+'</div>'; }
+        public7State={data:r.data||[],page:1,limit:10,response:r,bulan:bulan,kebiasaan:keb};renderPublic7KAIH();
+    }catch(e){if(list)list.innerHTML='<div class="alert alert-danger">Gagal memuat bukti: '+escapeHtml(String(e.message||e))+'</div>';}
 }
-function renderPublic7KAIH(r,bulan,keb){
-    let rek=document.getElementById('public7Rekap');
-    if(rek)rek.innerHTML=Object.entries(r.rekap||{}).map(([k,v])=>`<div class="col"><div class="public7-stat"><i class="fas ${public7Icon(k)} text-success"></i><div style="font-size:.72rem" class="mt-1">${escapeHtml(k)}</div><b>${v}</b></div></div>`).join('');
-    let sel=document.getElementById('public7Bulan');
-    if(sel && !sel.dataset.ready){
-        (r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);}); sel.dataset.ready='1';
-    }
-    let sum=document.getElementById('public7Summary'); if(sum)sum.textContent='Menampilkan '+(r.total_kegiatan||0)+' kegiatan terdokumentasi'+(bulan?' • '+bulan:'')+(keb?' • '+keb:'')+'.';
-    let list=document.getElementById('public7List'); if(!list)return;
-    if(!r.data||!r.data.length){list.innerHTML='<div class="public7-card p-5 text-center text-muted"><i class="fas fa-folder-open fs-2 mb-2"></i><div>Belum ada dokumentasi pada filter ini.</div></div>';return;}
-    list.innerHTML=r.data.map(x=>{
-        let photos=[x.foto1,x.foto2,x.foto3].filter(u=>u&&u!=='-');
-        let ph=photos.length?`<div class="row g-2 mt-2">${photos.map((u,i)=>`<div class="col-6 col-md-4"><a href="${u}" target="_blank" rel="noopener"><img class="public7-photo" src="${driveThumb7KAIH(u)}" alt="Dokumentasi ${i+1}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=&quot;border rounded p-4 text-center text-muted&quot;><i class=&quot;fas fa-image&quot;></i><br>Buka Foto</div>';"></a></div>`).join('')}</div>`:'';
-        return `<div class="public7-card public7-item p-3 p-md-4 mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><span class="badge text-bg-success"><i class="fas ${public7Icon(x.kebiasaan)} me-1"></i>${escapeHtml(x.kebiasaan||'')}</span><h5 class="fw-bold mt-2 mb-1">${escapeHtml(x.kegiatan||'')}</h5><div class="small text-muted"><i class="far fa-calendar me-1"></i>${fmtDatePublic7(x.tanggal)}${x.sasaran?' • '+escapeHtml(x.sasaran):''}${x.kelas?' - '+escapeHtml(x.kelas):''}</div></div></div>${x.keterangan?`<p class="mb-1 mt-2">${escapeHtml(x.keterangan)}</p>`:''}${ph}</div>`;
-    }).join('');
+function renderPublic7Pagination(){
+    const c=document.getElementById('public7Pagination');if(!c)return;const total=public7State.data.length,pages=Math.max(1,Math.ceil(total/public7State.limit));
+    if(total<=public7State.limit){c.innerHTML='';return;}if(public7State.page>pages)public7State.page=pages;
+    let items=[];for(let i=1;i<=pages;i++){if(i===1||i===pages||Math.abs(i-public7State.page)<=2)items.push(i);}
+    let html='<nav aria-label="Navigasi dokumentasi"><ul class="pagination public7-pagination justify-content-center flex-wrap mb-0">';
+    html+=`<li class="page-item ${public7State.page===1?'disabled':''}"><button class="page-link" onclick="changePublic7Page(${public7State.page-1})">Sebelumnya</button></li>`;
+    let prev=0;items.forEach(i=>{if(prev&&i-prev>1)html+='<li class="page-item disabled"><span class="page-link">…</span></li>';html+=`<li class="page-item ${i===public7State.page?'active':''}"><button class="page-link" onclick="changePublic7Page(${i})">${i}</button></li>`;prev=i;});
+    html+=`<li class="page-item ${public7State.page===pages?'disabled':''}"><button class="page-link" onclick="changePublic7Page(${public7State.page+1})">Berikutnya</button></li></ul></nav>`;c.innerHTML=html;
+}
+function changePublic7Page(page){const pages=Math.max(1,Math.ceil(public7State.data.length/public7State.limit));if(page<1||page>pages)return;public7State.page=page;renderPublic7KAIH();window.scrollTo({top:document.getElementById('public7Summary')?.offsetTop-20||0,behavior:'smooth'});}
+function renderPublic7KAIH(){
+    const r=public7State.response||{},bulan=public7State.bulan,keb=public7State.kebiasaan;
+    let rek=document.getElementById('public7Rekap');if(rek)rek.innerHTML=Object.entries(r.rekap||{}).map(([k,v])=>`<div class="col"><div class="public7-stat"><i class="fas ${public7Icon(k)} text-success"></i><div style="font-size:.72rem" class="mt-1">${escapeHtml(k)}</div><b>${v}</b></div></div>`).join('');
+    let sel=document.getElementById('public7Bulan');if(sel&&!sel.dataset.ready){(r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});sel.dataset.ready='1';}
+    let sum=document.getElementById('public7Summary');if(sum){let pages=Math.max(1,Math.ceil(public7State.data.length/public7State.limit));sum.textContent='Menampilkan '+(r.total_kegiatan||0)+' kegiatan terdokumentasi'+(bulan?' • '+bulan:'')+(keb?' • '+keb:'')+(public7State.data.length>public7State.limit?' • Halaman '+public7State.page+' dari '+pages:'')+'.';}
+    let list=document.getElementById('public7List');if(!list)return;
+    if(!public7State.data.length){list.innerHTML='<div class="public7-card p-5 text-center text-muted"><i class="fas fa-folder-open fs-2 mb-2"></i><div>Belum ada dokumentasi pada filter ini.</div></div>';renderPublic7Pagination();return;}
+    const start=(public7State.page-1)*public7State.limit, rows=public7State.data.slice(start,start+public7State.limit);
+    list.innerHTML=rows.map(x=>{let photos=[x.foto1,x.foto2,x.foto3].filter(u=>u&&u!=='-');let ph=photos.length?`<div class="row g-2 mt-2">${photos.map((u,i)=>`<div class="col-6 col-md-4"><button type="button" class="border-0 bg-transparent p-0 w-100 text-start" onclick='openPublic7Lightbox(${JSON.stringify(u)})'><img class="public7-photo" src="${driveThumb7KAIH(u,800)}" alt="Dokumentasi ${i+1}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=&quot;border rounded p-4 text-center text-muted&quot;><i class=&quot;fas fa-image&quot;></i><br>Buka Foto</div>';"></button></div>`).join('')}</div>`:'';return `<div class="public7-card public7-item p-3 p-md-4 mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><span class="badge text-bg-success"><i class="fas ${public7Icon(x.kebiasaan)} me-1"></i>${escapeHtml(x.kebiasaan||'')}</span><h5 class="fw-bold mt-2 mb-1">${escapeHtml(x.kegiatan||'')}</h5><div class="small text-muted"><i class="far fa-calendar me-1"></i>${fmtDatePublic7(x.tanggal)}${x.sasaran?' • '+escapeHtml(x.sasaran):''}${x.kelas?' - '+escapeHtml(x.kelas):''}</div></div></div>${x.keterangan?`<p class="mb-1 mt-2">${escapeHtml(x.keterangan)}</p>`:''}${ph}</div>`;}).join('');renderPublic7Pagination();
 }
 function resetPublic7Filter(){let b=document.getElementById('public7Bulan'),k=document.getElementById('public7Kebiasaan');if(b)b.value='';if(k)k.value='';loadPublicBukti7KAIH();}
 function initPublic7KAIHPage(){
