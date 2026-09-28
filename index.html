@@ -448,7 +448,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div><h4 class="fw-bold m-0"><i class="fas fa-seedling text-success me-2"></i>Jurnal 7KAIH</h4><small class="text-muted">Dokumentasi Gerakan 7 Kebiasaan Anak Indonesia Hebat</small></div>
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                                <button class="btn btn-outline-success btn-sm" onclick="siapkanDanSalinLinkBukti7KAIH()"><i class="fas fa-link me-1"></i> Link Bukti Dinas</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="siapkanDanSalinLinkBukti7KAIH(event)"><i class="fas fa-link me-1"></i> Link Bukti Dinas</button>
                                 <button class="btn btn-success btn-sm" onclick="openForm7KAIH('admin')"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
                             </div>
                         </div>
@@ -3238,18 +3238,36 @@ function getHTML7KAIHTeacher(){return `<div class="d-flex justify-content-betwee
 function getPublic7KAIHUrl(){
     return window.location.origin + window.location.pathname + '?bukti7kaih=1';
 }
-async function siapkanDanSalinLinkBukti7KAIH(){
+async function copyText7KAIH_(text){
     try{
-        let btn=event?.currentTarget;
-        if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyiapkan...';}
+        if(navigator.clipboard && window.isSecureContext){
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    }catch(e){}
+    try{
+        const ta=document.createElement('textarea');
+        ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        const ok=document.execCommand('copy'); document.body.removeChild(ta);
+        return ok;
+    }catch(e){ return false; }
+}
+async function siapkanDanSalinLinkBukti7KAIH(ev){
+    const btn=(ev && ev.currentTarget) ? ev.currentTarget : null;
+    const url=getPublic7KAIHUrl();
+    const copied=await copyText7KAIH_(url);
+    if(!copied){ window.prompt('Salin link bukti berikut:',url); }
+    else { alert('Link Bukti Dinas sudah disalin.\n\n'+url); }
+
+    // Sinkronisasi izin foto lama dilakukan setelah link tersedia, sehingga pengguna tidak perlu menunggu untuk menyalin link.
+    if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Sinkron foto...';}
+    try{
         let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'siapkan_link_bukti_7kaih'}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
-        if(r.status!=='success') throw new Error(r.message||'Gagal menyiapkan link.');
-        let url=getPublic7KAIHUrl();
-        try{await navigator.clipboard.writeText(url);}catch(e){window.prompt('Salin link bukti berikut:',url);}
-        alert(r.message+'\n\nLink Bukti Dinas sudah disalin:\n'+url);
-    }catch(e){alert('Gagal: '+(e.message||e));}
+        if(r.status==='success') console.log('7KAIH:',r.message);
+        else console.warn('7KAIH:',r.message||'Sinkronisasi foto lama belum selesai.');
+    }catch(e){ console.warn('Sinkronisasi foto lama gagal:',e); }
     finally{
-        let btn=event?.currentTarget;
         if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-link me-1"></i> Link Bukti Dinas';}
     }
 }
