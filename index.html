@@ -178,6 +178,7 @@
                     <li><a id="nav-jadwal"><i class="fas fa-book"></i> Jadwal Pelajaran</a></li>
                     <li><a id="nav-catatan"><i class="fas fa-comment-dots"></i> Catatan Guru</a></li>
                     <li><a id="nav-pengumuman"><i class="fas fa-bullhorn"></i> Pengumuman Sekolah</a></li>
+                    <li><a id="nav-7kaih"><i class="fas fa-seedling"></i> Jurnal 7KAIH</a></li>
                     <li class="mt-4"><hr class="text-secondary border-2 opacity-25"></li>
                     <li><a id="nav-tampilan"><i class="fas fa-paint-brush"></i> Tampilan Visual</a></li>
                 </ul>
@@ -399,6 +400,21 @@
                     <div id="section-pengumuman" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="fw-bold m-0">Pengumuman Sekolah</h4><button class="btn btn-sm btn-success" onclick="openModalTambahPengumuman()"><i class="fas fa-plus me-1"></i> Buat</button></div>
                         <div class="card card-custom"><div class="card-body"><div class="table-responsive"><table class="table table-hover table-bordered align-middle"><thead class="table-dark"><tr class="text-center"><th>Tanggal</th><th>Judul</th><th>Isi</th><th>Pembuat</th><th>Aksi</th></tr></thead><tbody id="tablePengumumanBody"><tr><td colspan="5" class="spinner-table">Memuat...</td></tr></tbody></table></div></div></div>
+                    </div>
+                    <!-- SECTION JURNAL 7KAIH V1.0 -->
+                    <div id="section-7kaih" class="content-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div><h4 class="fw-bold m-0"><i class="fas fa-seedling text-success me-2"></i>Jurnal 7KAIH</h4><small class="text-muted">Dokumentasi Gerakan 7 Kebiasaan Anak Indonesia Hebat</small></div>
+                            <button class="btn btn-success btn-sm" onclick="openForm7KAIH('admin')"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
+                        </div>
+                        <div id="rekap7KAIHAdmin" class="row g-2 mb-3"></div>
+                        <div class="card card-custom"><div class="card-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-4"><input type="month" id="filterBulan7KAIH" class="form-control" onchange="loadJurnal7KAIH('admin')"></div>
+                                <div class="col-md-4"><select id="filterKebiasaan7KAIH" class="form-select" onchange="loadJurnal7KAIH('admin')"><option value="">Semua Kebiasaan</option><option>Bangun Pagi</option><option>Beribadah</option><option>Berolahraga</option><option>Makan Sehat &amp; Bergizi</option><option>Gemar Belajar</option><option>Bermasyarakat</option><option>Tidur Cepat</option></select></div>
+                            </div>
+                            <div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Tanggal</th><th>Kebiasaan</th><th>Kegiatan</th><th>Sasaran</th><th>Pelaksana</th><th>Foto</th><th>Aksi</th></tr></thead><tbody id="table7KAIHBody"><tr><td colspan="7" class="text-center text-muted">Belum dimuat</td></tr></tbody></table></div>
+                        </div></div>
                     </div>
                     <!-- SECTION TAMPILAN VISUAL -->
                     <div id="section-tampilan" class="content-section">
@@ -693,6 +709,21 @@
     <div class="modal fade" id="modalSettingProfilSekolah" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Setting Profil Sekolah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="form-label">Nama Sekolah</label><input type="text" class="form-control" id="inputNamaSekolahVal" value="SMP N 2 KAWALI"></div><button type="button" onclick="simpanProfilSekolah()" class="btn btn-success w-100">Simpan Profil</button></div></div></div></div>
     
     <!-- SCRIPT UTAMA -->
+<!-- MODAL JURNAL 7KAIH V1.0 -->
+<div class="modal fade" id="modal7KAIH" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+<div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fas fa-seedling me-2"></i>Tambah Dokumentasi 7KAIH</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+<div class="modal-body"><div class="row g-3">
+<div class="col-md-4"><label class="form-label">Tanggal</label><input type="date" id="j7Tanggal" class="form-control"></div>
+<div class="col-md-8"><label class="form-label">Kebiasaan</label><select id="j7Kebiasaan" class="form-select" onchange="updateKegiatan7KAIH()" required><option value="">-- Pilih --</option><option>Bangun Pagi</option><option>Beribadah</option><option>Berolahraga</option><option>Makan Sehat &amp; Bergizi</option><option>Gemar Belajar</option><option>Bermasyarakat</option><option>Tidur Cepat</option></select></div>
+<div class="col-md-6"><label class="form-label">Nama Kegiatan</label><select id="j7Kegiatan" class="form-select"><option value="">-- Pilih kebiasaan dulu --</option></select></div>
+<div class="col-md-6"><label class="form-label">Sasaran</label><select id="j7Sasaran" class="form-select" onchange="document.getElementById('j7KelasWrap').style.display=this.value==='Kelas'?'block':'none'"><option>Seluruh Siswa</option><option>Kelas</option><option>Guru dan Siswa</option><option>Lainnya</option></select></div>
+<div class="col-md-6" id="j7KelasWrap" style="display:none"><label class="form-label">Kelas</label><input id="j7Kelas" class="form-control" placeholder="Contoh: VII A, VIII B"></div>
+<div class="col-12"><label class="form-label">Keterangan Singkat</label><textarea id="j7Keterangan" class="form-control" maxlength="250" rows="2" placeholder="Maks. 250 karakter"></textarea></div>
+<div class="col-12"><label class="form-label">Dokumentasi (maks. 3 foto)</label><input id="j7Foto" type="file" accept="image/*" multiple class="form-control"><div class="form-text">Foto otomatis dikompres sebelum dikirim. Untuk Bangun Pagi/Tidur Cepat, foto boleh kosong.</div></div>
+</div><div id="j7Status" class="small mt-3"></div></div>
+<div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button id="btnSimpan7KAIH" class="btn btn-success" onclick="simpanJurnal7KAIH()"><i class="fas fa-save me-1"></i>Simpan</button></div>
+</div></div></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbGwiTk48yXrhL9uflCzrpVQpjf8UeRxooZ2uQGOLJ882oRzzmQQYlMuLWv4iFO-Fl/exec";
@@ -1343,7 +1374,10 @@
                 var keterangan = presentase < 80 ? 'Perlu Perhatian' : 'Baik';
                 html += `<td>${presentase}%</td><td>${keterangan}</td></tr>`;
             });
-            html += `</table></body></html>`;
+            html += `</table>
+
+
+</body></html>`;
             
             let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
@@ -1576,6 +1610,7 @@
         document.getElementById('nav-jadwal').addEventListener('click', () => changePage('section-jadwal', 'nav-jadwal'));
         document.getElementById('nav-catatan').addEventListener('click', () => changePage('section-catatan', 'nav-catatan'));
         document.getElementById('nav-pengumuman').addEventListener('click', () => changePage('section-pengumuman', 'nav-pengumuman'));
+        document.getElementById('nav-7kaih').addEventListener('click', () => { changePage('section-7kaih', 'nav-7kaih'); init7KAIHMonth(); loadJurnal7KAIH('admin'); });
         document.getElementById('nav-tampilan').addEventListener('click', () => changePage('section-tampilan', 'nav-tampilan'));
         document.getElementById('menu-toggle').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sidebar').classList.toggle('collapsed'); });
         document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('dashboard-admin').classList.remove('active'); document.getElementById('login-section').style.display = 'flex'; });
@@ -2350,10 +2385,11 @@
                 htmlButtons += `<button class="shopee-menu-item" onclick="switchTeacherTab('wali', this)"><i class="fas fa-user-shield mb-1 fs-5 shopee-text"></i><span style="font-size: 0.75rem;">Wali Kelas</span></button>`;
             }
             htmlButtons += `<button class="shopee-menu-item active" onclick="switchTeacherTab('mapel', this)"><i class="fas fa-book mb-1 fs-5 shopee-text"></i><span style="font-size: 0.75rem;">Guru Mapel</span></button>`;
+            htmlButtons += `<button class="shopee-menu-item" onclick="switchTeacherTab('7kaih', this)"><i class="fas fa-seedling mb-1 fs-5 text-success"></i><span style="font-size: 0.75rem;">7KAIH</span></button>`;
             
             menuGrid.innerHTML = htmlButtons;
             
-            let mapelBtn = document.querySelector('#dashboard-teacher .dana-menu-grid button:last-child');
+            let mapelBtn = Array.from(document.querySelectorAll('#dashboard-teacher .dana-menu-grid button')).find(b => b.getAttribute('onclick')?.includes("'mapel'"));
             switchTeacherTab('mapel', mapelBtn);
             
             fetchPengumumanData();
@@ -2372,7 +2408,11 @@
             
             renderTeacherRealtimeSummary();
             
-            if(tab === 'kepsek') {
+            if(tab === '7kaih') {
+                contentArea.innerHTML = getHTML7KAIHTeacher();
+                setTimeout(() => { init7KAIHMonth(); loadJurnal7KAIH('teacher'); }, 50);
+            }
+            else if(tab === 'kepsek') {
                 contentArea.innerHTML = getHTMLKepsek();
                 setTimeout(() => {
                     initKepsekChart();
@@ -3121,6 +3161,33 @@
                 </div>
             `;
         }
+
+
+        // ===== JURNAL 7KAIH V1.0 =====
+let current7KAIHRole='admin';
+const kegiatan7KAIH={
+ 'Bangun Pagi':['Penguatan Wali Kelas','Refleksi Siswa','Monitoring Orang Tua','Sosialisasi 7KAIH','Lainnya'],
+ 'Beribadah':['Doa Bersama','Duha dan Kultum','Kegiatan Keagamaan','Lainnya'],
+ 'Berolahraga':['Senam Anak Indonesia Hebat','PJOK / Aktivitas Fisik','Lainnya'],
+ 'Makan Sehat & Bergizi':['Makan Bergizi Gratis (MBG)','Edukasi Makanan Sehat','Lainnya'],
+ 'Gemar Belajar':['Literasi','Pembiasaan Membaca','Kegiatan Akademik','Lainnya'],
+ 'Bermasyarakat':['Jumsih / Gotong Royong','Kegiatan Sosial','Kerja Bakti','Lainnya'],
+ 'Tidur Cepat':['Penguatan Wali Kelas','Refleksi Siswa','Monitoring Orang Tua','Sosialisasi Pola Tidur Sehat','Lainnya']
+};
+function todayISO7(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function init7KAIHMonth(){let m=new Date().toISOString().slice(0,7); let a=document.getElementById('filterBulan7KAIH'); if(a&&!a.value)a.value=m; let t=document.getElementById('teacher7Bulan'); if(t&&!t.value)t.value=m;}
+function updateKegiatan7KAIH(){let k=document.getElementById('j7Kebiasaan').value,s=document.getElementById('j7Kegiatan'); s.innerHTML='<option value="">-- Pilih kegiatan --</option>'+(kegiatan7KAIH[k]||[]).map(x=>`<option>${x}</option>`).join('');}
+function openForm7KAIH(role){current7KAIHRole=role||'admin'; document.getElementById('j7Tanggal').value=todayISO7(); document.getElementById('j7Kebiasaan').value=''; updateKegiatan7KAIH(); document.getElementById('j7Keterangan').value=''; document.getElementById('j7Foto').value=''; document.getElementById('j7Status').innerHTML=''; new bootstrap.Modal(document.getElementById('modal7KAIH')).show();}
+function compress7KAIH(file){return new Promise((resolve,reject)=>{let r=new FileReader(); r.onload=e=>{let img=new Image(); img.onload=()=>{let max=1600,w=img.width,h=img.height;if(w>max||h>max){let q=Math.min(max/w,max/h);w=Math.round(w*q);h=Math.round(h*q);}let c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',0.68));};img.onerror=reject;img.src=e.target.result;};r.onerror=reject;r.readAsDataURL(file);});}
+async function simpanJurnal7KAIH(){let keb=document.getElementById('j7Kebiasaan').value,keg=document.getElementById('j7Kegiatan').value;if(!keb||!keg){alert('Pilih kebiasaan dan nama kegiatan.');return;}let files=Array.from(document.getElementById('j7Foto').files||[]);if(files.length>3){alert('Maksimal 3 foto.');return;}let btn=document.getElementById('btnSimpan7KAIH');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';try{let fotos=[];for(let f of files)fotos.push(await compress7KAIH(f));let pelaksana=current7KAIHRole==='teacher'?(loggedInTeacherData?.name||loggedInTeacherNip||'Guru'):'Administrator';let payload={action:'tambah_jurnal_7kaih',tanggal:document.getElementById('j7Tanggal').value,kebiasaan:keb,kegiatan:keg,sasaran:document.getElementById('j7Sasaran').value,kelas:document.getElementById('j7Kelas').value,keterangan:document.getElementById('j7Keterangan').value,pelaksana:pelaksana,role:current7KAIHRole,foto_base64:fotos};let res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(r=>r.json());if(res.status!=='success')throw new Error(res.message||'Gagal');bootstrap.Modal.getInstance(document.getElementById('modal7KAIH')).hide();loadJurnal7KAIH(current7KAIHRole);alert(res.message);}catch(e){document.getElementById('j7Status').innerHTML='<span class="text-danger">'+escapeHtml(String(e.message||e))+'</span>';}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan';}}
+function get7Filters(role){return role==='teacher'?{bulan:document.getElementById('teacher7Bulan')?.value||'',kebiasaan:document.getElementById('teacher7Kebiasaan')?.value||''}:{bulan:document.getElementById('filterBulan7KAIH')?.value||'',kebiasaan:document.getElementById('filterKebiasaan7KAIH')?.value||''};}
+async function loadJurnal7KAIH(role){role=role||'admin';let f=get7Filters(role);let res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_jurnal_7kaih',...f}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(r=>r.json());if(res.status!=='success')return;renderJurnal7KAIH(res.data,role);loadRekap7KAIH(role);}
+function photoLinks7(x){return [x.foto1,x.foto2,x.foto3].filter(u=>u&&u!=='-').map((u,i)=>`<a class="btn btn-sm btn-outline-primary me-1" target="_blank" href="${u}"><i class="fas fa-image"></i> ${i+1}</a>`).join('')||'<span class="text-muted">-</span>';}
+function renderJurnal7KAIH(rows,role){let id=role==='teacher'?'teacher7Body':'table7KAIHBody',b=document.getElementById(id);if(!b)return;b.innerHTML=rows.length?'':'<tr><td colspan="7" class="text-center text-muted py-4">Belum ada dokumentasi pada filter ini.</td></tr>';rows.forEach(x=>{b.innerHTML+=`<tr><td>${escapeHtml(String(x.tanggal||''))}</td><td><span class="badge bg-success-subtle text-success border border-success-subtle">${escapeHtml(x.kebiasaan||'')}</span></td><td><b>${escapeHtml(x.kegiatan||'')}</b><div class="small text-muted">${escapeHtml(x.keterangan||'')}</div></td><td>${escapeHtml(x.sasaran||'')}${x.kelas?' - '+escapeHtml(x.kelas):''}</td><td>${escapeHtml(x.pelaksana||'')}</td><td>${photoLinks7(x)}</td>${role==='admin'?`<td><button class="btn btn-sm btn-outline-danger" onclick="hapusJurnal7KAIH(${x.row_index})"><i class="fas fa-trash"></i></button></td>`:'<td>-</td>'}</tr>`;});}
+async function loadRekap7KAIH(role){let f=get7Filters(role);let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_rekap_7kaih',...f}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());if(r.status!=='success')return;let target=document.getElementById(role==='teacher'?'teacher7Rekap':'rekap7KAIHAdmin');if(!target)return;let icons={'Bangun Pagi':'fa-sun','Beribadah':'fa-hands-praying','Berolahraga':'fa-person-running','Makan Sehat & Bergizi':'fa-bowl-food','Gemar Belajar':'fa-book-open','Bermasyarakat':'fa-people-group','Tidur Cepat':'fa-moon'};target.innerHTML=Object.entries(r.rekap).map(([k,v])=>`<div class="col-6 col-md"><div class="border rounded p-2 bg-white h-100 text-center"><i class="fas ${icons[k]||'fa-check'} text-success"></i><div class="small mt-1">${k}</div><b>${v}</b></div></div>`).join('');}
+async function hapusJurnal7KAIH(row){if(!confirm('Hapus data jurnal ini? Foto arsip di Drive tetap disimpan.'))return;let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'hapus_jurnal_7kaih',row_index:row}),headers:{'Content-Type':'text/plain;charset=utf-8'}}).then(x=>x.json());alert(r.message);if(r.status==='success')loadJurnal7KAIH('admin');}
+function getHTML7KAIHTeacher(){return `<div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="fw-bold m-0 text-success"><i class="fas fa-seedling me-2"></i>Jurnal 7KAIH</h5><small class="text-muted">Dokumentasi kegiatan sekolah</small></div><button class="btn btn-sm btn-success" onclick="openForm7KAIH('teacher')"><i class="fas fa-plus me-1"></i>Upload</button></div><div id="teacher7Rekap" class="row g-2 mb-3"></div><div class="row g-2 mb-3"><div class="col-6"><input type="month" id="teacher7Bulan" class="form-control form-control-sm" onchange="loadJurnal7KAIH('teacher')"></div><div class="col-6"><select id="teacher7Kebiasaan" class="form-select form-select-sm" onchange="loadJurnal7KAIH('teacher')"><option value="">Semua Kebiasaan</option>${Object.keys(kegiatan7KAIH).map(k=>`<option>${k}</option>`).join('')}</select></div></div><div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Tanggal</th><th>Kebiasaan</th><th>Kegiatan</th><th>Sasaran</th><th>Pelaksana</th><th>Foto</th><th></th></tr></thead><tbody id="teacher7Body"><tr><td colspan="7" class="text-center">Memuat...</td></tr></tbody></table></div>`;}
+
     </script>
 </body>
 </html>
