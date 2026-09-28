@@ -164,6 +164,25 @@
             body.public7-mode .text-success, body.public7-mode .badge { color:#111 !important; }
             body.public7-mode .badge { background:#eee !important; border:1px solid #ccc !important; }
         }
+
+        /* ===== V1.2.1 TAHAP 2: PORTAL DOKUMENTASI PUBLIK ===== */
+        #public-dokumentasi-section { display:none; min-height:100vh; background:#f4f7fb; }
+        .pubdoc-hero { background:linear-gradient(135deg,#123d73,#1f66b5); color:#fff; padding:30px 12px 55px; }
+        .pubdoc-logo { width:64px; height:64px; object-fit:contain; border-radius:50%; background:#fff; padding:5px; }
+        .pubdoc-shell { max-width:1180px; margin:-34px auto 0; padding:0 18px 35px; position:relative; }
+        .pubdoc-card { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(21,54,95,.10); border:1px solid #e7edf5; }
+        .pubdoc-category { cursor:pointer; transition:.18s ease; min-height:108px; border:1px solid #e1e8f0; border-radius:14px; background:#fff; }
+        .pubdoc-category:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(20,70,120,.12); border-color:#8bb7e8; }
+        .pubdoc-category.active { border:2px solid #1465ad; background:#eef6ff; }
+        .pubdoc-category i { font-size:1.35rem; color:#1465ad; }
+        .pubdoc-item { border-left:4px solid #1465ad; }
+        .pubdoc-photo { width:100%; height:175px; object-fit:cover; border-radius:10px; cursor:pointer; background:#eef2f6; }
+        #publicDokLightbox { display:none; position:fixed; inset:0; z-index:10050; background:rgba(0,0,0,.88); align-items:center; justify-content:center; padding:20px; }
+        #publicDokLightbox.show { display:flex; }
+        #publicDokLightbox img { max-width:95vw; max-height:90vh; object-fit:contain; border-radius:12px; }
+        #publicDokLightbox .close-btn { position:absolute; top:18px; right:22px; border:0; background:#fff; width:42px; height:42px; border-radius:50%; font-size:24px; }
+        @media(max-width:576px){.pubdoc-photo{height:145px}.pubdoc-hero{padding-top:22px}.pubdoc-shell{padding-left:10px;padding-right:10px}}
+
     </style>
 </head>
 <body id="mainBody">
@@ -199,6 +218,34 @@
     </div>
     <div id="public7Lightbox" onclick="if(event.target===this)closePublic7Lightbox()"><button class="close-btn" type="button" onclick="closePublic7Lightbox()">&times;</button><img id="public7LightboxImg" src="" alt="Dokumentasi"></div>
     <div id="portalToast7KAIH" class="alert alert-success shadow-lg mb-0" role="alert"></div>
+
+
+    <!-- PORTAL DOKUMENTASI PUBLIK V1.2.1 - HANYA DATA BERSTATUS PUBLIK -->
+    <div id="public-dokumentasi-section">
+        <div class="pubdoc-hero"><div class="container text-center">
+            <img src="logo.png" class="pubdoc-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
+            <h3 class="fw-bold mb-1">PORTAL DOKUMENTASI SEKOLAH</h3><div class="fs-5">SMP NEGERI 2 KAWALI</div>
+            <div class="small opacity-75">Arsip Publik Kegiatan Sekolah • Tahun Pelajaran 2026/2027</div>
+        </div></div>
+        <div class="pubdoc-shell">
+            <div class="pubdoc-card p-3 p-md-4 mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div><h5 class="fw-bold mb-0 text-primary"><i class="fas fa-folder-open me-2"></i>Dokumentasi Publik</h5><small class="text-muted">Pilih kartu kategori. Data INTERNAL dan TERBATAS tidak ditampilkan di halaman ini.</small></div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
+                </div>
+                <div id="publicDokKategoriCards" class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-2 mb-3"></div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5"><label class="form-label small fw-bold">Bulan</label><select id="publicDokBulan" class="form-select"><option value="">Semua Bulan</option></select></div>
+                    <div class="col-md-5"><label class="form-label small fw-bold">Kategori Aktif</label><input id="publicDokKategoriLabel" class="form-control" value="Semua Dokumentasi" readonly></div>
+                    <div class="col-md-2"><button class="btn btn-primary w-100" onclick="loadPublicDokumentasi()"><i class="fas fa-filter me-1"></i>Tampilkan</button><button class="btn btn-link btn-sm w-100 text-muted mt-1 p-0" onclick="resetPublicDokumentasiFilter()">Reset filter</button></div>
+                </div>
+            </div>
+            <div id="publicDokSummary" class="small text-muted mb-2"></div>
+            <div id="publicDokList"><div class="pubdoc-card p-5 text-center"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Memuat dokumentasi...</div></div></div>
+            <div id="publicDokPagination" class="mt-3"></div><div class="text-center text-muted small mt-4">Portal Dokumentasi • SMP Negeri 2 Kawali</div>
+        </div>
+    </div>
+    <div id="publicDokLightbox" onclick="if(event.target===this)closePublicDokLightbox()"><button class="close-btn" type="button" onclick="closePublicDokLightbox()">&times;</button><img id="publicDokLightboxImg" src="" alt="Dokumentasi"></div>
 
     <!-- LOGIN SECTION -->
     <div id="login-section">
@@ -514,7 +561,7 @@
                                 <h4 class="fw-bold m-0"><i class="fas fa-folder-open text-primary me-2"></i>Dokumentasi Sekolah</h4>
                                 <small class="text-muted">Arsip dokumentasi kegiatan sekolah. Jurnal 7KAIH tetap dikelola melalui menu khusus 7KAIH.</small>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="openFormDokSekolah()"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
+                            <div class="d-flex gap-2"><button class="btn btn-outline-primary btn-sm" onclick="salinLinkPortalDokumentasi()"><i class="fas fa-link me-1"></i> Link Portal Publik</button><button class="btn btn-primary btn-sm" onclick="openFormDokSekolah()"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button></div>
                         </div>
                         <div id="rekapDokSekolah" class="row g-2 mb-3"></div>
                         <div class="card card-custom"><div class="card-body">
@@ -828,7 +875,7 @@
 <div class="col-md-4"><label class="form-label">Tanggal</label><input type="date" id="dokTanggal" class="form-control" required></div>
 <div class="col-md-8"><label class="form-label">Kategori</label><select id="dokKategori" class="form-select" onchange="setDefaultAksesDokSekolah()" required><option value="">-- Pilih kategori --</option><option>Home Visit</option><option>Lomba</option><option>Literasi</option><option>Ekstrakurikuler</option><option>Rapat / Briefing</option><option>Perjalanan Dinas</option><option>Study Tour</option><option>Kegiatan Sekolah</option><option>Kegiatan Lain</option></select><div class="form-text">Untuk dokumentasi 7KAIH gunakan menu <b>Jurnal 7KAIH</b> agar rekap 7 kebiasaan tetap konsisten.</div></div>
 <div class="col-md-8"><label class="form-label">Nama Kegiatan</label><input type="text" id="dokKegiatan" class="form-control" maxlength="120" placeholder="Contoh: FLS2N Tingkat Kabupaten / Home Visit Kelas IX A" required></div>
-<div class="col-md-4"><label class="form-label">Akses Dokumentasi</label><select id="dokAkses" class="form-select" required><option value="PUBLIK">🌐 PUBLIK</option><option value="INTERNAL">🔒 INTERNAL</option><option value="TERBATAS">🛡️ TERBATAS</option></select></div>
+<div class="col-md-4"><label class="form-label">Akses Dokumentasi</label><select id="dokAkses" class="form-select" required><option value="PUBLIK">🌐 PUBLIK</option><option value="INTERNAL">🔒 INTERNAL</option><option value="TERBATAS">🛡️ TERBATAS</option></select><div id="dokAksesHint" class="form-text"></div></div>
 <div class="col-md-6"><label class="form-label">Sasaran</label><input type="text" id="dokSasaran" class="form-control" maxlength="100" placeholder="Contoh: Seluruh siswa / Kelas IX A / Guru"></div>
 <div class="col-md-6"><label class="form-label">Lokasi <span class="text-muted">(opsional)</span></label><input type="text" id="dokLokasi" class="form-control" maxlength="120" placeholder="Contoh: SMPN 2 Kawali"></div>
 <div class="col-12"><label class="form-label">Keterangan Singkat</label><textarea id="dokKeterangan" class="form-control" rows="3" maxlength="400" placeholder="Keterangan singkat kegiatan (maks. 400 karakter)"></textarea></div>
@@ -3327,9 +3374,9 @@ function getHTML7KAIHTeacher(){return `<div class="d-flex justify-content-betwee
 const kategoriDokSekolah=['Home Visit','Lomba','Literasi','Ekstrakurikuler','Rapat / Briefing','Perjalanan Dinas','Study Tour','Kegiatan Sekolah','Kegiatan Lain'];
 function initDokSekolahMonth(){let el=document.getElementById('filterDokBulan');if(el&&!el.value)el.value=new Date().toISOString().slice(0,7);}
 function openFormDokSekolah(){document.getElementById('dokTanggal').value=todayISO7();document.getElementById('dokKategori').value='';document.getElementById('dokKegiatan').value='';document.getElementById('dokSasaran').value='';document.getElementById('dokLokasi').value='';document.getElementById('dokKeterangan').value='';document.getElementById('dokAkses').value='PUBLIK';document.getElementById('dokFoto').value='';document.getElementById('dokStatus').innerHTML='';new bootstrap.Modal(document.getElementById('modalDokSekolah')).show();}
-function setDefaultAksesDokSekolah(){let k=document.getElementById('dokKategori').value,a=document.getElementById('dokAkses');if(!a)return;if(k==='Home Visit'||k==='Rapat / Briefing')a.value='INTERNAL';else a.value='PUBLIK';}
+function setDefaultAksesDokSekolah(){let k=document.getElementById('dokKategori').value,a=document.getElementById('dokAkses'),h=document.getElementById('dokAksesHint');if(!a)return;if(k==='Home Visit'||k==='Rapat / Briefing'){a.value='INTERNAL';if(h)h.innerHTML='<span class="text-warning-emphasis"><i class="fas fa-lock me-1"></i>Default INTERNAL karena kategori ini berpotensi memuat informasi sensitif.</span>';}else{a.value='PUBLIK';if(h)h.textContent='PUBLIK tampil pada Portal Dokumentasi umum; INTERNAL/TERBATAS tidak pernah ditampilkan di portal publik.';}}
 function compressDokSekolah(file){return compress7KAIH(file);}
-async function simpanDokSekolah(){let kategori=document.getElementById('dokKategori').value,kegiatan=document.getElementById('dokKegiatan').value.trim(),akses=document.getElementById('dokAkses').value;if(!kategori||!kegiatan||!akses){alert('Kategori, nama kegiatan, dan akses wajib diisi.');return;}let files=Array.from(document.getElementById('dokFoto').files||[]);if(files.length>5){alert('Maksimal 5 foto.');return;}let btn=document.getElementById('btnSimpanDokSekolah');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';try{let fotos=[];for(let f of files)fotos.push(await compressDokSekolah(f));let payload={action:'tambah_dokumentasi_sekolah',tanggal:document.getElementById('dokTanggal').value,kategori:kategori,kegiatan:kegiatan,sasaran:document.getElementById('dokSasaran').value.trim(),lokasi:document.getElementById('dokLokasi').value.trim(),keterangan:document.getElementById('dokKeterangan').value.trim(),akses:akses,pelaksana:'Administrator',role:'admin',foto_base64:fotos};let res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(r=>r.json());if(res.status!=='success')throw new Error(res.message||'Gagal menyimpan dokumentasi.');bootstrap.Modal.getInstance(document.getElementById('modalDokSekolah')).hide();loadDokSekolah();showToast7KAIH(res.message||'Dokumentasi berhasil disimpan.');}catch(e){document.getElementById('dokStatus').innerHTML='<span class="text-danger">'+escapeHtml(String(e.message||e))+'</span>';}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan';}}
+async function simpanDokSekolah(){let kategori=document.getElementById('dokKategori').value,kegiatan=document.getElementById('dokKegiatan').value.trim(),akses=document.getElementById('dokAkses').value;if(!kategori||!kegiatan||!akses){alert('Kategori, nama kegiatan, dan akses wajib diisi.');return;}if((kategori==='Home Visit'||kategori==='Rapat / Briefing')&&akses==='PUBLIK'){if(!confirm('Kategori '+kategori+' secara default bersifat INTERNAL. Yakin dokumentasi ini aman ditampilkan PUBLIK dan tidak memuat data pribadi/sensitif?'))return;}let files=Array.from(document.getElementById('dokFoto').files||[]);if(files.length>5){alert('Maksimal 5 foto.');return;}let btn=document.getElementById('btnSimpanDokSekolah');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';try{let fotos=[];for(let f of files)fotos.push(await compressDokSekolah(f));let payload={action:'tambah_dokumentasi_sekolah',tanggal:document.getElementById('dokTanggal').value,kategori:kategori,kegiatan:kegiatan,sasaran:document.getElementById('dokSasaran').value.trim(),lokasi:document.getElementById('dokLokasi').value.trim(),keterangan:document.getElementById('dokKeterangan').value.trim(),akses:akses,pelaksana:'Administrator',role:'admin',foto_base64:fotos};let res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(r=>r.json());if(res.status!=='success')throw new Error(res.message||'Gagal menyimpan dokumentasi.');bootstrap.Modal.getInstance(document.getElementById('modalDokSekolah')).hide();loadDokSekolah();showToast7KAIH(res.message||'Dokumentasi berhasil disimpan.');}catch(e){document.getElementById('dokStatus').innerHTML='<span class="text-danger">'+escapeHtml(String(e.message||e))+'</span>';}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan';}}
 function getDokSekolahFilters(){return {bulan:document.getElementById('filterDokBulan')?.value||'',kategori:document.getElementById('filterDokKategori')?.value||'',akses:document.getElementById('filterDokAkses')?.value||''};}
 async function loadDokSekolah(){let b=document.getElementById('tableDokSekolahBody');if(b)b.innerHTML='<tr><td colspan="8" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Memuat...</td></tr>';try{let f=getDokSekolahFilters();let res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_dokumentasi_sekolah',...f}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(r=>r.json());if(res.status!=='success')throw new Error(res.message||'Gagal memuat');renderDokSekolah(res.data||[]);loadRekapDokSekolah();}catch(e){if(b)b.innerHTML='<tr><td colspan="8" class="text-center text-danger py-4">'+escapeHtml(String(e.message||e))+'</td></tr>';}}
 function aksesBadgeDokSekolah(a){a=String(a||'INTERNAL').toUpperCase();if(a==='PUBLIK')return '<span class="badge bg-success"><i class="fas fa-globe me-1"></i>PUBLIK</span>';if(a==='TERBATAS')return '<span class="badge bg-danger"><i class="fas fa-shield-alt me-1"></i>TERBATAS</span>';return '<span class="badge bg-secondary"><i class="fas fa-lock me-1"></i>INTERNAL</span>';}
@@ -3435,6 +3482,24 @@ function renderPublic7KAIH(){
     list.innerHTML=rows.map(x=>{let photos=[x.foto1,x.foto2,x.foto3].filter(u=>u&&u!=='-');let ph=photos.length?`<div class="row g-2 mt-2">${photos.map((u,i)=>`<div class="col-6 col-md-4"><button type="button" class="border-0 bg-transparent p-0 w-100 text-start" onclick='openPublic7Lightbox(${JSON.stringify(u)})'><img class="public7-photo" src="${driveThumb7KAIH(u,800)}" alt="Dokumentasi ${i+1}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=&quot;border rounded p-4 text-center text-muted&quot;><i class=&quot;fas fa-image&quot;></i><br>Buka Foto</div>';"></button></div>`).join('')}</div>`:'';return `<div class="public7-card public7-item p-3 p-md-4 mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><span class="badge text-bg-success"><i class="fas ${public7Icon(x.kebiasaan)} me-1"></i>${escapeHtml(x.kebiasaan||'')}</span><h5 class="fw-bold mt-2 mb-1">${escapeHtml(x.kegiatan||'')}</h5><div class="small text-muted"><i class="far fa-calendar me-1"></i>${fmtDatePublic7(x.tanggal)}${x.sasaran?' • '+escapeHtml(x.sasaran):''}${x.kelas?' - '+escapeHtml(x.kelas):''}</div></div></div>${x.keterangan?`<p class="mb-1 mt-2">${escapeHtml(x.keterangan)}</p>`:''}${ph}</div>`;}).join('');renderPublic7Pagination();
 }
 function resetPublic7Filter(){let b=document.getElementById('public7Bulan'),k=document.getElementById('public7Kebiasaan');if(b)b.value='';if(k)k.value='';loadPublicBukti7KAIH();}
+
+// ===== V1.2.1 TAHAP 2: PORTAL DOKUMENTASI PUBLIK SATU LINK =====
+const PUBLIC_DOK_KATEGORI=['7KAIH','Home Visit','Lomba','Literasi','Ekstrakurikuler','Rapat / Briefing','Perjalanan Dinas','Study Tour','Kegiatan Sekolah','Kegiatan Lain'];
+const publicDokIcons={'7KAIH':'fa-seedling','Home Visit':'fa-house','Lomba':'fa-trophy','Literasi':'fa-book-open','Ekstrakurikuler':'fa-masks-theater','Rapat / Briefing':'fa-users','Perjalanan Dinas':'fa-car','Study Tour':'fa-bus','Kegiatan Sekolah':'fa-school','Kegiatan Lain':'fa-folder'};
+let publicDokState={kategori:'',data:[],page:1,limit:10,response:null};
+function getPublicDokUrl(){return window.location.origin+window.location.pathname+'?dokumentasi=1';}
+async function salinLinkPortalDokumentasi(){const url=getPublicDokUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link Portal Dokumentasi berhasil disalin.');else window.prompt('Salin link Portal Dokumentasi:',url);}
+function openPublicDokLightbox(url){let b=document.getElementById('publicDokLightbox'),i=document.getElementById('publicDokLightboxImg');if(!b||!i)return;i.src=driveThumb7KAIH(url,2000);b.classList.add('show');document.body.style.overflow='hidden';}
+function closePublicDokLightbox(){let b=document.getElementById('publicDokLightbox'),i=document.getElementById('publicDokLightboxImg');if(b)b.classList.remove('show');if(i)i.src='';document.body.style.overflow='';}
+function setPublicDokKategori(k){publicDokState.kategori=k||'';publicDokState.page=1;let l=document.getElementById('publicDokKategoriLabel');if(l)l.value=k||'Semua Dokumentasi';renderPublicDokCards();loadPublicDokumentasi();}
+function renderPublicDokCards(){let c=document.getElementById('publicDokKategoriCards');if(!c)return;let counts=(publicDokState.response&&publicDokState.response.rekap_kategori)||{};let cats=[''].concat(PUBLIC_DOK_KATEGORI);c.innerHTML=cats.map(k=>{let label=k||'Semua';let count=k?(counts[k]||0):Object.values(counts).reduce((a,b)=>a+(Number(b)||0),0);let active=(publicDokState.kategori||'')===k?' active':'';return `<div class="col"><div class="pubdoc-category${active} p-2 text-center h-100 d-flex flex-column justify-content-center" onclick='setPublicDokKategori(${JSON.stringify(k)})'><i class="fas ${k?(publicDokIcons[k]||'fa-folder'):'fa-layer-group'} mb-2"></i><div class="small">${escapeHtml(label)}</div><b>${count}</b></div></div>`;}).join('');}
+async function loadPublicDokumentasi(){let bulan=document.getElementById('publicDokBulan')?.value||'',list=document.getElementById('publicDokList');if(list)list.innerHTML='<div class="pubdoc-card p-5 text-center"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Memuat dokumentasi...</div></div>';try{let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_portal_dokumentasi_public',bulan:bulan,kategori:publicDokState.kategori||''}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());if(r.status!=='success')throw new Error(r.message||'Data tidak dapat dimuat.');publicDokState.response=r;publicDokState.data=r.data||[];publicDokState.page=1;let sel=document.getElementById('publicDokBulan');if(sel&&!sel.dataset.ready){(r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=public7MonthLabel(m);sel.appendChild(o);});sel.dataset.ready='1';}renderPublicDokCards();renderPublicDokList();}catch(e){if(list)list.innerHTML='<div class="alert alert-danger">Gagal memuat dokumentasi: '+escapeHtml(String(e.message||e))+'</div>';}}
+function renderPublicDokList(){let list=document.getElementById('publicDokList'),sum=document.getElementById('publicDokSummary');if(!list)return;let data=publicDokState.data||[],pages=Math.max(1,Math.ceil(data.length/publicDokState.limit));if(sum)sum.textContent='Menampilkan '+data.length+' dokumentasi publik'+(publicDokState.kategori?' • '+publicDokState.kategori:'')+(document.getElementById('publicDokBulan')?.value?' • '+public7MonthLabel(document.getElementById('publicDokBulan').value):'')+(data.length>publicDokState.limit?' • Halaman '+publicDokState.page+' dari '+pages:'')+'.';if(!data.length){list.innerHTML='<div class="pubdoc-card p-5 text-center text-muted"><i class="fas fa-folder-open fs-2 mb-2"></i><div>Belum ada dokumentasi PUBLIK pada pilihan ini.</div></div>';renderPublicDokPagination();return;}let start=(publicDokState.page-1)*publicDokState.limit,rows=data.slice(start,start+publicDokState.limit);list.innerHTML=rows.map(x=>{let photos=[x.foto1,x.foto2,x.foto3,x.foto4,x.foto5].filter(u=>u&&u!=='-');let ph=photos.length?`<div class="row g-2 mt-2">${photos.map((u,i)=>`<div class="col-6 col-md-4 col-lg-3"><img class="pubdoc-photo" src="${driveThumb7KAIH(u,800)}" alt="Dokumentasi ${i+1}" loading="lazy" onclick='openPublicDokLightbox(${JSON.stringify(u)})'></div>`).join('')}</div>`:'';let extra=x.sumber==='7KAIH'&&x.kebiasaan?`<span class="badge bg-success ms-1">${escapeHtml(x.kebiasaan)}</span>`:'';return `<div class="pubdoc-card pubdoc-item p-3 p-md-4 mb-3"><div><span class="badge bg-primary"><i class="fas ${publicDokIcons[x.kategori]||'fa-folder'} me-1"></i>${escapeHtml(x.kategori||'')}</span>${extra}<h5 class="fw-bold mt-2 mb-1">${escapeHtml(x.kegiatan||'')}</h5><div class="small text-muted"><i class="far fa-calendar me-1"></i>${fmtDatePublic7(x.tanggal)}${x.sasaran?' • '+escapeHtml(x.sasaran):''}${x.lokasi?' • '+escapeHtml(x.lokasi):''}</div>${x.keterangan?`<p class="mb-1 mt-2">${escapeHtml(x.keterangan)}</p>`:''}${ph}</div></div>`;}).join('');renderPublicDokPagination();}
+function renderPublicDokPagination(){let c=document.getElementById('publicDokPagination');if(!c)return;let total=publicDokState.data.length,pages=Math.max(1,Math.ceil(total/publicDokState.limit));if(total<=publicDokState.limit){c.innerHTML='';return;}let h='<nav><ul class="pagination justify-content-center flex-wrap">';h+=`<li class="page-item ${publicDokState.page===1?'disabled':''}"><button class="page-link" onclick="changePublicDokPage(${publicDokState.page-1})">Sebelumnya</button></li>`;for(let i=1;i<=pages;i++){if(i===1||i===pages||Math.abs(i-publicDokState.page)<=2)h+=`<li class="page-item ${i===publicDokState.page?'active':''}"><button class="page-link" onclick="changePublicDokPage(${i})">${i}</button></li>`;}h+=`<li class="page-item ${publicDokState.page===pages?'disabled':''}"><button class="page-link" onclick="changePublicDokPage(${publicDokState.page+1})">Berikutnya</button></li></ul></nav>`;c.innerHTML=h;}
+function changePublicDokPage(p){let pages=Math.max(1,Math.ceil(publicDokState.data.length/publicDokState.limit));if(p<1||p>pages)return;publicDokState.page=p;renderPublicDokList();window.scrollTo({top:document.getElementById('publicDokSummary')?.offsetTop-20||0,behavior:'smooth'});}
+function resetPublicDokumentasiFilter(){let b=document.getElementById('publicDokBulan');if(b)b.value='';setPublicDokKategori('');}
+function initPublicDokumentasiPage(){let p=new URLSearchParams(window.location.search);if(p.get('dokumentasi')!=='1')return;document.title='Portal Dokumentasi - SMP Negeri 2 Kawali';document.getElementById('login-section').style.display='none';document.querySelectorAll('.dashboard-container').forEach(x=>x.style.display='none');document.getElementById('public-7kaih-section').style.display='none';document.getElementById('public-dokumentasi-section').style.display='block';loadPublicDokumentasi();}
+
 function initPublic7KAIHPage(){
     let p=new URLSearchParams(window.location.search);
     if(p.get('bukti7kaih')!=='1')return;
@@ -3446,6 +3511,7 @@ function initPublic7KAIHPage(){
     loadPublicBukti7KAIH();
 }
 initPublic7KAIHPage();
+initPublicDokumentasiPage();
 
     </script>
 </body>
