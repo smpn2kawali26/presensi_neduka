@@ -111,9 +111,51 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+
+        /* ===== LINK BUKTI DINAS 7KAIH V1.1 ===== */
+        #public-7kaih-section { display:none; min-height:100vh; background:#f4f7f5; }
+        .public7-hero { background:linear-gradient(135deg,#0f8f4e,#176b45); color:#fff; padding:34px 16px 54px; }
+        .public7-shell { max-width:1100px; margin:-32px auto 0; padding:0 14px 40px; }
+        .public7-card { background:#fff; border:0; border-radius:18px; box-shadow:0 8px 26px rgba(0,0,0,.07); }
+        .public7-stat { border:1px solid #e8eee9; border-radius:14px; padding:13px 8px; text-align:center; background:#fff; height:100%; }
+        .public7-photo { width:100%; height:190px; object-fit:cover; border-radius:12px; background:#eef2ef; }
+        .public7-item { border-left:4px solid #198754; }
+        .public7-logo { width:72px; height:72px; object-fit:contain; background:#fff; border-radius:50%; padding:5px; }
+        @media (max-width:576px){ .public7-photo{height:150px;} .public7-hero{padding-top:25px;} }
     </style>
 </head>
 <body id="mainBody">
+
+    <!-- HALAMAN PUBLIK BUKTI 7KAIH V1.1 - READ ONLY UNTUK DINAS -->
+    <div id="public-7kaih-section">
+        <div class="public7-hero">
+            <div class="container text-center">
+                <img src="logo.png" class="public7-logo shadow-sm mb-3" alt="Logo SMPN 2 Kawali">
+                <h3 class="fw-bold mb-1">GERAKAN 7 KEBIASAAN ANAK INDONESIA HEBAT</h3>
+                <div class="fs-5">SMP NEGERI 2 KAWALI</div>
+                <div class="small opacity-75">Bukti Pelaksanaan & Dokumentasi • Tahun Pelajaran 2026/2027</div>
+            </div>
+        </div>
+        <div class="public7-shell">
+            <div class="public7-card p-3 p-md-4 mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div><h5 class="fw-bold mb-0 text-success"><i class="fas fa-link me-2"></i>Bukti Fisik 7KAIH</h5><small class="text-muted">Halaman ini bersifat baca-saja dan tidak menampilkan data akun siswa/orang tua.</small></div>
+                    <button class="btn btn-outline-success btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak</button>
+                </div>
+                <div id="public7Rekap" class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-2 mb-3"></div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5"><label class="form-label small fw-bold">Bulan</label><select id="public7Bulan" class="form-select" onchange="loadPublicBukti7KAIH()"><option value="">Semua Bulan</option></select></div>
+                    <div class="col-md-5"><label class="form-label small fw-bold">Kebiasaan</label><select id="public7Kebiasaan" class="form-select" onchange="loadPublicBukti7KAIH()"><option value="">Semua Kebiasaan</option><option>Bangun Pagi</option><option>Beribadah</option><option>Berolahraga</option><option>Makan Sehat &amp; Bergizi</option><option>Gemar Belajar</option><option>Bermasyarakat</option><option>Tidur Cepat</option></select></div>
+                    <div class="col-md-2"><button class="btn btn-success w-100" onclick="resetPublic7Filter()"><i class="fas fa-rotate-right"></i></button></div>
+                </div>
+            </div>
+            <div id="public7Summary" class="small text-muted mb-2"></div>
+            <div id="public7List"><div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div></div>
+            <div class="text-center text-muted small mt-4">Portal Bukti 7KAIH • SMP Negeri 2 Kawali</div>
+        </div>
+    </div>
+
     <!-- LOGIN SECTION -->
     <div id="login-section">
         <div class="login-mobile-wrapper">
@@ -405,7 +447,10 @@
                     <div id="section-7kaih" class="content-section">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <div><h4 class="fw-bold m-0"><i class="fas fa-seedling text-success me-2"></i>Jurnal 7KAIH</h4><small class="text-muted">Dokumentasi Gerakan 7 Kebiasaan Anak Indonesia Hebat</small></div>
-                            <button class="btn btn-success btn-sm" onclick="openForm7KAIH('admin')"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
+                            <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                <button class="btn btn-outline-success btn-sm" onclick="siapkanDanSalinLinkBukti7KAIH()"><i class="fas fa-link me-1"></i> Link Bukti Dinas</button>
+                                <button class="btn btn-success btn-sm" onclick="openForm7KAIH('admin')"><i class="fas fa-plus me-1"></i> Tambah Dokumentasi</button>
+                            </div>
                         </div>
                         <div id="rekap7KAIHAdmin" class="row g-2 mb-3"></div>
                         <div class="card card-custom"><div class="card-body">
@@ -3187,6 +3232,75 @@ function renderJurnal7KAIH(rows,role){let id=role==='teacher'?'teacher7Body':'ta
 async function loadRekap7KAIH(role){let f=get7Filters(role);let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_rekap_7kaih',...f}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());if(r.status!=='success')return;let target=document.getElementById(role==='teacher'?'teacher7Rekap':'rekap7KAIHAdmin');if(!target)return;let icons={'Bangun Pagi':'fa-sun','Beribadah':'fa-hands-praying','Berolahraga':'fa-person-running','Makan Sehat & Bergizi':'fa-bowl-food','Gemar Belajar':'fa-book-open','Bermasyarakat':'fa-people-group','Tidur Cepat':'fa-moon'};target.innerHTML=Object.entries(r.rekap).map(([k,v])=>`<div class="col-6 col-md"><div class="border rounded p-2 bg-white h-100 text-center"><i class="fas ${icons[k]||'fa-check'} text-success"></i><div class="small mt-1">${k}</div><b>${v}</b></div></div>`).join('');}
 async function hapusJurnal7KAIH(row){if(!confirm('Hapus data jurnal ini? Foto arsip di Drive tetap disimpan.'))return;let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'hapus_jurnal_7kaih',row_index:row}),headers:{'Content-Type':'text/plain;charset=utf-8'}}).then(x=>x.json());alert(r.message);if(r.status==='success')loadJurnal7KAIH('admin');}
 function getHTML7KAIHTeacher(){return `<div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="fw-bold m-0 text-success"><i class="fas fa-seedling me-2"></i>Jurnal 7KAIH</h5><small class="text-muted">Dokumentasi kegiatan sekolah</small></div><button class="btn btn-sm btn-success" onclick="openForm7KAIH('teacher')"><i class="fas fa-plus me-1"></i>Upload</button></div><div id="teacher7Rekap" class="row g-2 mb-3"></div><div class="row g-2 mb-3"><div class="col-6"><input type="month" id="teacher7Bulan" class="form-control form-control-sm" onchange="loadJurnal7KAIH('teacher')"></div><div class="col-6"><select id="teacher7Kebiasaan" class="form-select form-select-sm" onchange="loadJurnal7KAIH('teacher')"><option value="">Semua Kebiasaan</option>${Object.keys(kegiatan7KAIH).map(k=>`<option>${k}</option>`).join('')}</select></div></div><div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Tanggal</th><th>Kebiasaan</th><th>Kegiatan</th><th>Sasaran</th><th>Pelaksana</th><th>Foto</th><th></th></tr></thead><tbody id="teacher7Body"><tr><td colspan="7" class="text-center">Memuat...</td></tr></tbody></table></div>`;}
+
+
+// ===== LINK BUKTI DINAS 7KAIH V1.1 =====
+function getPublic7KAIHUrl(){
+    return window.location.origin + window.location.pathname + '?bukti7kaih=1';
+}
+async function siapkanDanSalinLinkBukti7KAIH(){
+    try{
+        let btn=event?.currentTarget;
+        if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyiapkan...';}
+        let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'siapkan_link_bukti_7kaih'}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
+        if(r.status!=='success') throw new Error(r.message||'Gagal menyiapkan link.');
+        let url=getPublic7KAIHUrl();
+        try{await navigator.clipboard.writeText(url);}catch(e){window.prompt('Salin link bukti berikut:',url);}
+        alert(r.message+'\n\nLink Bukti Dinas sudah disalin:\n'+url);
+    }catch(e){alert('Gagal: '+(e.message||e));}
+    finally{
+        let btn=event?.currentTarget;
+        if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-link me-1"></i> Link Bukti Dinas';}
+    }
+}
+function driveThumb7KAIH(url){
+    let s=String(url||'');
+    let m=s.match(/\/d\/([a-zA-Z0-9_-]+)/)||s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    return m ? 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1200' : s;
+}
+function fmtDatePublic7(s){
+    if(!s)return '-'; let p=String(s).slice(0,10).split('-');
+    if(p.length!==3)return s; return p[2]+'/'+p[1]+'/'+p[0];
+}
+function public7Icon(k){return {'Bangun Pagi':'fa-sun','Beribadah':'fa-hands-praying','Berolahraga':'fa-person-running','Makan Sehat & Bergizi':'fa-bowl-food','Gemar Belajar':'fa-book-open','Bermasyarakat':'fa-people-group','Tidur Cepat':'fa-moon'}[k]||'fa-check';}
+async function loadPublicBukti7KAIH(){
+    let bulan=document.getElementById('public7Bulan')?.value||'';
+    let keb=document.getElementById('public7Kebiasaan')?.value||'';
+    let list=document.getElementById('public7List');
+    if(list) list.innerHTML='<div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div>';
+    try{
+        let r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'get_bukti_public_7kaih',bulan:bulan,kebiasaan:keb}),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'}).then(x=>x.json());
+        if(r.status!=='success')throw new Error(r.message||'Data tidak dapat dimuat.');
+        renderPublic7KAIH(r, bulan, keb);
+    }catch(e){ if(list)list.innerHTML='<div class="alert alert-danger">Gagal memuat bukti: '+escapeHtml(String(e.message||e))+'</div>'; }
+}
+function renderPublic7KAIH(r,bulan,keb){
+    let rek=document.getElementById('public7Rekap');
+    if(rek)rek.innerHTML=Object.entries(r.rekap||{}).map(([k,v])=>`<div class="col"><div class="public7-stat"><i class="fas ${public7Icon(k)} text-success"></i><div style="font-size:.72rem" class="mt-1">${escapeHtml(k)}</div><b>${v}</b></div></div>`).join('');
+    let sel=document.getElementById('public7Bulan');
+    if(sel && !sel.dataset.ready){
+        (r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);}); sel.dataset.ready='1';
+    }
+    let sum=document.getElementById('public7Summary'); if(sum)sum.textContent='Menampilkan '+(r.total_kegiatan||0)+' kegiatan terdokumentasi'+(bulan?' • '+bulan:'')+(keb?' • '+keb:'')+'.';
+    let list=document.getElementById('public7List'); if(!list)return;
+    if(!r.data||!r.data.length){list.innerHTML='<div class="public7-card p-5 text-center text-muted"><i class="fas fa-folder-open fs-2 mb-2"></i><div>Belum ada dokumentasi pada filter ini.</div></div>';return;}
+    list.innerHTML=r.data.map(x=>{
+        let photos=[x.foto1,x.foto2,x.foto3].filter(u=>u&&u!=='-');
+        let ph=photos.length?`<div class="row g-2 mt-2">${photos.map((u,i)=>`<div class="col-6 col-md-4"><a href="${u}" target="_blank" rel="noopener"><img class="public7-photo" src="${driveThumb7KAIH(u)}" alt="Dokumentasi ${i+1}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=&quot;border rounded p-4 text-center text-muted&quot;><i class=&quot;fas fa-image&quot;></i><br>Buka Foto</div>';"></a></div>`).join('')}</div>`:'';
+        return `<div class="public7-card public7-item p-3 p-md-4 mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><span class="badge text-bg-success"><i class="fas ${public7Icon(x.kebiasaan)} me-1"></i>${escapeHtml(x.kebiasaan||'')}</span><h5 class="fw-bold mt-2 mb-1">${escapeHtml(x.kegiatan||'')}</h5><div class="small text-muted"><i class="far fa-calendar me-1"></i>${fmtDatePublic7(x.tanggal)}${x.sasaran?' • '+escapeHtml(x.sasaran):''}${x.kelas?' - '+escapeHtml(x.kelas):''}</div></div></div>${x.keterangan?`<p class="mb-1 mt-2">${escapeHtml(x.keterangan)}</p>`:''}${ph}</div>`;
+    }).join('');
+}
+function resetPublic7Filter(){let b=document.getElementById('public7Bulan'),k=document.getElementById('public7Kebiasaan');if(b)b.value='';if(k)k.value='';loadPublicBukti7KAIH();}
+function initPublic7KAIHPage(){
+    let p=new URLSearchParams(window.location.search);
+    if(p.get('bukti7kaih')!=='1')return;
+    document.title='Bukti 7KAIH - SMP Negeri 2 Kawali';
+    document.getElementById('login-section').style.display='none';
+    document.querySelectorAll('.dashboard-container').forEach(x=>x.style.display='none');
+    document.getElementById('public-7kaih-section').style.display='block';
+    loadPublicBukti7KAIH();
+}
+initPublic7KAIHPage();
 
     </script>
 </body>
