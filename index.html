@@ -130,6 +130,40 @@
         #public7Lightbox img { max-width:95vw; max-height:90vh; object-fit:contain; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.35); }
         #public7Lightbox .close-btn { position:absolute; top:18px; right:22px; border:0; background:#fff; width:42px; height:42px; border-radius:50%; font-size:24px; line-height:1; }
         @media (max-width:576px){ .public7-photo{height:150px;} .public7-hero{padding-top:25px;} #portalToast7KAIH{left:12px;right:12px;min-width:0;} }
+
+        /* ===== V1.1.3 FINAL: CETAK KHUSUS PORTAL BUKTI 7KAIH ===== */
+        @media print {
+            @page { size: A4 portrait; margin: 9mm; }
+            body.public7-mode { background:#fff !important; font-size:10pt; }
+            body.public7-mode * { visibility: visible !important; }
+            body.public7-mode #login-section,
+            body.public7-mode .dashboard-container,
+            body.public7-mode #public7Lightbox,
+            body.public7-mode #portalToast7KAIH,
+            body.public7-mode .public7-no-print,
+            body.public7-mode #public7Pagination { display:none !important; }
+            body.public7-mode #public-7kaih-section {
+                display:block !important; position:static !important; width:100% !important; min-height:0 !important;
+                background:#fff !important; margin:0 !important; padding:0 !important;
+            }
+            body.public7-mode .public7-hero {
+                background:#fff !important; color:#111 !important; padding:0 0 5mm !important; border-bottom:1px solid #bbb;
+                -webkit-print-color-adjust:exact; print-color-adjust:exact;
+            }
+            body.public7-mode .public7-logo { width:15mm !important; height:15mm !important; box-shadow:none !important; }
+            body.public7-mode .public7-hero h3 { font-size:14pt !important; margin-top:1mm !important; }
+            body.public7-mode .public7-hero .fs-5 { font-size:11pt !important; }
+            body.public7-mode .public7-shell { max-width:none !important; margin:0 !important; padding:5mm 0 0 !important; }
+            body.public7-mode .public7-card { box-shadow:none !important; border:1px solid #d5d5d5 !important; border-radius:8px !important; }
+            body.public7-mode .public7-stat { padding:5px 3px !important; border-color:#ddd !important; }
+            body.public7-mode .public7-stat i { color:#111 !important; }
+            body.public7-mode .public7-item { break-inside:avoid; page-break-inside:avoid; border-left:3px solid #555 !important; margin-bottom:4mm !important; padding:4mm !important; }
+            body.public7-mode .public7-item h5 { font-size:11pt !important; }
+            body.public7-mode .public7-photo { height:auto !important; max-height:52mm !important; width:auto !important; max-width:100% !important; object-fit:contain !important; border-radius:5px !important; }
+            body.public7-mode #public7Summary { color:#333 !important; margin:3mm 0 !important; }
+            body.public7-mode .text-success, body.public7-mode .badge { color:#111 !important; }
+            body.public7-mode .badge { background:#eee !important; border:1px solid #ccc !important; }
+        }
     </style>
 </head>
 <body id="mainBody">
@@ -148,13 +182,13 @@
             <div class="public7-card p-3 p-md-4 mb-3">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                     <div><h5 class="fw-bold mb-0 text-success"><i class="fas fa-link me-2"></i>Bukti Fisik 7KAIH</h5><small class="text-muted">Halaman ini bersifat baca-saja dan tidak menampilkan data akun siswa/orang tua.</small></div>
-                    <button class="btn btn-outline-success btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak</button>
+                    <button class="btn btn-outline-success btn-sm public7-no-print" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
                 </div>
                 <div id="public7Rekap" class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-2 mb-3"></div>
-                <div class="row g-2 align-items-end">
+                <div class="row g-2 align-items-end public7-no-print">
                     <div class="col-md-5"><label class="form-label small fw-bold">Bulan</label><select id="public7Bulan" class="form-select" onchange="loadPublicBukti7KAIH()"><option value="">Semua Bulan</option></select></div>
                     <div class="col-md-5"><label class="form-label small fw-bold">Kebiasaan</label><select id="public7Kebiasaan" class="form-select" onchange="loadPublicBukti7KAIH()"><option value="">Semua Kebiasaan</option><option>Bangun Pagi</option><option>Beribadah</option><option>Berolahraga</option><option>Makan Sehat &amp; Bergizi</option><option>Gemar Belajar</option><option>Bermasyarakat</option><option>Tidur Cepat</option></select></div>
-                    <div class="col-md-2"><button class="btn btn-success w-100" onclick="resetPublic7Filter()"><i class="fas fa-rotate-right"></i></button></div>
+                    <div class="col-md-2"><button class="btn btn-success w-100" onclick="loadPublicBukti7KAIH()"><i class="fas fa-filter me-1"></i>Tampilkan</button><button type="button" class="btn btn-link btn-sm w-100 text-muted mt-1 p-0" onclick="resetPublic7Filter()">Reset filter</button></div>
                 </div>
             </div>
             <div id="public7Summary" class="small text-muted mb-2"></div>
@@ -3306,6 +3340,14 @@ function closePublic7Lightbox(){const box=document.getElementById('public7Lightb
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePublic7Lightbox();});
 function fmtDatePublic7(s){if(!s)return '-';let p=String(s).slice(0,10).split('-');if(p.length!==3)return s;return p[2]+'/'+p[1]+'/'+p[0];}
 function public7Icon(k){return {'Bangun Pagi':'fa-sun','Beribadah':'fa-hands-praying','Berolahraga':'fa-person-running','Makan Sehat & Bergizi':'fa-bowl-food','Gemar Belajar':'fa-book-open','Bermasyarakat':'fa-people-group','Tidur Cepat':'fa-moon'}[k]||'fa-check';}
+function public7MonthLabel(v){
+    if(!v)return '';
+    let m=String(v).match(/^(\d{4})-(\d{2})$/);
+    if(!m)return String(v);
+    const names=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const idx=parseInt(m[2],10)-1;
+    return (names[idx]||m[2])+' '+m[1];
+}
 async function loadPublicBukti7KAIH(){
     let bulan=document.getElementById('public7Bulan')?.value||'';let keb=document.getElementById('public7Kebiasaan')?.value||'';
     let list=document.getElementById('public7List');if(list)list.innerHTML='<div class="public7-card p-5 text-center"><div class="spinner-border text-success"></div><div class="mt-2 text-muted">Memuat bukti kegiatan...</div></div>';
@@ -3328,8 +3370,8 @@ function changePublic7Page(page){const pages=Math.max(1,Math.ceil(public7State.d
 function renderPublic7KAIH(){
     const r=public7State.response||{},bulan=public7State.bulan,keb=public7State.kebiasaan;
     let rek=document.getElementById('public7Rekap');if(rek)rek.innerHTML=Object.entries(r.rekap||{}).map(([k,v])=>`<div class="col"><div class="public7-stat"><i class="fas ${public7Icon(k)} text-success"></i><div style="font-size:.72rem" class="mt-1">${escapeHtml(k)}</div><b>${v}</b></div></div>`).join('');
-    let sel=document.getElementById('public7Bulan');if(sel&&!sel.dataset.ready){(r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});sel.dataset.ready='1';}
-    let sum=document.getElementById('public7Summary');if(sum){let pages=Math.max(1,Math.ceil(public7State.data.length/public7State.limit));sum.textContent='Menampilkan '+(r.total_kegiatan||0)+' kegiatan terdokumentasi'+(bulan?' • '+bulan:'')+(keb?' • '+keb:'')+(public7State.data.length>public7State.limit?' • Halaman '+public7State.page+' dari '+pages:'')+'.';}
+    let sel=document.getElementById('public7Bulan');if(sel&&!sel.dataset.ready){(r.bulan_tersedia||[]).forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=public7MonthLabel(m);sel.appendChild(o);});sel.dataset.ready='1';}
+    let sum=document.getElementById('public7Summary');if(sum){let pages=Math.max(1,Math.ceil(public7State.data.length/public7State.limit));sum.textContent='Menampilkan '+(r.total_kegiatan||0)+' kegiatan terdokumentasi'+(bulan?' • '+public7MonthLabel(bulan):'')+(keb?' • '+keb:'')+(public7State.data.length>public7State.limit?' • Halaman '+public7State.page+' dari '+pages:'')+'.';}
     let list=document.getElementById('public7List');if(!list)return;
     if(!public7State.data.length){list.innerHTML='<div class="public7-card p-5 text-center text-muted"><i class="fas fa-folder-open fs-2 mb-2"></i><div>Belum ada dokumentasi pada filter ini.</div></div>';renderPublic7Pagination();return;}
     const start=(public7State.page-1)*public7State.limit, rows=public7State.data.slice(start,start+public7State.limit);
@@ -3340,6 +3382,7 @@ function initPublic7KAIHPage(){
     let p=new URLSearchParams(window.location.search);
     if(p.get('bukti7kaih')!=='1')return;
     document.title='Bukti 7KAIH - SMP Negeri 2 Kawali';
+    document.body.classList.add('public7-mode');
     document.getElementById('login-section').style.display='none';
     document.querySelectorAll('.dashboard-container').forEach(x=>x.style.display='none');
     document.getElementById('public-7kaih-section').style.display='block';
