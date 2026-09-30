@@ -667,7 +667,7 @@
                         <div id="jabarSummary" class="row g-2 mb-3"></div>
                         <div class="card card-custom"><div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2"><div><h5 id="jabarJudulLaporan" class="fw-bold mb-0">Laporan</h5><small class="text-muted">Status pada tahap ini menunjukkan apakah indikator sudah memiliki bukti yang ditautkan.</small></div></div>
-                            <div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th>PJ</th><th>Status Bukti</th><th>Aksi</th></tr></thead><tbody id="jabarIndikatorBody"><tr><td colspan="6" class="text-center text-muted py-4">Pilih tahun dan laporan.</td></tr></tbody></table></div>
+                            <div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th>PJ</th><th>Prioritas / Tenggat</th><th>Status Bukti</th><th>Aksi</th></tr></thead><tbody id="jabarIndikatorBody"><tr><td colspan="7" class="text-center text-muted py-4">Pilih tahun dan laporan.</td></tr></tbody></table></div>
                         </div></div>
                     </div>
                     <!-- SECTION TAMPILAN VISUAL -->
@@ -1071,6 +1071,7 @@
   <div class="modal-header bg-warning"><div><h5 class="modal-title mb-0"><i class="fas fa-file-arrow-up me-2"></i>Kontribusi Bukti Jabar Beraksi</h5><small id="jabarContribInfo" class="text-dark opacity-75"></small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <div class="alert alert-info small py-2">Bapak/Ibu hanya mengirim <b>bahan bukti</b> sesuai tugas tambahan. <b>Admin tetap memilih bukti, mengisi laporan, dan mencetak laporan final.</b></div>
+    <div class="card border-warning-subtle mb-3"><div class="card-body p-2 p-md-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><b><i class="fas fa-list-check me-1"></i>Tugas Bukti Saya</b><div class="small text-muted">Seluruh indikator sesuai tugas tambahan Anda. Prioritas dan tenggat dari Admin tampil paling atas.</div></div><span id="jcTaskSummary" class="badge bg-secondary">Memuat...</span></div><div id="jcTaskList"><div class="text-muted small">Memuat daftar tugas...</div></div></div></div>
     <div class="row g-2 mb-3"><div class="col-md-3"><label class="form-label small fw-bold">Tahun</label><select id="jabarContribTahun" class="form-select"></select></div><div class="col-md-5"><label class="form-label small fw-bold">Laporan</label><select id="jabarContribLaporan" class="form-select" onchange="loadJabarContribIndikator()"></select></div><div class="col-md-4"><label class="form-label small fw-bold">Saran Indikator</label><select id="jabarContribKode" class="form-select"><option value="">Belum ditentukan</option></select></div></div>
     <ul class="nav nav-tabs mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#jc-upload">Upload Dokumen</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jc-link">Link Dokumen</button></li></ul>
     <div class="tab-content"><div class="tab-pane fade show active" id="jc-upload">
@@ -1482,7 +1483,7 @@
                     currentPetugasId=inputId; currentPetugasSessionPassword=password||''; currentPetugasData=data||{};
                     document.getElementById('mainBody').classList.add('ortu-body'); document.getElementById('dashboard-petugas').classList.add('active');
                     currentPetugasName=data.name||inputId; document.getElementById('namaPetugasLabel').innerText=currentPetugasName;
-                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas(); setTimeout(setupPetugasJabarButton,80);
+                    initCamera(); loadSiswaForAbsen(); checkPetugasGPS(); fetchRekapDataForPetugas(); /* V1.4.3: Jabar Beraksi khusus Teacher bertugas; Petugas Absensi tidak diubah. */
                 } else if(role==='ortu'){
                     document.getElementById('mainBody').classList.add('ortu-body'); document.getElementById('dashboard-ortu').classList.add('active'); loadOrtuDashboard(inputId,data);
                 } else if(role==='teacher'){
@@ -3895,14 +3896,14 @@ async function tambahTahunJabar(){
 }
 async function loadJabarIndikator(){
   let year=document.getElementById('jabarTahun')?.value||'2026', report=document.getElementById('jabarLaporan')?.value||'1', body=document.getElementById('jabarIndikatorBody');if(!body)return;
-  body.innerHTML='<tr><td colspan="6" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
+  body.innerHTML='<tr><td colspan="7" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
   let r=await apiJabar({action:'get_jabar_indikator',tahun:year,laporan:report});
   if(r.status!=='success'){body.innerHTML=`<tr><td colspan="6"><div class="alert alert-danger mb-0">${escapeHtml(r.message||'Gagal memuat indikator.')}<div class="mt-2"><button class="btn btn-sm btn-outline-danger" onclick="loadJabarIndikator()"><i class="fas fa-rotate me-1"></i>Coba Muat Ulang</button></div></div></td></tr>`;return;}
   document.getElementById('jabarJudulLaporan').textContent=`${year} — ${r.judul_laporan||('Laporan '+report)}`;
   let rows=r.data||[], ada=rows.filter(x=>Number(x.jumlah_bukti)>0).length, belum=rows.length-ada, totalBukti=rows.reduce((a,x)=>a+Number(x.jumlah_bukti||0),0);
   let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div>`;
-  body.innerHTML=rows.length?'':'<tr><td colspan="6" class="text-center text-muted">Belum ada indikator.</td></tr>';
-  rows.forEach(x=>{let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;body.innerHTML+=`<tr><td><b>${escapeHtml(x.kode)}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button></td></tr>`;});
+  body.innerHTML=rows.length?'':'<tr><td colspan="7" class="text-center text-muted">Belum ada indikator.</td></tr>';
+  rows.forEach(x=>{let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;let pr=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger">PRIORITAS</span>':'<span class="badge bg-light text-dark border">Normal</span>';let due=x.tenggat?`<div class="small mt-1"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</div>`:'<div class="small text-muted mt-1">Tanpa tenggat</div>';body.innerHTML+=`<tr><td><b>${escapeHtml(x.kode)}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${pr}${due}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary me-1" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button><button class="btn btn-sm btn-outline-warning" onclick='aturJabarTugas(${JSON.stringify(x.kode)},${JSON.stringify(x.prioritas||'NORMAL')},${JSON.stringify(x.tenggat||'')})'><i class="fas fa-flag me-1"></i>Atur</button></td></tr>`;});
 }
 async function openJabarBukti(kode,judul){
   document.getElementById('jabarTagKode').value=kode;document.getElementById('jabarTagJudul').value=judul;document.getElementById('jabarModalKode').textContent=`${kode} — ${judul}`;document.getElementById('jabarCariBukti').value='';
@@ -3956,6 +3957,26 @@ function currentJabarContributor(){
   if(document.getElementById('dashboard-teacher')?.classList.contains('active')) return {role:'teacher',id:loggedInTeacherNip||'',password:currentTeacherSessionPassword||'',name:loggedInTeacherData?.name||'',tugas:loggedInTeacherData?.tugas||''};
   return {role:'petugas',id:currentPetugasId||'',password:currentPetugasSessionPassword||'',name:currentPetugasName||'',tugas:currentPetugasData?.tugas||''};
 }
+async function aturJabarTugas(kode,prioritas,tenggat){
+  const p=confirm('Jadikan '+kode+' sebagai PRIORITAS?\nOK = PRIORITAS, Batal = NORMAL')?'PRIORITAS':'NORMAL';
+  const d=(prompt('Tenggat pengumpulan (YYYY-MM-DD). Kosongkan jika tanpa tenggat:',tenggat||'') ?? (tenggat||''));
+  const r=await apiJabar({action:'set_jabar_assignment',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode,prioritas:p,tenggat:d});
+  if(r.status!=='success') return alert(r.message||'Gagal menyimpan pengaturan.'); showToast7KAIH('Prioritas dan tenggat disimpan.'); await loadJabarIndikator();
+}
+function pilihTugasJabar(kode,laporan){
+  const l=document.getElementById('jabarContribLaporan'); if(l&&laporan){l.value=String(laporan);}
+  loadJabarContribIndikator().then(()=>{const k=document.getElementById('jabarContribKode');if(k)k.value=kode;document.getElementById('jcJudul')?.focus();});
+}
+async function loadJabarTugasSaya(){
+  const box=document.getElementById('jcTaskList'), sum=document.getElementById('jcTaskSummary'); if(!box)return;
+  box.innerHTML='<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Memuat tugas...</div>';
+  const r=await apiJabar({action:'get_jabar_tugas_saya',tahun:document.getElementById('jabarContribTahun')?.value||'2026'});
+  if(r.status!=='success'){box.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(r.message||'Gagal memuat tugas.')}</div>`;return;}
+  const rows=r.data||[], selesai=rows.filter(x=>String(x.status||'').toUpperCase()==='TERVERIFIKASI').length, dikirim=rows.filter(x=>Number(x.kontribusi||0)>0).length;
+  if(sum)sum.textContent=`${rows.length} indikator • ${dikirim} dikirim`;
+  if(!rows.length){box.innerHTML='<div class="text-muted small">Belum ada indikator yang dipetakan ke tugas tambahan Anda.</div>';return;}
+  box.innerHTML=rows.map(x=>{const pri=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger me-1">PRIORITAS</span>':'';const due=x.tenggat?`<span class="badge bg-warning text-dark"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</span>`:'';const sent=Number(x.kontribusi||0);const st=sent?`<span class="badge bg-success">${sent} bukti dikirim</span>`:'<span class="badge bg-secondary">Belum dikirim</span>';return `<div class="border rounded p-2 mb-2 ${pri?'border-danger':''}"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><div>${pri}${due}</div><b>${escapeHtml(x.kode)} — ${escapeHtml(x.indikator)}</b><div class="small mt-1"><b>Yang harus disiapkan:</b> ${escapeHtml(x.bukti||'-')}</div><div class="small text-muted">PJ: ${escapeHtml(x.penanggung_jawab||'-')}</div></div><div class="text-end">${st}<div class="mt-1"><button class="btn btn-sm btn-outline-warning" onclick='pilihTugasJabar(${JSON.stringify(x.kode)},${JSON.stringify(x.laporan)})'><i class="fas fa-upload me-1"></i>Tambah Bukti</button></div></div></div></div>`;}).join('');
+}
 async function openJabarContributor(){
   const u=currentJabarContributor(), reports=getJabarAllowedReportsFromTugas(u.tugas,u.role); if(!reports.length) return alert('Akun ini belum memiliki tugas tambahan yang terkait Jabar Beraksi.');
   document.getElementById('jabarContribInfo').textContent=`${u.name||u.id} • ${u.tugas||'-'}`;
@@ -3963,7 +3984,7 @@ async function openJabarContributor(){
   const y=document.getElementById('jabarContribTahun'); y.innerHTML=(r.data||[]).map(x=>`<option value="${escapeHtml(x.tahun)}">${escapeHtml(x.tahun)}</option>`).join(''); if((r.data||[]).some(x=>x.tahun==='2026')) y.value='2026';
   const names={'1':'Laporan 1 — Penguatan Pendidikan Karakter','2':'Laporan 2 — Digitalisasi Pembelajaran','3':'Laporan 3 — Kualitas Data Dapodik','4':'Laporan 4 — SPMI','5':'Laporan 5 — Daya Tampung PMB'};
   document.getElementById('jabarContribLaporan').innerHTML=reports.map(x=>`<option value="${x}">${names[x]}</option>`).join('');
-  new bootstrap.Modal(document.getElementById('modalJabarContributor')).show(); await loadJabarContribIndikator(); await loadJabarContribRiwayat();
+  new bootstrap.Modal(document.getElementById('modalJabarContributor')).show(); y.onchange=async()=>{await loadJabarContribIndikator();await loadJabarTugasSaya();}; await loadJabarContribIndikator(); await loadJabarTugasSaya(); await loadJabarContribRiwayat();await loadJabarTugasSaya();
 }
 async function loadJabarContribIndikator(){
   const year=document.getElementById('jabarContribTahun')?.value||'2026', report=document.getElementById('jabarContribLaporan')?.value||'';
@@ -3974,7 +3995,7 @@ async function loadJabarContribIndikator(){
 async function uploadJabarContributor(){
   const f=document.getElementById('jcFile')?.files?.[0];if(!f)return alert('Pilih file terlebih dahulu.');if(f.size>8*1024*1024)return alert('Ukuran file maksimal 8 MB.');
   const u=currentJabarContributor(), btn=document.getElementById('jcUploadBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Mengirim...';
-  try{const b64=await fileToDataUrlJabar_(f);const r=await apiJabar({action:'kontribusi_jabar_upload',tahun:document.getElementById('jabarContribTahun').value,laporan:document.getElementById('jabarContribLaporan').value,saran_kode:document.getElementById('jabarContribKode').value,nama_file:f.name,file_base64:b64,judul:document.getElementById('jcJudul').value||f.name,catatan:document.getElementById('jcCatatan').value||'',pelaksana:u.name||u.id});if(r.status!=='success')throw new Error(r.message||'Gagal mengirim bukti.');showToast7KAIH('Bukti berhasil dikirim ke Admin.');document.getElementById('jcFile').value='';await loadJabarContribRiwayat();}catch(e){alert(e.message||e);}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-upload me-1"></i>Kirim Bukti ke Admin';}
+  try{const b64=await fileToDataUrlJabar_(f);const r=await apiJabar({action:'kontribusi_jabar_upload',tahun:document.getElementById('jabarContribTahun').value,laporan:document.getElementById('jabarContribLaporan').value,saran_kode:document.getElementById('jabarContribKode').value,nama_file:f.name,file_base64:b64,judul:document.getElementById('jcJudul').value||f.name,catatan:document.getElementById('jcCatatan').value||'',pelaksana:u.name||u.id});if(r.status!=='success')throw new Error(r.message||'Gagal mengirim bukti.');showToast7KAIH('Bukti berhasil dikirim ke Admin.');document.getElementById('jcFile').value='';await loadJabarContribRiwayat();await loadJabarTugasSaya();}catch(e){alert(e.message||e);}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-upload me-1"></i>Kirim Bukti ke Admin';}
 }
 async function linkJabarContributor(){
   const url=document.getElementById('jcUrl').value.trim();if(!url)return alert('Masukkan URL dokumen.');const u=currentJabarContributor();const r=await apiJabar({action:'kontribusi_jabar_link',tahun:document.getElementById('jabarContribTahun').value,laporan:document.getElementById('jabarContribLaporan').value,saran_kode:document.getElementById('jabarContribKode').value,url,judul:document.getElementById('jcLinkJudul').value||'Link dokumen',catatan:document.getElementById('jcLinkCatatan').value||'',pelaksana:u.name||u.id});if(r.status!=='success')return alert(r.message||'Gagal mengirim link.');showToast7KAIH('Link bukti berhasil dikirim ke Admin.');document.getElementById('jcUrl').value='';await loadJabarContribRiwayat();
