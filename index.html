@@ -219,7 +219,7 @@
           @page{size:A4 portrait;margin:10mm;}
         }
 
-        /* ===== V1.4.3.2 SAFE BACK NAVIGATION JABAR ===== */
+        /* ===== V1.4.4 SAFE BACK NAVIGATION JABAR ===== */
         .jb-safe-back{border:1px solid rgba(0,0,0,.25);background:#fff;color:#333;font-weight:600;border-radius:10px;padding:7px 12px;}
         .jb-safe-back:hover{background:#f8f9fa;}
         .jb-modal-footer-sticky{position:sticky;bottom:0;background:#fff;border-top:1px solid #e9ecef;padding:10px 14px;z-index:4;}
@@ -1071,13 +1071,13 @@
 
 
 
-<!-- MODAL JABAR BERAKSI V1.4 -->
+<!-- MODAL JABAR BERAKSI V1.4.4.1 HOTFIX NAVIGASI -->
 <div class="modal fade" id="modalJabarContributor" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-  <div class="modal-header bg-warning"><div><h5 class="modal-title mb-0"><i class="fas fa-file-arrow-up me-2"></i>Kontribusi Bukti Jabar Beraksi</h5><small id="jabarContribInfo" class="text-dark opacity-75"></small></div><div class="d-flex align-items-center gap-2"><button type="button" class="jb-safe-back btn btn-light btn-sm" onclick="closeJabarContributorSafe()"><i class="fas fa-arrow-left me-1"></i>Kembali</button><button type="button" class="btn-close" aria-label="Tutup" onclick="closeJabarContributorSafe()"></button></div></div>
+  <div class="modal-header bg-warning"><div><h5 class="modal-title mb-0"><i class="fas fa-file-arrow-up me-2"></i>Kontribusi Bukti Jabar Beraksi</h5><small id="jabarContribInfo" class="text-dark opacity-75"></small></div><div class="d-flex align-items-center gap-2"><button type="button" class="jb-safe-back btn btn-light btn-sm" onclick="backJabarContributorTaskList()"><i class="fas fa-arrow-left me-1"></i>Kembali ke Tugas</button><button type="button" class="btn-close" aria-label="Tutup" onclick="closeJabarContributorSafe()"></button></div></div>
   <div class="modal-body">
     <div class="alert alert-info small py-2">Bapak/Ibu hanya mengirim <b>bahan bukti</b> sesuai tugas tambahan. <b>Admin tetap memilih bukti, mengisi laporan, dan mencetak laporan final.</b></div>
-    <div class="card border-warning-subtle mb-3"><div class="card-body p-2 p-md-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><b><i class="fas fa-list-check me-1"></i>Tugas Bukti Saya</b><div class="small text-muted">Seluruh indikator sesuai tugas tambahan Anda. Prioritas dan tenggat dari Admin tampil paling atas.</div></div><span id="jcTaskSummary" class="badge bg-secondary">Memuat...</span></div><div id="jcTaskList"><div class="text-muted small">Memuat daftar tugas...</div></div></div></div>
-    <div class="row g-2 mb-3"><div class="col-md-3"><label class="form-label small fw-bold">Tahun</label><select id="jabarContribTahun" class="form-select"></select></div><div class="col-md-5"><label class="form-label small fw-bold">Laporan</label><select id="jabarContribLaporan" class="form-select" onchange="loadJabarContribIndikator()"></select></div><div class="col-md-4"><label class="form-label small fw-bold">Saran Indikator</label><select id="jabarContribKode" class="form-select"><option value="">Belum ditentukan</option></select></div></div>
+    <div id="jcTaskSegment" class="card border-warning-subtle mb-3"><div class="card-body p-2 p-md-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><b><i class="fas fa-list-check me-1"></i>Tugas Bukti Saya</b><div class="small text-muted">Seluruh indikator sesuai tugas tambahan Anda. Prioritas dan tenggat dari Admin tampil paling atas.</div></div><span id="jcTaskSummary" class="badge bg-secondary">Memuat...</span></div><div id="jcTaskList"><div class="text-muted small">Memuat daftar tugas...</div></div></div></div>
+    <div id="jcUploadSegment" class="row g-2 mb-3"><div class="col-md-3"><label class="form-label small fw-bold">Tahun</label><select id="jabarContribTahun" class="form-select"></select></div><div class="col-md-5"><label class="form-label small fw-bold">Laporan</label><select id="jabarContribLaporan" class="form-select" onchange="loadJabarContribIndikator()"></select></div><div class="col-md-4"><label class="form-label small fw-bold">Saran Indikator</label><select id="jabarContribKode" class="form-select"><option value="">Belum ditentukan</option></select></div></div>
     <ul class="nav nav-tabs mb-3"><li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#jc-upload">Upload Dokumen</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jc-link">Link Dokumen</button></li></ul>
     <div class="tab-content"><div class="tab-pane fade show active" id="jc-upload">
       <div class="mb-2"><label class="form-label fw-bold">Judul Bukti</label><input id="jcJudul" class="form-control" placeholder="Contoh: Daftar Hadir / Foto / SK"></div>
@@ -1420,7 +1420,7 @@
         } 
         setInterval(updateClock, 1000); updateClock();
         
-        // V1.4.3 - koneksi API lebih tahan lambat/HTML redirect
+        // V1.4.4 - koneksi API + cache + anti-request-ganda
         async function apiRequestSafe(payload, options={}) {
             const timeoutMs = options.timeoutMs || 15000;
             const retries = Number.isInteger(options.retries) ? options.retries : 1;
@@ -1468,7 +1468,13 @@
             return {};
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        // V1.4.4 - Hindari 6 request Apps Script datang bersamaan setelah Admin login.
+function loadAdminDataStaggeredV144(){
+  const jobs=[fetchSiswaData,fetchRekapData,fetchGuruData,fetchPengumumanData,fetchJadwalData,fetchCatatanData];
+  jobs.forEach((fn,i)=>setTimeout(()=>{try{fn();}catch(e){console.warn('Warmup admin',e);}},i*180));
+}
+
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn=document.getElementById('btnLogin'), err=document.getElementById('loginError');
             const role=document.getElementById('roleSelector').value;
@@ -1484,7 +1490,7 @@
                     document.getElementById('mainBody').classList.remove('ortu-body'); document.getElementById('dashboard-admin').classList.add('active');
                     loggedInSiswaNisn=null; selectedSiswaData=null;
                     const adminName=data.name||'Administrator Utama'; document.getElementById('userProfileName').innerText=adminName; document.querySelector('.profil-nama').innerText=adminName;
-                    fetchSiswaData(); fetchGuruData(); fetchRekapData(); fetchJadwalData(); fetchCatatanData(); fetchPengumumanData();
+                    loadAdminDataStaggeredV144();
                 } else if(role==='petugas'){
                     currentPetugasId=inputId; currentPetugasSessionPassword=password||''; currentPetugasData=data||{};
                     document.getElementById('mainBody').classList.add('ortu-body'); document.getElementById('dashboard-petugas').classList.add('active');
@@ -3875,9 +3881,17 @@ function initPublicJabarReport(){
 // ============================================================================
 let jabarInitDone=false;
 let jabarCandidateMap={};
+// V1.4.4 - API Jabar: de-duplicate request + cache singkat di browser.
+const jabarMemCacheV144 = new Map();
+const jabarInflightV144 = new Map();
+function jabarApiCacheKeyV144(payload){const p={...payload};delete p.auth_password;return JSON.stringify(p,Object.keys(p).sort());}
+function clearJabarMemCacheV144(){jabarMemCacheV144.clear();}
+function jabarReadTtlV144(action){return ({get_jabar_tahun:300000,get_jabar_indikator:30000,get_jabar_tagged:15000,get_jabar_bukti_candidates:45000,get_jabar_tugas_saya:30000,get_kontribusi_jabar_saya:30000,get_jabar_public_report:60000})[action]||0;}
 async function apiJabar(payload){
-  try{return await apiRequestSafe({...payload,...getJabarAuthPayload()},{timeoutMs:15000,retries:1});}
-  catch(e){return {status:'error',message:e.message||'Gagal terhubung ke server.'};}
+  const auth={...payload,...getJabarAuthPayload()}, action=String(payload?.action||''), ttl=jabarReadTtlV144(action), key=jabarApiCacheKeyV144(auth), now=Date.now();
+  if(ttl){const c=jabarMemCacheV144.get(key);if(c&&c.expires>now)return c.data;if(jabarInflightV144.has(key))return jabarInflightV144.get(key);}
+  const promise=(async()=>{try{const res=await apiRequestSafe(auth,{timeoutMs:15000,retries:1});if(ttl&&res?.status==='success')jabarMemCacheV144.set(key,{expires:Date.now()+ttl,data:res});else if(!ttl&&res?.status==='success')clearJabarMemCacheV144();return res;}catch(e){return {status:'error',message:e.message||'Gagal terhubung ke server.'};}finally{if(ttl)jabarInflightV144.delete(key);}})();
+  if(ttl)jabarInflightV144.set(key,promise);return promise;
 }
 async function initJabarBeraksi(){
   if(!jabarInitDone){await loadJabarTahun();jabarInitDone=true;}else await loadJabarIndikator();
@@ -3959,12 +3973,23 @@ function setupPetugasJabarButton(){
   if(!card) return; let old=document.getElementById('btnPetugasJabar'); if(old) old.remove();
   if(reports.length){const b=document.createElement('button');b.id='btnPetugasJabar';b.className='btn btn-warning btn-sm w-100 mt-2 fw-bold';b.innerHTML='<i class="fas fa-chart-line me-1"></i> Kirim Bukti Jabar Beraksi';b.onclick=()=>openJabarContributor('petugas');card.appendChild(b);}
 }
-// V1.4.3.2: Tutup aman tanpa keluar/login ulang.
+// V1.4.4: Tutup aman tanpa keluar/login ulang.
 function restoreTeacherDashboardAfterJabar_(){
   const login=document.getElementById('login-section'); if(login) login.style.display='none';
   document.querySelectorAll('.dashboard-container').forEach(d=>{ if(d.id!=='dashboard-teacher') d.classList.remove('active'); });
   const dt=document.getElementById('dashboard-teacher'); if(dt) dt.classList.add('active');
   document.getElementById('mainBody')?.classList.add('ortu-body');
+}
+function backJabarContributorTaskList(){
+  // V1.4.4.1: kembali satu tingkat di dalam modul Jabar, BUKAN menutup modal.
+  const task=document.getElementById('jcTaskSegment');
+  const modal=document.getElementById('modalJabarContributor');
+  const body=modal?.querySelector('.modal-body');
+  if(task){
+    try{task.scrollIntoView({behavior:'smooth',block:'start'});}catch(_){ if(body) body.scrollTop=0; }
+    task.classList.add('border-warning');
+    setTimeout(()=>task.classList.remove('border-warning'),900);
+  }else if(body){ body.scrollTo({top:0,behavior:'smooth'}); }
 }
 function closeJabarContributorSafe(){
   const el=document.getElementById('modalJabarContributor');
@@ -3997,7 +4022,12 @@ let jabarMyTasksLoaded=false;
 let jabarContributorPrevActiveBtn=null;
 function pilihTugasJabar(kode,laporan){
   const l=document.getElementById('jabarContribLaporan'); if(l&&laporan){l.value=String(laporan);}
-  loadJabarContribIndikator().then(()=>{const k=document.getElementById('jabarContribKode');if(k)k.value=kode;document.getElementById('jcJudul')?.focus();});
+  loadJabarContribIndikator().then(()=>{
+    const k=document.getElementById('jabarContribKode'); if(k)k.value=kode;
+    const seg=document.getElementById('jcUploadSegment');
+    if(seg){ try{seg.scrollIntoView({behavior:'smooth',block:'start'});}catch(_){ } }
+    setTimeout(()=>document.getElementById('jcJudul')?.focus(),250);
+  });
 }
 async function loadJabarTugasSaya(){
   const box=document.getElementById('jcTaskList'), sum=document.getElementById('jcTaskSummary'); if(!box)return;
