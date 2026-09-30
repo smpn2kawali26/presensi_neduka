@@ -206,6 +206,13 @@
         .jbpub-shell{max-width:1180px;margin:-34px auto 0;padding:0 18px 40px;}
         .jbpub-card{background:#fff;border:1px solid #e4eaf2;border-radius:16px;box-shadow:0 10px 30px rgba(21,54,95,.10);}
         .jbpub-evidence a{word-break:break-word;}
+        .jbpub-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+        .jbpub-hub-card{display:block;text-decoration:none;color:inherit;border:1px solid #dce6f3;border-radius:14px;padding:18px;background:#fff;transition:.18s ease;min-height:132px;}
+        .jbpub-hub-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(21,54,95,.12);border-color:#8db7e6;color:inherit;}
+        .jbpub-hub-no{width:42px;height:42px;border-radius:12px;background:#eaf3ff;color:#1769bd;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto;}
+        .jbpub-hub-arrow{color:#1769bd;font-size:1.05rem;}
+        .jbpub-backhub{margin-bottom:12px;}
+        @media(max-width:700px){.jbpub-hub-grid{grid-template-columns:1fr;}.jbpub-hub-card{min-height:auto;}}
         @media(max-width:575px){.jbpub-shell{padding-left:10px;padding-right:10px}.jbpub-hero{padding-top:20px}}
         @media print{
           body.jbpub-mode{background:#fff!important;}
@@ -291,7 +298,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.4.3 - JABAR BERAKSI PUBLIC REPORT / BUKTI DUKUNG -->
+    <!-- V1.5.0.2.2 - JABAR BERAKSI PUBLIC HUB + DETAIL REPORT (baseline V1.5.0.2.1) -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -300,7 +307,20 @@
         <div id="jbpubHeroSub" class="small opacity-75">Bukti Dukung Laporan</div>
       </div></div>
       <div class="jbpub-shell">
-        <div class="jbpub-card p-3 p-md-4 mb-3">
+        <div id="jbpubHub" class="jbpub-card p-3 p-md-4 mb-3" style="display:none">
+          <div class="mb-3">
+            <h4 id="jbpubHubTitle" class="fw-bold mb-1">Laporan Jabar Beraksi</h4>
+            <div id="jbpubHubMeta" class="text-muted small"></div>
+          </div>
+          <div class="alert alert-info py-2 small mb-3"><i class="fas fa-folder-open me-1"></i>Pilih laporan untuk melihat indikator dan bukti dukung digital.</div>
+          <div id="jbpubHubGrid" class="jbpub-hub-grid"></div>
+          <div class="text-center small text-muted mt-4">Portal Bukti Dukung Jabar Beraksi • SMP Negeri 2 Kawali</div>
+        </div>
+
+        <div id="jbpubReportCard" class="jbpub-card p-3 p-md-4 mb-3">
+          <div class="jbpub-no-print jbpub-backhub">
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="backToJabarHub()"><i class="fas fa-arrow-left me-1"></i>Semua Laporan</button>
+          </div>
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
             <div><h4 id="jbpubTitle" class="fw-bold mb-1">Memuat laporan...</h4><div id="jbpubMeta" class="text-muted small"></div></div>
             <button class="btn btn-outline-primary btn-sm jbpub-no-print" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
@@ -3930,11 +3950,46 @@ async function loadPublicJabarReport(year,report){
     const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),500);
   }catch(e){body.innerHTML=`<tr><td colspan="5"><div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div></td></tr>`;}
 }
+const JABAR_PUBLIC_REPORT_NAMES={
+  '1':'Implementasi Penguatan Pendidikan Karakter melalui Pembiasaan di Satuan Pendidikan',
+  '2':'Digitalisasi Pembelajaran',
+  '3':'Kualitas Data Dapodik',
+  '4':'SPMI',
+  '5':'Daya Tampung Penerimaan Murid Baru'
+};
+function getJabarHubUrl(year){
+  return window.location.origin+window.location.pathname+'?jabar='+encodeURIComponent(year);
+}
+function getJabarPublicDetailUrl(year,report){
+  return getJabarHubUrl(year)+'&laporan='+encodeURIComponent(report);
+}
+function renderPublicJabarHub(year){
+  const hub=document.getElementById('jbpubHub'),card=document.getElementById('jbpubReportCard'),grid=document.getElementById('jbpubHubGrid');
+  if(card)card.style.display='none';if(hub)hub.style.display='block';
+  document.getElementById('jbpubHeroSub').textContent=`Bukti Dukung • Tahun Pelaporan ${year}`;
+  document.getElementById('jbpubHubTitle').textContent=`Laporan Jabar Beraksi ${year}`;
+  document.getElementById('jbpubHubMeta').textContent=`SMP Negeri 2 Kawali • Pilih salah satu dari 5 laporan`;
+  grid.innerHTML=Object.entries(JABAR_PUBLIC_REPORT_NAMES).map(([no,nama])=>`<a class="jbpub-hub-card" href="${getJabarPublicDetailUrl(year,no)}"><div class="d-flex gap-3 align-items-start"><div class="jbpub-hub-no">${no}</div><div class="flex-grow-1"><div class="small text-primary fw-bold mb-1">LAPORAN ${no}</div><div class="fw-bold">${escapeHtml(nama)}</div><div class="small text-muted mt-2">Buka indikator dan bukti dukung <i class="fas fa-arrow-right ms-1 jbpub-hub-arrow"></i></div></div></div></a>`).join('');
+}
+function backToJabarHub(){
+  const p=new URLSearchParams(window.location.search),year=p.get('jabar')||'2026';
+  window.location.href=getJabarHubUrl(year);
+}
 function initPublicJabarReport(){
-  const p=new URLSearchParams(window.location.search),year=p.get('jabar'),report=p.get('laporan');if(!year||!report)return false;
-  document.title=`Jabar Beraksi ${year} - Laporan ${report}`;document.body.classList.add('jbpub-mode');
+  const p=new URLSearchParams(window.location.search),year=p.get('jabar'),report=p.get('laporan');if(!year)return false;
+  document.body.classList.add('jbpub-mode');
   document.getElementById('login-section').style.display='none';document.querySelectorAll('.dashboard-container').forEach(x=>x.style.display='none');
   document.getElementById('public-7kaih-section').style.display='none';document.getElementById('public-dokumentasi-section').style.display='none';document.getElementById('public-jabar-section').style.display='block';
+  if(!report){
+    document.title=`Jabar Beraksi ${year} - SMP Negeri 2 Kawali`;
+    renderPublicJabarHub(year);return true;
+  }
+  if(!JABAR_PUBLIC_REPORT_NAMES[String(report)]){
+    document.title=`Jabar Beraksi ${year} - SMP Negeri 2 Kawali`;
+    renderPublicJabarHub(year);return true;
+  }
+  document.getElementById('jbpubHub').style.display='none';document.getElementById('jbpubReportCard').style.display='block';
+  document.title=`Jabar Beraksi ${year} - Laporan ${report}`;
   loadPublicJabarReport(year,report);return true;
 }
 
