@@ -658,6 +658,7 @@
                             <div class="d-flex flex-wrap gap-2 justify-content-end">
                                 <button class="btn btn-outline-success btn-sm" onclick="salinLinkLaporanJabar()"><i class="fas fa-link me-1"></i> Link Laporan</button>
                                 <button class="btn btn-outline-dark btn-sm" onclick="cetakLaporanJabar()"><i class="fas fa-print me-1"></i> Cetak / PDF</button>
+                                <button class="btn btn-outline-info btn-sm" onclick="openJabarGambaranUmum()"><i class="fas fa-align-left me-1"></i> Gambaran Umum</button>
                                 <button class="btn btn-outline-primary btn-sm" onclick="tambahTahunJabar()"><i class="fas fa-calendar-plus me-1"></i> Tambah Tahun</button>
                             </div>
                         </div>
@@ -672,7 +673,7 @@
                         <div id="jabarSummary" class="row g-2 mb-3"></div>
                         <div class="card card-custom"><div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2"><div><h5 id="jabarJudulLaporan" class="fw-bold mb-0">Laporan</h5><small class="text-muted">Status pada tahap ini menunjukkan apakah indikator sudah memiliki bukti yang ditautkan.</small></div></div>
-                            <div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th>PJ</th><th>Prioritas / Tenggat</th><th>Status Bukti</th><th>Aksi</th></tr></thead><tbody id="jabarIndikatorBody"><tr><td colspan="7" class="text-center text-muted py-4">Pilih tahun dan laporan.</td></tr></tbody></table></div>
+                            <div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-dark"><tr><th>Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th>PJ</th><th>Prioritas / Tenggat</th><th>Data Laporan</th><th>Status Bukti</th><th>Aksi</th></tr></thead><tbody id="jabarIndikatorBody"><tr><td colspan="8" class="text-center text-muted py-4">Pilih tahun dan laporan.</td></tr></tbody></table></div>
                         </div></div>
                     </div>
                     <!-- SECTION TAMPILAN VISUAL -->
@@ -1094,6 +1095,33 @@
   </div>
   <div class="jb-modal-footer-sticky d-flex justify-content-start"><button type="button" class="jb-safe-back" onclick="closeJabarContributorSafe()"><i class="fas fa-arrow-left me-1"></i>Kembali ke Dashboard Guru</button></div>
 </div></div></div>
+
+
+    <!-- V1.5 TAHAP 1 - MODAL DATA LAPORAN RESMI -->
+    <div class="modal fade" id="modalJabarDataLaporan" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><div><h5 class="modal-title fw-bold mb-0"><i class="fas fa-clipboard-check me-2"></i>Isi Data Laporan</h5><small id="jabarDataKodeLabel"></small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="alert alert-light border small"><b>Data ini untuk tabel laporan resmi.</b> Bukti pendukung tetap dikelola melalui tombol <b>Bukti</b>.</div>
+          <input type="hidden" id="jabarDataKode"><input type="hidden" id="jabarDataTipeNilai"><input type="hidden" id="jabarDataModeSasaran">
+          <div id="jabarDataSasaranWrap" class="mb-3"><label class="form-label fw-bold">Jumlah Sasaran</label><div class="input-group"><input type="number" min="0" step="1" id="jabarDataJumlahSasaran" class="form-control"><span id="jabarDataSatuan" class="input-group-text">siswa</span></div></div>
+          <div class="mb-3"><label class="form-label fw-bold">Status</label><select id="jabarDataStatus" class="form-select"><option value="BELUM">Belum</option><option value="SUDAH">Sudah</option></select></div>
+          <div id="jabarDataNilaiWrap" class="mb-3"><label id="jabarDataNilaiLabel" class="form-label fw-bold">Persentase / Angka</label><div class="input-group"><input type="number" id="jabarDataNilai" class="form-control"><span id="jabarDataNilaiSuffix" class="input-group-text">%</span></div></div>
+          <div id="jabarDataNilaiNone" class="alert alert-secondary py-2 small d-none"><i class="fas fa-minus me-1"></i>Indikator ini tidak memerlukan Persentase/Angka pada format resmi.</div>
+          <div class="mb-2"><label class="form-label fw-bold">Catatan Admin <span class="text-muted fw-normal">(internal/opsional)</span></label><textarea id="jabarDataCatatan" class="form-control" rows="3" maxlength="500" placeholder="Catatan singkat bila diperlukan."></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button id="btnSimpanJabarData" class="btn btn-primary" onclick="simpanJabarDataLaporan()"><i class="fas fa-save me-1"></i>Simpan Data Laporan</button></div>
+      </div></div>
+    </div>
+
+    <!-- V1.5 TAHAP 1 - MODAL GAMBARAN UMUM -->
+    <div class="modal fade" id="modalJabarGambaran" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header bg-info text-dark"><div><h5 class="modal-title fw-bold mb-0"><i class="fas fa-align-left me-2"></i>Gambaran Umum Pelaksanaan</h5><small id="jabarGambaranLabel"></small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><div class="alert alert-light border small">Narasi ini disimpan per <b>tahun + laporan</b> dan akan digunakan pada format Cetak/PDF resmi di tahap berikutnya.</div><textarea id="jabarGambaranText" class="form-control" rows="9" maxlength="5000" placeholder="Tuliskan gambaran umum pelaksanaan program..."></textarea></div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button id="btnSimpanJabarGambaran" class="btn btn-info fw-bold" onclick="simpanJabarGambaranUmum()"><i class="fas fa-save me-1"></i>Simpan Gambaran Umum</button></div>
+      </div></div>
+    </div>
 
 <div class="modal fade" id="modalJabarBukti" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
   <div class="modal-header bg-primary text-white"><div><h5 class="modal-title mb-0"><i class="fas fa-link me-2"></i>Hubungkan Bukti</h5><small id="jabarModalKode" class="text-white-50"></small></div><div class="d-flex align-items-center gap-2"><button type="button" class="btn btn-light btn-sm fw-semibold" onclick="closeJabarBuktiSafe()"><i class="fas fa-arrow-left me-1"></i>Kembali</button><button type="button" class="btn-close btn-close-white" aria-label="Tutup" onclick="closeJabarBuktiSafe()"></button></div></div>
@@ -3916,14 +3944,20 @@ async function tambahTahunJabar(){
 }
 async function loadJabarIndikator(){
   let year=document.getElementById('jabarTahun')?.value||'2026', report=document.getElementById('jabarLaporan')?.value||'1', body=document.getElementById('jabarIndikatorBody');if(!body)return;
-  body.innerHTML='<tr><td colspan="7" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
+  body.innerHTML='<tr><td colspan="8" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
   let r=await apiJabar({action:'get_jabar_indikator',tahun:year,laporan:report});
-  if(r.status!=='success'){body.innerHTML=`<tr><td colspan="6"><div class="alert alert-danger mb-0">${escapeHtml(r.message||'Gagal memuat indikator.')}<div class="mt-2"><button class="btn btn-sm btn-outline-danger" onclick="loadJabarIndikator()"><i class="fas fa-rotate me-1"></i>Coba Muat Ulang</button></div></div></td></tr>`;return;}
+  if(r.status!=='success'){body.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger mb-0">${escapeHtml(r.message||'Gagal memuat indikator.')}<div class="mt-2"><button class="btn btn-sm btn-outline-danger" onclick="loadJabarIndikator()"><i class="fas fa-rotate me-1"></i>Coba Muat Ulang</button></div></div></td></tr>`;return;}
   document.getElementById('jabarJudulLaporan').textContent=`${year} — ${r.judul_laporan||('Laporan '+report)}`;
-  let rows=r.data||[], ada=rows.filter(x=>Number(x.jumlah_bukti)>0).length, belum=rows.length-ada, totalBukti=rows.reduce((a,x)=>a+Number(x.jumlah_bukti||0),0);
-  let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md-3"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div>`;
-  body.innerHTML=rows.length?'':'<tr><td colspan="7" class="text-center text-muted">Belum ada indikator.</td></tr>';
-  rows.forEach(x=>{let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;let pr=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger">PRIORITAS</span>':'<span class="badge bg-light text-dark border">Normal</span>';let due=x.tenggat?`<div class="small mt-1"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</div>`:'<div class="small text-muted mt-1">Tanpa tenggat</div>';body.innerHTML+=`<tr><td><b>${escapeHtml(x.kode)}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${pr}${due}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-outline-primary me-1" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button><button class="btn btn-sm btn-outline-warning" onclick='aturJabarTugas(${JSON.stringify(x.kode)},${JSON.stringify(x.prioritas||'NORMAL')},${JSON.stringify(x.tenggat||'')})'><i class="fas fa-flag me-1"></i>Atur</button></td></tr>`;});
+  let rows=r.data||[], ada=rows.filter(x=>Number(x.jumlah_bukti)>0).length, belum=rows.length-ada, totalBukti=rows.reduce((a,x)=>a+Number(x.jumlah_bukti||0),0), dataIsi=rows.filter(x=>x.data_laporan_terisi).length;
+  let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Data Laporan Terisi</div><b class="text-primary">${dataIsi}/${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada Bukti</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div>`;
+  body.innerHTML=rows.length?'':'<tr><td colspan="8" class="text-center text-muted">Belum ada indikator.</td></tr>';
+  rows.forEach(x=>{
+    let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;
+    let pr=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger">PRIORITAS</span>':'<span class="badge bg-light text-dark border">Normal</span>';let due=x.tenggat?`<div class="small mt-1"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</div>`:'<div class="small text-muted mt-1">Tanpa tenggat</div>';
+    let parts=[];if(x.mode_sasaran==='COUNT')parts.push(`${escapeHtml(x.jumlah_sasaran||'—')} ${escapeHtml(x.satuan_sasaran||'')}`);parts.push(`<span class="badge ${x.status_laporan==='SUDAH'?'bg-success':'bg-secondary'}">${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</span>`);if(x.tipe_nilai==='PERSEN')parts.push(`${escapeHtml(x.nilai_laporan||'—')}%`);else if(x.tipe_nilai==='ANGKA')parts.push(escapeHtml(x.nilai_laporan||'—'));
+    let dl=`<div class="small">${parts.join(' • ')}</div>${x.data_laporan_terisi?'<span class="badge bg-primary-subtle text-primary border mt-1">Sudah diisi</span>':'<span class="badge bg-light text-muted border mt-1">Belum diisi</span>'}`;
+    body.innerHTML+=`<tr><td><b>${escapeHtml(x.kode)}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${pr}${due}</td><td style="min-width:150px">${dl}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-primary me-1" onclick='openJabarDataLaporan(${JSON.stringify(x)})'><i class="fas fa-clipboard-check me-1"></i>Isi Data</button><button class="btn btn-sm btn-outline-primary me-1" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button><button class="btn btn-sm btn-outline-warning" onclick='aturJabarTugas(${JSON.stringify(x.kode)},${JSON.stringify(x.prioritas||'NORMAL')},${JSON.stringify(x.tenggat||'')})'><i class="fas fa-flag me-1"></i>Atur</button></td></tr>`;
+  });
 }
 async function openJabarBukti(kode,judul){
   document.getElementById('jabarTagKode').value=kode;document.getElementById('jabarTagJudul').value=judul;document.getElementById('jabarModalKode').textContent=`${kode} — ${judul}`;document.getElementById('jabarCariBukti').value='';
@@ -3967,6 +4001,33 @@ async function untagJabar(id){if(!confirm('Lepas kaitan bukti ini dari indikator
 // V1.4.3 - KONTRIBUTOR BUKTI JABAR BERDASARKAN TUGAS TAMBAHAN
 // Admin tetap penyusun/pemilih bukti dan pencetak laporan final.
 // ============================================================================
+
+// ============================================================================
+// V1.5 TAHAP 1 - DATA LAPORAN RESMI (ADMIN)
+// ============================================================================
+function openJabarDataLaporan(x){
+  document.getElementById('jabarDataKode').value=x.kode||'';document.getElementById('jabarDataKodeLabel').textContent=`${x.kode||''} — ${x.indikator||''}`;
+  document.getElementById('jabarDataModeSasaran').value=x.mode_sasaran||'NONE';document.getElementById('jabarDataTipeNilai').value=x.tipe_nilai||'NONE';
+  const sw=document.getElementById('jabarDataSasaranWrap');if(x.mode_sasaran==='COUNT'){sw.classList.remove('d-none');document.getElementById('jabarDataJumlahSasaran').value=x.jumlah_sasaran||'';document.getElementById('jabarDataSatuan').textContent=x.satuan_sasaran||'sasaran';}else{sw.classList.add('d-none');document.getElementById('jabarDataJumlahSasaran').value='';}
+  document.getElementById('jabarDataStatus').value=String(x.status_laporan||'BELUM').toUpperCase()==='SUDAH'?'SUDAH':'BELUM';
+  const nw=document.getElementById('jabarDataNilaiWrap'),nn=document.getElementById('jabarDataNilaiNone'),inp=document.getElementById('jabarDataNilai'),suf=document.getElementById('jabarDataNilaiSuffix'),lab=document.getElementById('jabarDataNilaiLabel');
+  if(x.tipe_nilai==='PERSEN'){nw.classList.remove('d-none');nn.classList.add('d-none');inp.value=x.nilai_laporan||'';inp.min='0';inp.max='100';inp.step='0.01';suf.textContent='%';lab.textContent='Persentase';}
+  else if(x.tipe_nilai==='ANGKA'){nw.classList.remove('d-none');nn.classList.add('d-none');inp.value=x.nilai_laporan||'';inp.removeAttribute('max');inp.min='0';inp.step='1';suf.textContent='angka';lab.textContent='Persentase / Angka';}
+  else{nw.classList.add('d-none');nn.classList.remove('d-none');inp.value='';}
+  document.getElementById('jabarDataCatatan').value=x.catatan_laporan||'';new bootstrap.Modal(document.getElementById('modalJabarDataLaporan')).show();
+}
+async function simpanJabarDataLaporan(){
+  const btn=document.getElementById('btnSimpanJabarData');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+  try{const r=await apiJabar({action:'simpan_jabar_data_laporan',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode:document.getElementById('jabarDataKode').value,jumlah_sasaran:document.getElementById('jabarDataJumlahSasaran').value,status_laporan:document.getElementById('jabarDataStatus').value,nilai_laporan:document.getElementById('jabarDataNilai').value,catatan_laporan:document.getElementById('jabarDataCatatan').value});if(r.status!=='success')throw new Error(r.message||'Gagal menyimpan data laporan.');bootstrap.Modal.getInstance(document.getElementById('modalJabarDataLaporan'))?.hide();showToast7KAIH(r.message||'Data laporan disimpan.');await loadJabarIndikator();}catch(e){alert(e.message||e);}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan Data Laporan';}
+}
+async function openJabarGambaranUmum(){
+  const year=document.getElementById('jabarTahun')?.value||'2026',report=document.getElementById('jabarLaporan')?.value||'1';document.getElementById('jabarGambaranLabel').textContent=`Tahun ${year} • Laporan ${report}`;document.getElementById('jabarGambaranText').value='';new bootstrap.Modal(document.getElementById('modalJabarGambaran')).show();
+  const r=await apiJabar({action:'get_jabar_gambaran_umum',tahun:year,laporan:report});if(r.status==='success')document.getElementById('jabarGambaranText').value=r.gambaran_umum||'';else alert(r.message||'Gagal memuat gambaran umum.');
+}
+async function simpanJabarGambaranUmum(){
+  const btn=document.getElementById('btnSimpanJabarGambaran');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';try{const r=await apiJabar({action:'simpan_jabar_gambaran_umum',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,gambaran_umum:document.getElementById('jabarGambaranText').value});if(r.status!=='success')throw new Error(r.message||'Gagal menyimpan gambaran umum.');bootstrap.Modal.getInstance(document.getElementById('modalJabarGambaran'))?.hide();showToast7KAIH(r.message||'Gambaran umum disimpan.');}catch(e){alert(e.message||e);}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan Gambaran Umum';}
+}
+
 function setupPetugasJabarButton(){
   const reports=getJabarAllowedReportsFromTugas(currentPetugasData?.tugas||'','petugas');
   const card=document.querySelector('#dashboard-petugas .profile-card-floating');
