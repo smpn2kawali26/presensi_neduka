@@ -198,6 +198,27 @@
         @media(max-width:991px){#publicDokList.pubdoc-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.pubdoc-cover{height:145px;}}
         @media(max-width:575px){#publicDokList.pubdoc-grid{grid-template-columns:1fr;gap:10px}.pubdoc-cover{height:165px}.pubdoc-compact{padding:12px!important}.pubdoc-category{min-height:90px}.pubdoc-shell{padding-bottom:24px}.pubdoc-detail-photo{height:150px}}
 
+
+        /* ===== V1.4.2 JABAR BERAKSI - LAPORAN PUBLIK / CETAK ===== */
+        #public-jabar-section{display:none;min-height:100vh;background:#f5f7fb;}
+        .jbpub-hero{background:linear-gradient(135deg,#143d73,#1f66b5);color:#fff;padding:28px 12px 54px;}
+        .jbpub-logo{width:64px;height:64px;object-fit:contain;background:#fff;border-radius:50%;padding:5px;}
+        .jbpub-shell{max-width:1180px;margin:-34px auto 0;padding:0 18px 40px;}
+        .jbpub-card{background:#fff;border:1px solid #e4eaf2;border-radius:16px;box-shadow:0 10px 30px rgba(21,54,95,.10);}
+        .jbpub-evidence a{word-break:break-word;}
+        @media(max-width:575px){.jbpub-shell{padding-left:10px;padding-right:10px}.jbpub-hero{padding-top:20px}}
+        @media print{
+          body.jbpub-mode{background:#fff!important;}
+          body.jbpub-mode #public-jabar-section{display:block!important;background:#fff!important;}
+          body.jbpub-mode .jbpub-hero{background:#fff!important;color:#000!important;padding:0 0 8mm!important;}
+          body.jbpub-mode .jbpub-shell{max-width:none!important;margin:0!important;padding:0!important;}
+          body.jbpub-mode .jbpub-card{box-shadow:none!important;border:1px solid #bbb!important;border-radius:0!important;}
+          body.jbpub-mode .jbpub-no-print{display:none!important;}
+          body.jbpub-mode table{font-size:8.5pt!important;}
+          body.jbpub-mode a{color:#000!important;text-decoration:none!important;}
+          @page{size:A4 portrait;margin:10mm;}
+        }
+
     </style>
 </head>
 <body id="mainBody">
@@ -263,6 +284,28 @@
     </div>
     <div id="publicDokLightbox" onclick="if(event.target===this)closePublicDokLightbox()"><button class="close-btn" type="button" onclick="closePublicDokLightbox()">&times;</button><img id="publicDokLightboxImg" src="" alt="Dokumentasi"></div>
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
+
+
+    <!-- V1.4.2 - JABAR BERAKSI PUBLIC REPORT / BUKTI DUKUNG -->
+    <div id="public-jabar-section">
+      <div class="jbpub-hero"><div class="container text-center">
+        <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
+        <h3 class="fw-bold mb-1">JABAR BERAKSI</h3>
+        <div class="fs-5">SMP NEGERI 2 KAWALI</div>
+        <div id="jbpubHeroSub" class="small opacity-75">Bukti Dukung Laporan</div>
+      </div></div>
+      <div class="jbpub-shell">
+        <div class="jbpub-card p-3 p-md-4 mb-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div><h4 id="jbpubTitle" class="fw-bold mb-1">Memuat laporan...</h4><div id="jbpubMeta" class="text-muted small"></div></div>
+            <button class="btn btn-outline-primary btn-sm jbpub-no-print" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
+          </div>
+          <div class="alert alert-info py-2 small mb-3">Halaman ini adalah indeks bukti dukung digital. Bukti berstatus INTERNAL tidak membuka file kepada publik.</div>
+          <div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-primary"><tr><th style="width:70px">Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th style="width:90px">Status</th><th>Bukti Terhubung</th></tr></thead><tbody id="jbpubBody"><tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
+          <div class="text-center small text-muted mt-3">Portal Bukti Dukung Jabar Beraksi • SMP Negeri 2 Kawali</div>
+        </div>
+      </div>
+    </div>
 
     <!-- LOGIN SECTION -->
     <div id="login-section">
@@ -607,7 +650,11 @@
                                 <h4 class="fw-bold m-0"><i class="fas fa-chart-line text-primary me-2"></i>Jabar Beraksi</h4>
                                 <small class="text-muted">Fondasi bukti dukung tahunan. Data hanya dimuat ketika menu ini dibuka agar portal utama tetap ringan.</small>
                             </div>
-                            <button class="btn btn-outline-primary btn-sm" onclick="tambahTahunJabar()"><i class="fas fa-calendar-plus me-1"></i> Tambah Tahun</button>
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <button class="btn btn-outline-success btn-sm" onclick="salinLinkLaporanJabar()"><i class="fas fa-link me-1"></i> Link Laporan</button>
+                                <button class="btn btn-outline-dark btn-sm" onclick="cetakLaporanJabar()"><i class="fas fa-print me-1"></i> Cetak / PDF</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="tambahTahunJabar()"><i class="fas fa-calendar-plus me-1"></i> Tambah Tahun</button>
+                            </div>
                         </div>
                         <div class="alert alert-info small py-2"><i class="fas fa-link me-1"></i><b>Tidak ada upload ulang.</b> Bukti yang sudah ada di Jurnal 7KAIH atau Dokumentasi Sekolah cukup dihubungkan (tag) ke indikator Jabar Beraksi.</div>
                         <div class="card card-custom mb-3"><div class="card-body">
@@ -1024,9 +1071,31 @@
   <div class="modal-header bg-primary text-white"><div><h5 class="modal-title mb-0"><i class="fas fa-link me-2"></i>Hubungkan Bukti</h5><small id="jabarModalKode" class="text-white-50"></small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <input type="hidden" id="jabarTagKode"><input type="hidden" id="jabarTagJudul">
-    <div class="input-group mb-3"><input type="text" id="jabarCariBukti" class="form-control" placeholder="Cari nama kegiatan / bukti..."><button class="btn btn-outline-primary" onclick="loadJabarCandidates()"><i class="fas fa-search"></i> Cari</button></div>
-    <div id="jabarCandidateList"><div class="text-center text-muted py-3">Memuat bukti yang sudah ada...</div></div>
-    <hr><h6 class="fw-bold">Bukti yang sudah terhubung</h6><div id="jabarTaggedList" class="small text-muted">Memuat...</div>
+    <div class="alert alert-light border py-2 small"><b>Maksimal 5 bukti per indikator.</b> Gunakan bukti yang sudah ada, upload dokumen, atau tambahkan link dokumen.</div>
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#jbTabExisting" type="button">Bukti Tersedia</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jbTabUpload" type="button">Upload Dokumen</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jbTabLink" type="button">Link Dokumen</button></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="jbTabExisting">
+        <div class="input-group mb-3"><input type="text" id="jabarCariBukti" class="form-control" placeholder="Cari nama kegiatan / bukti..."><button class="btn btn-outline-primary" onclick="loadJabarCandidates()"><i class="fas fa-search"></i> Cari</button></div>
+        <div id="jabarCandidateList"><div class="text-center text-muted py-3">Memuat bukti yang sudah ada...</div></div>
+      </div>
+      <div class="tab-pane fade" id="jbTabUpload">
+        <div class="mb-2"><label class="form-label fw-bold">Judul Bukti</label><input id="jabarUploadJudul" class="form-control" placeholder="Contoh: Daftar Hadir Senam Pagi"></div>
+        <div class="mb-2"><label class="form-label fw-bold">Pilih File</label><input id="jabarUploadFile" type="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip"><div class="form-text">PDF, Word, Excel, gambar, atau ZIP. Maksimal 8 MB.</div></div>
+        <div class="row g-2 mb-2"><div class="col-md-6"><label class="form-label fw-bold">Akses Bukti</label><select id="jabarUploadAkses" class="form-select"><option value="PUBLIK">PUBLIK — dapat dibuka dari link laporan</option><option value="INTERNAL">INTERNAL — hanya tercatat, file tidak dibuka publik</option></select></div><div class="col-md-6"><label class="form-label fw-bold">Catatan (opsional)</label><input id="jabarUploadCatatan" class="form-control" placeholder="Keterangan singkat"></div></div>
+        <button id="btnJabarUpload" class="btn btn-primary" onclick="uploadJabarDokumen()"><i class="fas fa-upload me-1"></i>Upload & Hubungkan</button>
+      </div>
+      <div class="tab-pane fade" id="jbTabLink">
+        <div class="mb-2"><label class="form-label fw-bold">Judul Link</label><input id="jabarLinkJudul" class="form-control" placeholder="Contoh: SK Penetapan / Google Drive"></div>
+        <div class="mb-2"><label class="form-label fw-bold">URL Dokumen</label><input id="jabarLinkUrl" type="url" class="form-control" placeholder="https://..."></div>
+        <div class="row g-2 mb-2"><div class="col-md-6"><label class="form-label fw-bold">Akses Bukti</label><select id="jabarLinkAkses" class="form-select"><option value="PUBLIK">PUBLIK — link tampil pada laporan</option><option value="INTERNAL">INTERNAL — link tidak ditampilkan publik</option></select></div><div class="col-md-6"><label class="form-label fw-bold">Catatan (opsional)</label><input id="jabarLinkCatatan" class="form-control" placeholder="Keterangan singkat"></div></div>
+        <button class="btn btn-primary" onclick="tambahJabarLink()"><i class="fas fa-link me-1"></i>Tambahkan & Hubungkan</button>
+      </div>
+    </div>
+    <hr><div class="d-flex justify-content-between align-items-center"><h6 class="fw-bold mb-0">Bukti yang sudah terhubung</h6><span id="jabarTaggedCount" class="badge bg-secondary">0/5</span></div><div id="jabarTaggedList" class="small text-muted mt-2">Memuat...</div>
   </div>
 </div></div></div>
 
@@ -3710,10 +3779,40 @@ function initPublic7KAIHPage(){
     document.getElementById('public-7kaih-section').style.display='block';
     loadPublicBukti7KAIH();
 }
+initPublicJabarReport();
 initPublic7KAIHPage();
 initPublicDokumentasiPage();
 
     
+
+
+// ===== V1.4.2 PUBLIC REPORT JABAR BERAKSI =====
+function getJabarReportUrl(){
+  const y=document.getElementById('jabarTahun')?.value||'2026',l=document.getElementById('jabarLaporan')?.value||'1';
+  return window.location.origin+window.location.pathname+'?jabar='+encodeURIComponent(y)+'&laporan='+encodeURIComponent(l);
+}
+async function salinLinkLaporanJabar(){const url=getJabarReportUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link laporan berhasil disalin.');else window.prompt('Salin link laporan:',url);}
+function cetakLaporanJabar(){window.open(getJabarReportUrl()+'&print=1','_blank');}
+async function loadPublicJabarReport(year,report){
+  const body=document.getElementById('jbpubBody');
+  try{
+    const r=await apiJabar({action:'get_jabar_public_report',tahun:year,laporan:report});
+    if(r.status!=='success')throw new Error(r.message||'Gagal memuat laporan.');
+    document.getElementById('jbpubTitle').textContent=`Laporan ${report} — ${r.judul_laporan||''}`;
+    document.getElementById('jbpubMeta').textContent=`Tahun Pelaporan ${year} • SMP Negeri 2 Kawali`;
+    document.getElementById('jbpubHeroSub').textContent=`Bukti Dukung • Tahun Pelaporan ${year}`;
+    const rows=r.data||[];
+    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}</td><td class="small">${escapeHtml(x.bukti_dibutuhkan||'-')}</td><td><span class="badge ${x.status==='SUDAH'?'bg-success':'bg-danger'}">${x.status==='SUDAH'?'Sudah':'Belum'}</span></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti.</span>'}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),500);
+  }catch(e){body.innerHTML=`<tr><td colspan="5"><div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div></td></tr>`;}
+}
+function initPublicJabarReport(){
+  const p=new URLSearchParams(window.location.search),year=p.get('jabar'),report=p.get('laporan');if(!year||!report)return false;
+  document.title=`Jabar Beraksi ${year} - Laporan ${report}`;document.body.classList.add('jbpub-mode');
+  document.getElementById('login-section').style.display='none';document.querySelectorAll('.dashboard-container').forEach(x=>x.style.display='none');
+  document.getElementById('public-7kaih-section').style.display='none';document.getElementById('public-dokumentasi-section').style.display='none';document.getElementById('public-jabar-section').style.display='block';
+  loadPublicJabarReport(year,report);return true;
+}
 
 // ============================================================================
 // V1.4 - FONDASI INTEGRASI JABAR BERAKSI (LAZY LOAD)
@@ -3758,6 +3857,7 @@ async function loadJabarIndikator(){
 }
 async function openJabarBukti(kode,judul){
   document.getElementById('jabarTagKode').value=kode;document.getElementById('jabarTagJudul').value=judul;document.getElementById('jabarModalKode').textContent=`${kode} — ${judul}`;document.getElementById('jabarCariBukti').value='';
+  ['jabarUploadJudul','jabarUploadCatatan','jabarLinkJudul','jabarLinkUrl','jabarLinkCatatan'].forEach(id=>{let el=document.getElementById(id);if(el)el.value='';});let f=document.getElementById('jabarUploadFile');if(f)f.value='';
   new bootstrap.Modal(document.getElementById('modalJabarBukti')).show();await Promise.all([loadJabarCandidates(),loadJabarTagged()]);
 }
 async function loadJabarCandidates(){
@@ -3769,12 +3869,28 @@ async function loadJabarCandidates(){
 }
 async function tagCandidateJabar(key){
   let x=jabarCandidateMap[key];if(!x)return;let year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value,kode=document.getElementById('jabarTagKode').value;
-  let note=prompt('Catatan untuk bukti ini (opsional):','')||'';let r=await apiJabar({action:'tag_jabar_bukti',tahun:year,laporan:report,kode,sumber:x.sumber,id_sumber:x.id,judul_sumber:x.judul,catatan:note,pelaksana:'Administrator'});
+  let note=prompt('Catatan untuk bukti ini (opsional):','')||'';let r=await apiJabar({action:'tag_jabar_bukti',tahun:year,laporan:report,kode,sumber:x.sumber,id_sumber:x.id,judul_sumber:x.judul,catatan:note,pelaksana:'Administrator',url_bukti:x.url||'',akses_bukti:x.akses||'PUBLIK'});
   if(r.status!=='success')return alert(r.message||'Gagal menghubungkan bukti.');showToast7KAIH(r.message||'Bukti terhubung.');await loadJabarTagged();await loadJabarIndikator();
 }
 async function loadJabarTagged(){
-  let year=document.getElementById('jabarTahun').value,kode=document.getElementById('jabarTagKode').value,box=document.getElementById('jabarTaggedList');if(!box)return;let r=await apiJabar({action:'get_jabar_tagged',tahun:year,kode});if(r.status!=='success'){box.innerHTML='<span class="text-danger">Gagal memuat.</span>';return;}let rows=r.data||[];if(!rows.length){box.innerHTML='<div class="text-muted">Belum ada bukti yang dihubungkan.</div>';return;}box.innerHTML=rows.map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${escapeHtml(x.sumber)}${x.catatan?' • '+escapeHtml(x.catatan):''}</div></div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink"></i></button></div>`).join('');
+  let year=document.getElementById('jabarTahun').value,kode=document.getElementById('jabarTagKode').value,box=document.getElementById('jabarTaggedList');if(!box)return;
+  let r=await apiJabar({action:'get_jabar_tagged',tahun:year,kode});if(r.status!=='success'){box.innerHTML='<span class="text-danger">Gagal memuat.</span>';return;}
+  let rows=r.data||[],count=document.getElementById('jabarTaggedCount');if(count){count.textContent=rows.length+'/5';count.className='badge '+(rows.length>=5?'bg-danger':'bg-secondary');}
+  if(!rows.length){box.innerHTML='<div class="text-muted">Belum ada bukti yang dihubungkan.</div>';return;}
+  box.innerHTML=rows.map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${escapeHtml(x.sumber)} • ${escapeHtml(x.akses||'PUBLIK')}${x.catatan?' • '+escapeHtml(x.catatan):''}</div>${x.url&&x.akses==='PUBLIK'?`<a class="small" href="${escapeHtml(x.url)}" target="_blank" rel="noopener">Buka bukti <i class="fas fa-external-link-alt ms-1"></i></a>`:''}</div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink"></i></button></div>`).join('');
 }
+async function fileToDataUrlJabar_(file){return new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(file);});}
+async function uploadJabarDokumen(){
+  const f=document.getElementById('jabarUploadFile')?.files?.[0];if(!f)return alert('Pilih file terlebih dahulu.');if(f.size>8*1024*1024)return alert('Ukuran file maksimal 8 MB.');
+  const year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value,kode=document.getElementById('jabarTagKode').value,btn=document.getElementById('btnJabarUpload');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah...';}
+  try{const b64=await fileToDataUrlJabar_(f);const r=await apiJabar({action:'upload_jabar_dokumen',tahun:year,laporan:report,kode,nama_file:f.name,file_base64:b64,judul:document.getElementById('jabarUploadJudul').value||f.name,catatan:document.getElementById('jabarUploadCatatan').value||'',akses_bukti:document.getElementById('jabarUploadAkses').value,pelaksana:'Administrator'});if(r.status!=='success')throw new Error(r.message||'Upload gagal.');showToast7KAIH('Dokumen berhasil diupload dan dihubungkan.');document.getElementById('jabarUploadFile').value='';await loadJabarTagged();await loadJabarIndikator();}catch(e){alert(String(e.message||e));}finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-upload me-1"></i>Upload & Hubungkan';}}
+}
+async function tambahJabarLink(){
+  const url=document.getElementById('jabarLinkUrl').value.trim();if(!url)return alert('Masukkan URL dokumen.');const year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value,kode=document.getElementById('jabarTagKode').value;
+  const r=await apiJabar({action:'tambah_jabar_link',tahun:year,laporan:report,kode,url,judul:document.getElementById('jabarLinkJudul').value||'Link dokumen',catatan:document.getElementById('jabarLinkCatatan').value||'',akses_bukti:document.getElementById('jabarLinkAkses').value,pelaksana:'Administrator'});if(r.status!=='success')return alert(r.message||'Gagal menambahkan link.');showToast7KAIH('Link dokumen berhasil dihubungkan.');document.getElementById('jabarLinkUrl').value='';await loadJabarTagged();await loadJabarIndikator();
+}
+
 async function untagJabar(id){if(!confirm('Lepas kaitan bukti ini dari indikator? File asli tidak akan dihapus.'))return;let r=await apiJabar({action:'untag_jabar_bukti',id_tag:id});if(r.status!=='success')return alert(r.message||'Gagal melepas kaitan.');showToast7KAIH('Kaitan bukti dilepas.');await loadJabarTagged();await loadJabarIndikator();}
 
 </script>
