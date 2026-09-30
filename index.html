@@ -315,6 +315,9 @@
         /* ===== V1.4.4 SAFE BACK NAVIGATION JABAR ===== */
         .jb-safe-back{border:1px solid rgba(0,0,0,.25);background:#fff;color:#333;font-weight:600;border-radius:10px;padding:7px 12px;}
         .jb-safe-back:hover{background:#f8f9fa;}
+        #btnJabarBackToTasks[hidden],
+        #btnJabarBackToTasks.d-none{display:none!important;}
+
         .jb-modal-footer-sticky{position:sticky;bottom:0;background:#fff;border-top:1px solid #e9ecef;padding:10px 14px;z-index:4;}
 
     </style>
@@ -384,7 +387,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.5.0.2.3 - FINALISASI TAHAP 1: PRINT JABAR + NAVIGASI KONTRIBUTOR -->
+    <!-- V1.5.0.2.4 - HOTFIX STATE TOMBOL KEMBALI MOBILE -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -1180,7 +1183,7 @@
 
 <!-- MODAL JABAR BERAKSI V1.4.4.1 HOTFIX NAVIGASI -->
 <div class="modal fade" id="modalJabarContributor" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-  <div class="modal-header bg-warning"><div><h5 class="modal-title mb-0"><i class="fas fa-file-arrow-up me-2"></i>Kontribusi Bukti Jabar Beraksi</h5><small id="jabarContribInfo" class="text-dark opacity-75"></small></div><div class="d-flex align-items-center gap-2"><button id="btnJabarBackToTasks" type="button" class="jb-safe-back btn btn-light btn-sm" style="display:none" onclick="backJabarContributorTaskList()"><i class="fas fa-arrow-left me-1"></i>Kembali ke Tugas</button><button type="button" class="btn-close" aria-label="Tutup" onclick="closeJabarContributorSafe()"></button></div></div>
+  <div class="modal-header bg-warning"><div><h5 class="modal-title mb-0"><i class="fas fa-file-arrow-up me-2"></i>Kontribusi Bukti Jabar Beraksi</h5><small id="jabarContribInfo" class="text-dark opacity-75"></small></div><div class="d-flex align-items-center gap-2"><button id="btnJabarBackToTasks" type="button" class="jb-safe-back btn btn-light btn-sm d-none" hidden aria-hidden="true" style="display:none!important" onclick="backJabarContributorTaskList()"><i class="fas fa-arrow-left me-1"></i>Kembali ke Tugas</button><button type="button" class="btn-close" aria-label="Tutup" onclick="closeJabarContributorSafe()"></button></div></div>
   <div class="modal-body">
     <div class="alert alert-info small py-2">Bapak/Ibu hanya mengirim <b>bahan bukti</b> sesuai tugas tambahan. <b>Admin tetap memilih bukti, mengisi laporan, dan mencetak laporan final.</b></div>
     <div id="jcTaskSegment" class="card border-warning-subtle mb-3"><div class="card-body p-2 p-md-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><b><i class="fas fa-list-check me-1"></i>Tugas Bukti Saya</b><div class="small text-muted">Seluruh indikator sesuai tugas tambahan Anda. Prioritas dan tenggat dari Admin tampil paling atas.</div></div><span id="jcTaskSummary" class="badge bg-secondary">Memuat...</span></div><div id="jcTaskList"><div class="text-muted small">Memuat daftar tugas...</div></div></div></div>
@@ -4216,10 +4219,24 @@ function restoreTeacherDashboardAfterJabar_(){
   const dt=document.getElementById('dashboard-teacher'); if(dt) dt.classList.add('active');
   document.getElementById('mainBody')?.classList.add('ortu-body');
 }
+function setJabarBackToTasksVisible_(visible){
+  const b=document.getElementById('btnJabarBackToTasks');
+  if(!b) return;
+  if(visible){
+    b.hidden=false;
+    b.removeAttribute('aria-hidden');
+    b.classList.remove('d-none');
+    b.style.setProperty('display','inline-block','important');
+  }else{
+    b.hidden=true;
+    b.setAttribute('aria-hidden','true');
+    b.classList.add('d-none');
+    b.style.setProperty('display','none','important');
+  }
+}
 function backJabarContributorTaskList(){
-  // V1.5.0.2.3: kembali satu tingkat ke daftar tugas, BUKAN menutup modal.
-  const backBtn=document.getElementById('btnJabarBackToTasks');
-  if(backBtn) backBtn.style.display='none';
+  // V1.5.0.2.4: kembali ke daftar tugas di dalam modal, bukan ke dashboard.
+  setJabarBackToTasksVisible_(false);
   const task=document.getElementById('jcTaskSegment');
   const modal=document.getElementById('modalJabarContributor');
   const body=modal?.querySelector('.modal-body');
@@ -4230,6 +4247,7 @@ function backJabarContributorTaskList(){
   }else if(body){ body.scrollTo({top:0,behavior:'smooth'}); }
 }
 function closeJabarContributorSafe(){
+  setJabarBackToTasksVisible_(false);
   const el=document.getElementById('modalJabarContributor');
   if(el){ const m=bootstrap.Modal.getInstance(el)||bootstrap.Modal.getOrCreateInstance(el); m.hide(); }
   setTimeout(restoreTeacherDashboardAfterJabar_,80);
@@ -4259,8 +4277,7 @@ let jabarMyTasksCache=[];
 let jabarMyTasksLoaded=false;
 let jabarContributorPrevActiveBtn=null;
 function pilihTugasJabar(kode,laporan){
-  const backBtn=document.getElementById('btnJabarBackToTasks');
-  if(backBtn) backBtn.style.display='inline-block';
+  setJabarBackToTasksVisible_(true);
   const l=document.getElementById('jabarContribLaporan'); if(l&&laporan){l.value=String(laporan);}
   loadJabarContribIndikator().then(()=>{
     const k=document.getElementById('jabarContribKode'); if(k)k.value=kode;
@@ -4286,8 +4303,7 @@ async function loadJabarTugasSaya(){
   box.innerHTML=rows.map(x=>{const pri=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger me-1">PRIORITAS</span>':'';const due=x.tenggat?`<span class="badge bg-warning text-dark"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</span>`:'';const sent=Number(x.kontribusi||0);const st=sent?`<span class="badge bg-success">${sent} bukti dikirim</span>`:'<span class="badge bg-secondary">Belum dikirim</span>';return `<div class="border rounded p-2 mb-2 ${pri?'border-danger':''}"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><div>${pri}${due}</div><b>${escapeHtml(x.kode)} — ${escapeHtml(x.indikator)}</b><div class="small mt-1"><b>Yang harus disiapkan:</b> ${escapeHtml(x.bukti||'-')}</div><div class="small text-muted">PJ: ${escapeHtml(x.penanggung_jawab||'-')}</div></div><div class="text-end">${st}<div class="mt-1"><button class="btn btn-sm btn-outline-warning" onclick='pilihTugasJabar(${JSON.stringify(x.kode)},${JSON.stringify(x.laporan)})'><i class="fas fa-upload me-1"></i>Tambah Bukti</button></div></div></div></div>`;}).join('');
 }
 async function openJabarContributor(sourceRole, btnElement){
-  const backBtn=document.getElementById('btnJabarBackToTasks');
-  if(backBtn) backBtn.style.display='none';
+  setJabarBackToTasksVisible_(false);
   const u=currentJabarContributor(), reports=getJabarAllowedReportsFromTugas(u.tugas,u.role); if(!reports.length) return alert('Akun ini belum memiliki tugas tambahan yang terkait Jabar Beraksi.');
   document.getElementById('jabarContribInfo').textContent=`${u.name||u.id} • ${u.tugas||'-'}`;
   const r=await apiJabar({action:'get_jabar_tahun'}); if(r.status!=='success') return alert(r.message||'Gagal memuat tahun.');
