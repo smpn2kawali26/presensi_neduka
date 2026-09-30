@@ -3904,7 +3904,6 @@ function initPublic7KAIHPage(){
     document.getElementById('public-7kaih-section').style.display='block';
     loadPublicBukti7KAIH();
 }
-initPublicJabarReport();
 initPublic7KAIHPage();
 initPublicDokumentasiPage();
 
@@ -4200,6 +4199,9 @@ async function linkJabarContributor(){
 async function loadJabarContribRiwayat(){
   const box=document.getElementById('jcRiwayat');if(!box)return;box.innerHTML='Memuat...';const r=await apiJabar({action:'get_kontribusi_jabar_saya'});if(r.status!=='success'){box.innerHTML=`<span class="text-danger">${escapeHtml(r.message||'Gagal memuat.')}</span>`;return;}const rows=r.data||[];box.innerHTML=rows.length?rows.slice(0,15).map(x=>`<div class="border rounded p-2 mb-2"><b>${escapeHtml(x.judul)}</b><div class="text-muted">${escapeHtml(x.tahun)} • Laporan ${escapeHtml(x.laporan)}${x.saran_kode?' • Saran '+escapeHtml(x.saran_kode):''} • ${escapeHtml(x.status)}</div></div>`).join(''):'Belum ada bukti yang dikirim.';
 }
+
+// V1.5.0.2.1 HOTFIX: jalankan portal publik Jabar setelah cache/API Jabar selesai diinisialisasi.
+initPublicJabarReport();
 
 </script>
 </body>
