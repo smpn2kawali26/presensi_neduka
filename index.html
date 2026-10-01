@@ -390,7 +390,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.5 TAHAP 2.0.2 - LAPORAN RESMI + OTOMATISASI DATA -->
+    <!-- V1.5 TAHAP 2.1.0 - LAPORAN RESMI + OTOMATISASI DATA -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -4260,12 +4260,46 @@ function openJabarDataLaporan(x){
 }
 
 async function ambilSaranOtomatisJabar(){
-  const box=document.getElementById('jabarAutoSuggestion'),code=document.getElementById('jabarDataKode').value;box.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memeriksa data portal...';
+  const box=document.getElementById('jabarAutoSuggestion'),code=document.getElementById('jabarDataKode').value;
+  box.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memeriksa data portal...';
   const r=await apiJabar({action:'get_jabar_auto_data',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode:code});
   if(r.status!=='success'){box.innerHTML=`<span class="text-danger">${escapeHtml(r.message||'Gagal mengambil saran.')}</span>`;return;}
-  let parts=[];if(r.jumlah_sasaran!=='')parts.push(`Jumlah sasaran: <b>${escapeHtml(r.jumlah_sasaran)}</b>`);if(r.nilai!=='')parts.push(`Persentase/angka: <b>${escapeHtml(r.nilai)}${code==='1.01'||code==='1.07'?'%':''}</b>`);if(r.sumber)parts.push(`Sumber: <b>${escapeHtml(r.sumber)}</b>`);box.innerHTML=(parts.join(' • ')||'Belum ada data yang dapat dihitung otomatis.')+(r.catatan?`<div class="mt-1 text-muted">${escapeHtml(r.catatan)}</div>`:'')+(r.jumlah_sasaran!==''||r.nilai!==''?'<button type="button" class="btn btn-success btn-sm mt-2" id="btnApplyAutoJabar">Gunakan Saran Ini</button>':'');
-  const b=document.getElementById('btnApplyAutoJabar');if(b)b.onclick=()=>{if(r.jumlah_sasaran!==''&&document.getElementById('jabarDataModeSasaran').value==='COUNT')document.getElementById('jabarDataJumlahSasaran').value=r.jumlah_sasaran;if(r.nilai!==''&&document.getElementById('jabarDataTipeNilai').value!=='NONE')document.getElementById('jabarDataNilai').value=r.nilai;if(r.status_laporan)document.getElementById('jabarDataStatus').value=r.status_laporan;};
+
+  let parts=[];
+  if(r.jumlah_sasaran!=='')parts.push(`Jumlah sasaran: <b>${escapeHtml(r.jumlah_sasaran)}</b>`);
+  if(r.nilai!=='')parts.push(`Persentase/angka: <b>${escapeHtml(r.nilai)}%</b>`);
+  if(r.sumber)parts.push(`Sumber: <b>${escapeHtml(r.sumber)}</b>`);
+
+  let extra='';
+  if(r.jenis_saran==='JURNAL_KEGIATAN'&&r.jurnal){
+    extra=`<div class="mt-2 p-2 border rounded bg-light">
+      <div><b>Rekap Jurnal 7KAIH</b></div>
+      <div class="small">Kebiasaan: <b>${escapeHtml(r.jurnal.kebiasaan||'-')}</b> • Dokumentasi: <b>${escapeHtml(r.jurnal.jumlah_kegiatan||0)} kegiatan</b>${r.jurnal.tanggal_terakhir?` • Terakhir: <b>${escapeHtml(r.jurnal.tanggal_terakhir)}</b>`:''}</div>
+      ${r.jurnal.kegiatan_terakhir?`<div class="small text-muted mt-1">Kegiatan terakhir: ${escapeHtml(r.jurnal.kegiatan_terakhir)}${r.jurnal.sasaran_terakhir?` • Sasaran: ${escapeHtml(r.jurnal.sasaran_terakhir)}`:''}</div>`:''}
+      <div class="small text-warning-emphasis mt-1"><i class="fas fa-circle-info me-1"></i>Persentase tidak diisi otomatis karena jurnal tidak mencatat kehadiran tiap siswa.</div>
+    </div>`;
+  }
+
+  const canApply=r.jumlah_sasaran!==''||r.nilai!=='';
+  box.innerHTML=(parts.join(' • ')||'Belum ada data yang dapat dihitung otomatis.')+
+    (r.catatan?`<div class="mt-1 text-muted">${escapeHtml(r.catatan)}</div>`:'')+
+    extra+
+    (canApply?'<button type="button" class="btn btn-success btn-sm mt-2" id="btnApplyAutoJabar">'+(r.nilai!==''?'Gunakan Saran Ini':'Gunakan Jumlah Sasaran')+'</button>':'');
+
+  const b=document.getElementById('btnApplyAutoJabar');
+  if(b)b.onclick=()=>{
+    if(r.jumlah_sasaran!==''&&document.getElementById('jabarDataModeSasaran').value==='COUNT'){
+      document.getElementById('jabarDataJumlahSasaran').value=r.jumlah_sasaran;
+    }
+    if(r.nilai!==''&&document.getElementById('jabarDataTipeNilai').value!=='NONE'){
+      document.getElementById('jabarDataNilai').value=r.nilai;
+    }
+    if(r.status_laporan){
+      document.getElementById('jabarDataStatus').value=r.status_laporan;
+    }
+  };
 }
+
 async function hitungAbsensiJabar(){
   const d=document.getElementById('jabarAttendanceDate').value,box=document.getElementById('jabarAttendanceResult');if(!d)return alert('Pilih tanggal kegiatan terlebih dahulu.');box.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menghitung rekap absensi...';
   const r=await apiJabar({action:'get_jabar_absensi_tanggal',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,tanggal:d});
