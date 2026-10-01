@@ -208,6 +208,13 @@
         .jbpub-evidence a{word-break:break-word;}
         .jbpub-official-table td,.jbpub-official-table th{vertical-align:top;}
         .jbpub-official-value{font-weight:600;}
+        .jb-final-ready-pill{font-weight:700;}
+        @media print{
+          body.jbpub-mode h6{break-after:avoid-page;page-break-after:avoid;}
+          body.jbpub-mode #jbpubReportLinkText a{color:#000!important;text-decoration:none!important;}
+          body.jbpub-mode .jbpub-official-table{margin-bottom:7mm!important;}
+        }
+
         @media print{body.jbpub-mode #jbpubSchoolIdentity{background:#fff!important;}body.jbpub-mode #jbpubGambaran{min-height:45mm!important;border:1px solid #888!important;}}
         .jbpub-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
         .jbpub-hub-card{display:block;text-decoration:none;color:inherit;border:1px solid #dce6f3;border-radius:14px;padding:18px;background:#fff;transition:.18s ease;min-height:132px;}
@@ -390,7 +397,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.5 TAHAP 2.1.0 - LAPORAN RESMI + OTOMATISASI DATA -->
+    <!-- V1.5 TAHAP 3.0 FINAL - LAPORAN RESMI + OTOMATISASI DATA -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -776,6 +783,7 @@
                             <div class="d-flex flex-wrap gap-2 justify-content-end">
                                 <button class="btn btn-outline-success btn-sm" onclick="salinLinkLaporanJabar()"><i class="fas fa-link me-1"></i> Link Laporan</button>
                                 <button class="btn btn-outline-dark btn-sm" onclick="cetakLaporanJabar()"><i class="fas fa-print me-1"></i> Cetak / PDF</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="validasiJabarFinal()"><i class="fas fa-clipboard-check me-1"></i> Validasi Final</button>
                                 <button class="btn btn-outline-info btn-sm" onclick="openJabarGambaranUmum()"><i class="fas fa-align-left me-1"></i> Gambaran Umum</button>
                                 <button class="btn btn-outline-primary btn-sm" onclick="tambahTahunJabar()"><i class="fas fa-calendar-plus me-1"></i> Tambah Tahun</button>
                             </div>
@@ -1281,6 +1289,29 @@
     <hr><div class="d-flex justify-content-between align-items-center"><h6 class="fw-bold mb-0">Bukti yang sudah terhubung</h6><span id="jabarTaggedCount" class="badge bg-secondary">0/5</span></div><div id="jabarTaggedList" class="small text-muted mt-2">Memuat...</div>
   </div>
 </div></div></div>
+
+
+    <!-- V1.5 TAHAP 3.0 FINAL - VALIDASI LAPORAN -->
+    <div class="modal fade" id="modalJabarFinalValidation" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <div><h5 class="modal-title mb-0"><i class="fas fa-clipboard-check me-2"></i>Validasi Final Jabar Beraksi</h5>
+          <small id="jabarFinalValidationSub" class="text-white-50"></small></div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="jabarFinalValidationSummary" class="mb-3"></div>
+          <div id="jabarFinalValidationList"></div>
+          <div class="alert alert-light border small mt-3 mb-0">
+            <b>Catatan:</b> Validasi ini adalah pemeriksaan kelengkapan portal sebelum dicetak. Admin tetap bertanggung jawab memastikan isi, persentase/angka, dan bukti sesuai dokumen resmi.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button id="btnJabarFinalPrint" class="btn btn-success" onclick="cetakJabarFinalDariValidasi()"><i class="fas fa-print me-1"></i>Cetak Laporan Final</button>
+        </div>
+      </div></div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -4044,6 +4075,45 @@ function getJabarReportUrl(){
 }
 async function salinLinkLaporanJabar(){const url=getJabarReportUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link laporan berhasil disalin.');else window.prompt('Salin link laporan:',url);}
 function cetakLaporanJabar(){window.open(getJabarReportUrl()+'&print=1','_blank');}
+
+function formatKodeJabarFinal_(kode){
+  const p=String(kode||'').trim().split('.');
+  const a=parseInt(p[0]||'0',10)||0,b=parseInt(p[1]||'0',10)||0;
+  return `${String(a).padStart(2,'0')}.${String(b).padStart(2,'0')}`;
+}
+let jabarFinalValidationLast=null;
+async function validasiJabarFinal(){
+  const year=document.getElementById('jabarTahun')?.value||'2026', report=document.getElementById('jabarLaporan')?.value||'1';
+  const sub=document.getElementById('jabarFinalValidationSub'),sum=document.getElementById('jabarFinalValidationSummary'),list=document.getElementById('jabarFinalValidationList');
+  if(sub)sub.textContent=`Tahun ${year} • Laporan ${report}`;
+  if(sum)sum.innerHTML='<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span>Memeriksa kelengkapan laporan...</div>';
+  if(list)list.innerHTML='';
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarFinalValidation')).show();
+  const r=await apiJabar({action:'get_jabar_final_readiness',tahun:year,laporan:report});
+  if(r.status!=='success'){if(sum)sum.innerHTML=`<div class="alert alert-danger">${escapeHtml(r.message||'Validasi gagal.')}</div>`;return;}
+  jabarFinalValidationLast=r;
+  const ready=!!r.siap_final;
+  if(sum)sum.innerHTML=`<div class="alert ${ready?'alert-success':'alert-warning'} mb-2">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+      <div><b>${ready?'SIAP CETAK FINAL':'BELUM LENGKAP'}</b><div class="small">${ready?'Seluruh pemeriksaan kelengkapan portal terpenuhi.':'Masih ada bagian yang perlu dilengkapi atau diperiksa.'}</div></div>
+      <span class="badge ${ready?'bg-success':'bg-warning text-dark'} fs-6">${r.skor_lengkap}/${r.total_pemeriksaan}</span>
+    </div>
+  </div>
+  <div class="row g-2">
+    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center"><div class="small text-muted">Indikator</div><b>${r.total_indikator}</b></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center"><div class="small text-muted">Data Lengkap</div><b>${r.data_lengkap}/${r.total_indikator}</b></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center"><div class="small text-muted">Ada Bukti</div><b>${r.bukti_lengkap}/${r.total_indikator}</b></div></div>
+    <div class="col-6 col-md-3"><div class="border rounded p-2 text-center"><div class="small text-muted">Gambaran Umum</div><b>${r.gambaran_umum_terisi?'Sudah':'Belum'}</b></div></div>
+  </div>`;
+  const issues=r.masalah||[];
+  if(list)list.innerHTML=issues.length?`<h6 class="fw-bold mt-3">Yang perlu diperiksa</h6>${issues.map(x=>`<div class="border rounded p-2 mb-2"><b>${escapeHtml(formatKodeJabarFinal_(x.kode||''))} — ${escapeHtml(x.indikator||'')}</b><div class="small text-danger mt-1">${(x.masalah||[]).map(m=>'• '+escapeHtml(m)).join('<br>')}</div></div>`).join('')}`:'<div class="alert alert-success mt-3 mb-0"><i class="fas fa-check-circle me-1"></i>Tidak ditemukan kekurangan berdasarkan pemeriksaan portal.</div>';
+}
+function cetakJabarFinalDariValidasi(){
+  const r=jabarFinalValidationLast;
+  if(!r)return cetakLaporanJabar();
+  if(!r.siap_final&&!confirm('Laporan masih memiliki bagian yang belum lengkap. Tetap buka Cetak/PDF final?'))return;
+  window.open(getJabarReportUrl()+'&print=1','_blank');
+}
 async function loadPublicJabarReport(year,report){
   const body=document.getElementById('jbpubBody'),official=document.getElementById('jbpubOfficialBody');
   try{
@@ -4058,8 +4128,8 @@ async function loadPublicJabarReport(year,report){
     const reportUrl=getJabarPublicDetailUrl(year,report);document.getElementById('jbpubReportLinkText').innerHTML=`<a href="${escapeHtml(reportUrl)}">${escapeHtml(reportUrl)}</a>`;
     document.getElementById('jbpubGambaran').textContent=r.gambaran_umum||'Belum diisi.';
     const rows=r.data||[];
-    official.innerHTML=rows.length?rows.map(x=>{let target='–';if(x.jumlah_sasaran!=='')target=`${escapeHtml(x.jumlah_sasaran)} ${escapeHtml(x.satuan_sasaran||'')}`.trim();let val='–';if(x.tipe_nilai==='PERSEN'&&x.nilai_laporan!=='')val=`${escapeHtml(x.nilai_laporan)} %`;else if(x.tipe_nilai==='ANGKA'&&x.nilai_laporan!=='')val=escapeHtml(x.nilai_laporan);return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}</td><td>${target}</td><td>${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</td><td class="jbpub-official-value">${val}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
-    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');const fileNames=(x.bukti||[]).map(b=>escapeHtml(b.judul||'Bukti')).join('<br>')||`Subfolder ${escapeHtml(x.kode)}`;return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}<div class="small text-muted mt-1">Kebutuhan: ${escapeHtml(x.bukti_dibutuhkan||'-')}</div></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti terhubung.</span>'}</td><td class="small">Subfolder ${escapeHtml(x.kode)}${fileNames?`<hr class="my-1">${fileNames}`:''}</td></tr>`;}).join(''):'<tr><td colspan="4" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    official.innerHTML=rows.length?rows.map(x=>{let target='–';if(x.jumlah_sasaran!=='')target=`${escapeHtml(x.jumlah_sasaran)} ${escapeHtml(x.satuan_sasaran||'')}`.trim();let val='–';if(x.tipe_nilai==='PERSEN'&&x.nilai_laporan!=='')val=`${escapeHtml(x.nilai_laporan)} %`;else if(x.tipe_nilai==='ANGKA'&&x.nilai_laporan!=='')val=escapeHtml(x.nilai_laporan);return `<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td>${escapeHtml(x.indikator)}</td><td>${target}</td><td>${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</td><td class="jbpub-official-value">${val}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');const fileNames=(x.bukti||[]).map(b=>escapeHtml(b.judul||'Bukti')).join('<br>')||`Subfolder ${escapeHtml(x.kode)}`;return `<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td>${escapeHtml(x.indikator)}<div class="small text-muted mt-1">Kebutuhan: ${escapeHtml(x.bukti_dibutuhkan||'-')}</div></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti terhubung.</span>'}</td><td class="small">Subfolder ${escapeHtml(x.kode)}${fileNames?`<hr class="my-1">${fileNames}`:''}</td></tr>`;}).join(''):'<tr><td colspan="4" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
     const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),700);
   }catch(e){const msg=`<div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div>`;body.innerHTML=`<tr><td colspan="4">${msg}</td></tr>`;if(official)official.innerHTML=`<tr><td colspan="5">${msg}</td></tr>`;}
 }
@@ -4151,14 +4221,14 @@ async function loadJabarIndikator(){
   if(r.status!=='success'){body.innerHTML=`<tr><td colspan="8"><div class="alert alert-danger mb-0">${escapeHtml(r.message||'Gagal memuat indikator.')}<div class="mt-2"><button class="btn btn-sm btn-outline-danger" onclick="loadJabarIndikator()"><i class="fas fa-rotate me-1"></i>Coba Muat Ulang</button></div></div></td></tr>`;return;}
   document.getElementById('jabarJudulLaporan').textContent=`${year} — ${r.judul_laporan||('Laporan '+report)}`;
   let rows=r.data||[], ada=rows.filter(x=>Number(x.jumlah_bukti)>0).length, belum=rows.length-ada, totalBukti=rows.reduce((a,x)=>a+Number(x.jumlah_bukti||0),0), dataIsi=rows.filter(x=>x.data_laporan_terisi).length;
-  let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Data Laporan Terisi</div><b class="text-primary">${dataIsi}/${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada Bukti</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div>`;
+  let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Data Laporan Terisi</div><b class="text-primary">${dataIsi}/${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada Bukti</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div><div class="col-12 col-md"><button class="btn btn-outline-success btn-sm w-100 h-100" onclick="validasiJabarFinal()"><i class="fas fa-clipboard-check me-1"></i>Validasi Final</button></div>`;
   body.innerHTML=rows.length?'':'<tr><td colspan="8" class="text-center text-muted">Belum ada indikator.</td></tr>';
   rows.forEach(x=>{
     let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;
     let pr=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger">PRIORITAS</span>':'<span class="badge bg-light text-dark border">Normal</span>';let due=x.tenggat?`<div class="small mt-1"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</div>`:'<div class="small text-muted mt-1">Tanpa tenggat</div>';
     let parts=[];if(x.mode_sasaran==='COUNT')parts.push(`${escapeHtml(x.jumlah_sasaran||'—')} ${escapeHtml(x.satuan_sasaran||'')}`);parts.push(`<span class="badge ${x.status_laporan==='SUDAH'?'bg-success':'bg-secondary'}">${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</span>`);if(x.tipe_nilai==='PERSEN')parts.push(`${escapeHtml(x.nilai_laporan||'—')}%`);else if(x.tipe_nilai==='ANGKA')parts.push(escapeHtml(x.nilai_laporan||'—'));
     let dl=`<div class="small">${parts.join(' • ')}</div>${x.data_laporan_terisi?'<span class="badge bg-primary-subtle text-primary border mt-1">Sudah diisi</span>':'<span class="badge bg-light text-muted border mt-1">Belum diisi</span>'}`;
-    body.innerHTML+=`<tr><td><b>${escapeHtml(x.kode)}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${pr}${due}</td><td style="min-width:150px">${dl}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-primary me-1" onclick='openJabarDataLaporan(${JSON.stringify(x)})'><i class="fas fa-clipboard-check me-1"></i>Isi Data</button><button class="btn btn-sm btn-outline-primary me-1" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button><button class="btn btn-sm btn-outline-warning" onclick='aturJabarTugas(${JSON.stringify(x.kode)},${JSON.stringify(x.prioritas||'NORMAL')},${JSON.stringify(x.tenggat||'')})'><i class="fas fa-flag me-1"></i>Atur</button></td></tr>`;
+    body.innerHTML+=`<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td style="min-width:260px">${escapeHtml(x.indikator)}</td><td style="min-width:240px"><span class="small text-muted">${escapeHtml(x.bukti||'-')}</span></td><td>${escapeHtml(x.penanggung_jawab||'-')}</td><td>${pr}${due}</td><td style="min-width:150px">${dl}</td><td>${badge}</td><td class="text-nowrap"><button class="btn btn-sm btn-primary me-1" onclick='openJabarDataLaporan(${JSON.stringify(x)})'><i class="fas fa-clipboard-check me-1"></i>Isi Data</button><button class="btn btn-sm btn-outline-primary me-1" onclick='openJabarBukti(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-link me-1"></i>Bukti</button><button class="btn btn-sm btn-outline-warning" onclick='aturJabarTugas(${JSON.stringify(x.kode)},${JSON.stringify(x.prioritas||'NORMAL')},${JSON.stringify(x.tenggat||'')})'><i class="fas fa-flag me-1"></i>Atur</button></td></tr>`;
   });
 }
 async function openJabarBukti(kode,judul){
