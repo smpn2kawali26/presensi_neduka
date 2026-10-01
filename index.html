@@ -206,6 +206,9 @@
         .jbpub-shell{max-width:1180px;margin:-34px auto 0;padding:0 18px 40px;}
         .jbpub-card{background:#fff;border:1px solid #e4eaf2;border-radius:16px;box-shadow:0 10px 30px rgba(21,54,95,.10);}
         .jbpub-evidence a{word-break:break-word;}
+        .jbpub-official-table td,.jbpub-official-table th{vertical-align:top;}
+        .jbpub-official-value{font-weight:600;}
+        @media print{body.jbpub-mode #jbpubSchoolIdentity{background:#fff!important;}body.jbpub-mode #jbpubGambaran{min-height:45mm!important;border:1px solid #888!important;}}
         .jbpub-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
         .jbpub-hub-card{display:block;text-decoration:none;color:inherit;border:1px solid #dce6f3;border-radius:14px;padding:18px;background:#fff;transition:.18s ease;min-height:132px;}
         .jbpub-hub-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(21,54,95,.12);border-color:#8db7e6;color:inherit;}
@@ -387,7 +390,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.5.0.2.4 - HOTFIX STATE TOMBOL KEMBALI MOBILE -->
+    <!-- V1.5 TAHAP 2 - LAPORAN RESMI + OTOMATISASI DATA -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -414,9 +417,15 @@
             <div><h4 id="jbpubTitle" class="fw-bold mb-1">Memuat laporan...</h4><div id="jbpubMeta" class="text-muted small"></div></div>
             <button class="btn btn-outline-primary btn-sm jbpub-no-print" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
           </div>
-          <div class="alert alert-info py-2 small mb-3">Halaman ini adalah indeks bukti dukung digital. Bukti berstatus INTERNAL tidak membuka file kepada publik.</div>
-          <div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-primary"><tr><th style="width:70px">Kode</th><th>Indikator</th><th>Bukti Dibutuhkan</th><th style="width:90px">Status</th><th>Bukti Terhubung</th></tr></thead><tbody id="jbpubBody"><tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
-          <div class="text-center small text-muted mt-3">Portal Bukti Dukung Jabar Beraksi • SMP Negeri 2 Kawali</div>
+          <div id="jbpubSchoolIdentity" class="small border rounded p-2 mb-3 bg-light"></div>
+          <h6 class="fw-bold mt-3">TABEL INDIKATOR</h6>
+          <div class="table-responsive"><table class="table table-bordered align-middle jbpub-official-table"><thead class="table-primary"><tr><th style="width:62px">No.</th><th>Indikator</th><th style="width:120px">Jumlah Sasaran</th><th style="width:82px">Status</th><th style="width:115px">Persentase / Angka</th></tr></thead><tbody id="jbpubOfficialBody"><tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-4 mb-2"><h6 class="fw-bold mb-0">BUKTI DUKUNG LAPORAN <span id="jbpubEvidenceReportNo"></span></h6><span class="small text-muted">Maksimal 5 bukti per indikator</span></div>
+          <div class="small mb-2"><b>Tautan laporan/bukti:</b> <span id="jbpubReportLinkText"></span></div>
+          <div class="alert alert-info py-2 small mb-3 jbpub-no-print">Bukti berstatus INTERNAL tetap tercatat, tetapi file tidak dibuka pada halaman publik.</div>
+          <div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-primary"><tr><th style="width:62px">No.</th><th>Indikator</th><th>Bukti dukung yang dilampirkan</th><th style="width:175px">Subfolder / Nama File</th></tr></thead><tbody id="jbpubBody"><tr><td colspan="4" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
+          <div class="mt-4"><h6 class="fw-bold">Gambaran Umum Pelaksanaan</h6><div id="jbpubGambaran" class="border rounded p-3 small" style="min-height:90px;white-space:pre-wrap"></div></div>
+          <div class="text-center small text-muted mt-3 jbpub-no-print">Portal Bukti Dukung Jabar Beraksi • SMP Negeri 2 Kawali</div>
         </div>
       </div>
     </div>
@@ -1213,6 +1222,15 @@
         <div class="modal-body">
           <div class="alert alert-light border small"><b>Data ini untuk tabel laporan resmi.</b> Bukti pendukung tetap dikelola melalui tombol <b>Bukti</b>.</div>
           <input type="hidden" id="jabarDataKode"><input type="hidden" id="jabarDataTipeNilai"><input type="hidden" id="jabarDataModeSasaran">
+          <div class="card border-success mb-3"><div class="card-body py-3">
+            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center"><div><b class="text-success"><i class="fas fa-magic me-1"></i>Saran Otomatis Portal</b><div class="small text-muted">Dipakai hanya bila data sumber tersedia. Admin tetap dapat mengoreksi manual.</div></div><button type="button" class="btn btn-outline-success btn-sm" onclick="ambilSaranOtomatisJabar()"><i class="fas fa-sync-alt me-1"></i>Ambil Saran</button></div>
+            <div id="jabarAutoSuggestion" class="small mt-2 text-muted">Belum dimuat.</div>
+          </div></div>
+          <div id="jabarAttendanceHelper" class="card border-warning mb-3 d-none"><div class="card-body py-3">
+            <b><i class="fas fa-user-check me-1"></i>Rekap Kehadiran Sekolah</b><div class="small text-muted mb-2">Untuk indikator kegiatan bersama, rekap absensi dapat dipakai sebagai bukti kehadiran sekolah pada tanggal kegiatan. Ini tidak otomatis berarti seluruh siswa mengikuti kegiatan.</div>
+            <div class="row g-2"><div class="col-md-5"><input type="date" id="jabarAttendanceDate" class="form-control"></div><div class="col-md-7 d-flex flex-wrap gap-2"><button type="button" class="btn btn-outline-warning btn-sm" onclick="hitungAbsensiJabar()">Hitung dari Absensi</button><button type="button" id="btnUseAttendanceJabar" class="btn btn-warning btn-sm d-none" onclick="gunakanAbsensiJabar()">Gunakan Jumlah & Persentase</button><button type="button" id="btnPrintAttendanceJabar" class="btn btn-outline-secondary btn-sm d-none" onclick="cetakDaftarHadirJabar()"><i class="fas fa-print me-1"></i>Cetak Daftar Hadir</button></div></div>
+            <div id="jabarAttendanceResult" class="small mt-2"></div>
+          </div></div>
           <div id="jabarDataSasaranWrap" class="mb-3"><label class="form-label fw-bold">Jumlah Sasaran</label><div class="input-group"><input type="number" min="0" step="1" id="jabarDataJumlahSasaran" class="form-control"><span id="jabarDataSatuan" class="input-group-text">siswa</span></div></div>
           <div class="mb-3"><label class="form-label fw-bold">Status</label><select id="jabarDataStatus" class="form-select"><option value="BELUM">Belum</option><option value="SUDAH">Sudah</option></select></div>
           <div id="jabarDataNilaiWrap" class="mb-3"><label id="jabarDataNilaiLabel" class="form-label fw-bold">Persentase / Angka</label><div class="input-group"><input type="number" id="jabarDataNilai" class="form-control"><span id="jabarDataNilaiSuffix" class="input-group-text">%</span></div></div>
@@ -4027,17 +4045,23 @@ function getJabarReportUrl(){
 async function salinLinkLaporanJabar(){const url=getJabarReportUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link laporan berhasil disalin.');else window.prompt('Salin link laporan:',url);}
 function cetakLaporanJabar(){window.open(getJabarReportUrl()+'&print=1','_blank');}
 async function loadPublicJabarReport(year,report){
-  const body=document.getElementById('jbpubBody');
+  const body=document.getElementById('jbpubBody'),official=document.getElementById('jbpubOfficialBody');
   try{
     const r=await apiJabar({action:'get_jabar_public_report',tahun:year,laporan:report});
     if(r.status!=='success')throw new Error(r.message||'Gagal memuat laporan.');
+    const profil=r.profil||{},school=profil.nama_sekolah||'SMP NEGERI 2 KAWALI';
     document.getElementById('jbpubTitle').textContent=`Laporan ${report} — ${r.judul_laporan||''}`;
-    document.getElementById('jbpubMeta').textContent=`Tahun Pelaporan ${year} • SMP Negeri 2 Kawali`;
-    document.getElementById('jbpubHeroSub').textContent=`Bukti Dukung • Tahun Pelaporan ${year}`;
+    document.getElementById('jbpubMeta').textContent=`Tahun Pelaporan ${year} • ${school}`;
+    document.getElementById('jbpubHeroSub').textContent=`Laporan Resmi & Bukti Dukung • Tahun ${year}`;
+    document.getElementById('jbpubSchoolIdentity').innerHTML=`<b>SEKOLAH:</b> ${escapeHtml(school)}<br><b>NPSN:</b> ${escapeHtml(profil.npsn||'-')}<br><b>ALAMAT:</b> ${escapeHtml(profil.alamat||'-')}`;
+    document.getElementById('jbpubEvidenceReportNo').textContent=report;
+    const reportUrl=getJabarPublicDetailUrl(year,report);document.getElementById('jbpubReportLinkText').innerHTML=`<a href="${escapeHtml(reportUrl)}">${escapeHtml(reportUrl)}</a>`;
+    document.getElementById('jbpubGambaran').textContent=r.gambaran_umum||'Belum diisi.';
     const rows=r.data||[];
-    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}</td><td class="small">${escapeHtml(x.bukti_dibutuhkan||'-')}</td><td><span class="badge ${x.status==='SUDAH'?'bg-success':'bg-danger'}">${x.status==='SUDAH'?'Sudah':'Belum'}</span></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti.</span>'}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
-    const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),500);
-  }catch(e){body.innerHTML=`<tr><td colspan="5"><div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div></td></tr>`;}
+    official.innerHTML=rows.length?rows.map(x=>{let target='–';if(x.jumlah_sasaran!=='')target=`${escapeHtml(x.jumlah_sasaran)} ${escapeHtml(x.satuan_sasaran||'')}`.trim();let val='–';if(x.tipe_nilai==='PERSEN'&&x.nilai_laporan!=='')val=`${escapeHtml(x.nilai_laporan)} %`;else if(x.tipe_nilai==='ANGKA'&&x.nilai_laporan!=='')val=escapeHtml(x.nilai_laporan);return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}</td><td>${target}</td><td>${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</td><td class="jbpub-official-value">${val}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');const fileNames=(x.bukti||[]).map(b=>escapeHtml(b.judul||'Bukti')).join('<br>')||`Subfolder ${escapeHtml(x.kode)}`;return `<tr><td><b>${escapeHtml(x.kode)}</b></td><td>${escapeHtml(x.indikator)}<div class="small text-muted mt-1">Kebutuhan: ${escapeHtml(x.bukti_dibutuhkan||'-')}</div></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti terhubung.</span>'}</td><td class="small">Subfolder ${escapeHtml(x.kode)}${fileNames?`<hr class="my-1">${fileNames}`:''}</td></tr>`;}).join(''):'<tr><td colspan="4" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),700);
+  }catch(e){const msg=`<div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div>`;body.innerHTML=`<tr><td colspan="4">${msg}</td></tr>`;if(official)official.innerHTML=`<tr><td colspan="5">${msg}</td></tr>`;}
 }
 const JABAR_PUBLIC_REPORT_NAMES={
   '1':'Implementasi Penguatan Pendidikan Karakter melalui Pembiasaan di Satuan Pendidikan',
@@ -4183,8 +4207,13 @@ async function untagJabar(id){if(!confirm('Lepas kaitan bukti ini dari indikator
 // ============================================================================
 // V1.5 TAHAP 1 - DATA LAPORAN RESMI (ADMIN)
 // ============================================================================
+let jabarAttendanceLast=null;
 function openJabarDataLaporan(x){
   document.getElementById('jabarDataKode').value=x.kode||'';document.getElementById('jabarDataKodeLabel').textContent=`${x.kode||''} — ${x.indikator||''}`;
+  const auto=document.getElementById('jabarAutoSuggestion');if(auto)auto.textContent='Belum dimuat.';
+  jabarAttendanceLast=null;const ah=document.getElementById('jabarAttendanceHelper'),ar=document.getElementById('jabarAttendanceResult');if(ar)ar.innerHTML='';
+  const attendanceCodes=['1.08','1.09','1.10','1.11'];if(ah)ah.classList.toggle('d-none',attendanceCodes.indexOf(String(x.kode||''))===-1);
+  document.getElementById('btnUseAttendanceJabar')?.classList.add('d-none');document.getElementById('btnPrintAttendanceJabar')?.classList.add('d-none');
   document.getElementById('jabarDataModeSasaran').value=x.mode_sasaran||'NONE';document.getElementById('jabarDataTipeNilai').value=x.tipe_nilai||'NONE';
   const sw=document.getElementById('jabarDataSasaranWrap');if(x.mode_sasaran==='COUNT'){sw.classList.remove('d-none');document.getElementById('jabarDataJumlahSasaran').value=x.jumlah_sasaran||'';document.getElementById('jabarDataSatuan').textContent=x.satuan_sasaran||'sasaran';}else{sw.classList.add('d-none');document.getElementById('jabarDataJumlahSasaran').value='';}
   document.getElementById('jabarDataStatus').value=String(x.status_laporan||'BELUM').toUpperCase()==='SUDAH'?'SUDAH':'BELUM';
@@ -4194,6 +4223,27 @@ function openJabarDataLaporan(x){
   else{nw.classList.add('d-none');nn.classList.remove('d-none');inp.value='';}
   document.getElementById('jabarDataCatatan').value=x.catatan_laporan||'';new bootstrap.Modal(document.getElementById('modalJabarDataLaporan')).show();
 }
+
+async function ambilSaranOtomatisJabar(){
+  const box=document.getElementById('jabarAutoSuggestion'),code=document.getElementById('jabarDataKode').value;box.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Memeriksa data portal...';
+  const r=await apiJabar({action:'get_jabar_auto_data',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode:code});
+  if(r.status!=='success'){box.innerHTML=`<span class="text-danger">${escapeHtml(r.message||'Gagal mengambil saran.')}</span>`;return;}
+  let parts=[];if(r.jumlah_sasaran!=='')parts.push(`Jumlah sasaran: <b>${escapeHtml(r.jumlah_sasaran)}</b>`);if(r.nilai!=='')parts.push(`Persentase/angka: <b>${escapeHtml(r.nilai)}${code==='1.01'||code==='1.07'?'%':''}</b>`);if(r.sumber)parts.push(`Sumber: <b>${escapeHtml(r.sumber)}</b>`);box.innerHTML=(parts.join(' • ')||'Belum ada data yang dapat dihitung otomatis.')+(r.catatan?`<div class="mt-1 text-muted">${escapeHtml(r.catatan)}</div>`:'')+(r.jumlah_sasaran!==''||r.nilai!==''?'<button type="button" class="btn btn-success btn-sm mt-2" id="btnApplyAutoJabar">Gunakan Saran Ini</button>':'');
+  const b=document.getElementById('btnApplyAutoJabar');if(b)b.onclick=()=>{if(r.jumlah_sasaran!==''&&document.getElementById('jabarDataModeSasaran').value==='COUNT')document.getElementById('jabarDataJumlahSasaran').value=r.jumlah_sasaran;if(r.nilai!==''&&document.getElementById('jabarDataTipeNilai').value!=='NONE')document.getElementById('jabarDataNilai').value=r.nilai;if(r.status_laporan)document.getElementById('jabarDataStatus').value=r.status_laporan;};
+}
+async function hitungAbsensiJabar(){
+  const d=document.getElementById('jabarAttendanceDate').value,box=document.getElementById('jabarAttendanceResult');if(!d)return alert('Pilih tanggal kegiatan terlebih dahulu.');box.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menghitung rekap absensi...';
+  const r=await apiJabar({action:'get_jabar_absensi_tanggal',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,tanggal:d});
+  if(r.status!=='success'){box.innerHTML=`<span class="text-danger">${escapeHtml(r.message||'Gagal menghitung absensi.')}</span>`;return;}
+  jabarAttendanceLast=r;box.innerHTML=`Sasaran: <b>${r.total_sasaran}</b> • Tercatat: <b>${r.total_tercatat}</b> • Hadir/terlambat: <b>${r.hadir}</b> • Izin: ${r.izin} • Sakit: ${r.sakit} • Alpa: ${r.alpa} • Persentase hadir: <b>${r.persen_hadir}%</b><div class="text-muted mt-1">Gunakan sebagai rekap kehadiran sekolah pada tanggal kegiatan; Admin tetap menentukan apakah angka ini sesuai untuk indikator.</div>`;
+  document.getElementById('btnUseAttendanceJabar').classList.remove('d-none');document.getElementById('btnPrintAttendanceJabar').classList.remove('d-none');
+}
+function gunakanAbsensiJabar(){if(!jabarAttendanceLast)return;if(document.getElementById('jabarDataModeSasaran').value==='COUNT')document.getElementById('jabarDataJumlahSasaran').value=jabarAttendanceLast.total_sasaran;if(document.getElementById('jabarDataTipeNilai').value==='PERSEN')document.getElementById('jabarDataNilai').value=jabarAttendanceLast.persen_hadir;document.getElementById('jabarDataStatus').value=jabarAttendanceLast.total_tercatat>0?'SUDAH':'BELUM';}
+function cetakDaftarHadirJabar(){
+  const r=jabarAttendanceLast;if(!r)return;const rows=(r.data||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(x.nisn)}</td><td>${escapeHtml(x.nama)}</td><td>${escapeHtml(x.kelas)}</td><td>${escapeHtml(x.status)}</td></tr>`).join('');
+  const w=window.open('','_blank');if(!w)return alert('Popup diblokir browser. Izinkan popup untuk mencetak daftar hadir.');w.document.write(`<!doctype html><html><head><title>Rekap Kehadiran ${escapeHtml(r.tanggal)}</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px}h2,h3{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{border:1px solid #555;padding:5px}th{background:#eee}@media print{button{display:none}}</style></head><body><h2>REKAP KEHADIRAN SISWA</h2><h3>SMP NEGERI 2 KAWALI</h3><div>Tanggal: <b>${escapeHtml(r.tanggal)}</b></div><div>Sasaran: ${r.total_sasaran} siswa • Hadir/terlambat: ${r.hadir} • Persentase: ${r.persen_hadir}%</div><table><thead><tr><th>No</th><th>NISN</th><th>Nama</th><th>Kelas</th><th>Status</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Belum ada data kehadiran.</td></tr>'}</tbody></table><p><button onclick="window.print()">Cetak / Simpan PDF</button></p></body></html>`);w.document.close();
+}
+
 async function simpanJabarDataLaporan(){
   const btn=document.getElementById('btnSimpanJabarData');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
   try{const r=await apiJabar({action:'simpan_jabar_data_laporan',tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode:document.getElementById('jabarDataKode').value,jumlah_sasaran:document.getElementById('jabarDataJumlahSasaran').value,status_laporan:document.getElementById('jabarDataStatus').value,nilai_laporan:document.getElementById('jabarDataNilai').value,catatan_laporan:document.getElementById('jabarDataCatatan').value});if(r.status!=='success')throw new Error(r.message||'Gagal menyimpan data laporan.');bootstrap.Modal.getInstance(document.getElementById('modalJabarDataLaporan'))?.hide();showToast7KAIH(r.message||'Data laporan disimpan.');await loadJabarIndikator();}catch(e){alert(e.message||e);}finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan Data Laporan';}
