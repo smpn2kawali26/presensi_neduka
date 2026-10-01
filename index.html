@@ -390,7 +390,7 @@
     <div id="publicDokDetail" onclick="if(event.target===this)closePublicDokDetail()"><div class="pubdoc-detail-panel"><div id="publicDokDetailBody"></div></div></div>
 
 
-    <!-- V1.5 TAHAP 2 - LAPORAN RESMI + OTOMATISASI DATA -->
+    <!-- V1.5 TAHAP 2.0.1 - LAPORAN RESMI + OTOMATISASI DATA -->
     <div id="public-jabar-section">
       <div class="jbpub-hero"><div class="container text-center">
         <img src="logo.png" class="jbpub-logo shadow-sm mb-2" alt="Logo SMPN 2 Kawali">
@@ -1228,7 +1228,7 @@
           </div></div>
           <div id="jabarAttendanceHelper" class="card border-warning mb-3 d-none"><div class="card-body py-3">
             <b><i class="fas fa-user-check me-1"></i>Rekap Kehadiran Sekolah</b><div class="small text-muted mb-2">Untuk indikator kegiatan bersama, rekap absensi dapat dipakai sebagai bukti kehadiran sekolah pada tanggal kegiatan. Ini tidak otomatis berarti seluruh siswa mengikuti kegiatan.</div>
-            <div class="row g-2"><div class="col-md-5"><input type="date" id="jabarAttendanceDate" class="form-control"></div><div class="col-md-7 d-flex flex-wrap gap-2"><button type="button" class="btn btn-outline-warning btn-sm" onclick="hitungAbsensiJabar()">Hitung dari Absensi</button><button type="button" id="btnUseAttendanceJabar" class="btn btn-warning btn-sm d-none" onclick="gunakanAbsensiJabar()">Gunakan Jumlah & Persentase</button><button type="button" id="btnPrintAttendanceJabar" class="btn btn-outline-secondary btn-sm d-none" onclick="cetakDaftarHadirJabar()"><i class="fas fa-print me-1"></i>Cetak Daftar Hadir</button></div></div>
+            <div class="row g-2"><div class="col-md-5"><label class="form-label small fw-bold mb-1">Tanggal kegiatan</label><input type="date" id="jabarAttendanceDate" class="form-control"></div><div class="col-md-7 d-flex flex-wrap gap-2"><button type="button" class="btn btn-outline-warning btn-sm" onclick="hitungAbsensiJabar()">Hitung dari Absensi</button><button type="button" id="btnUseAttendanceJabar" class="btn btn-warning btn-sm d-none" onclick="gunakanAbsensiJabar()">Gunakan Jumlah & Persentase</button><button type="button" id="btnPrintAttendanceJabar" class="btn btn-outline-secondary btn-sm d-none" onclick="cetakDaftarHadirJabar()"><i class="fas fa-print me-1"></i>Cetak Daftar Hadir</button></div></div>
             <div id="jabarAttendanceResult" class="small mt-2"></div>
           </div></div>
           <div id="jabarDataSasaranWrap" class="mb-3"><label class="form-label fw-bold">Jumlah Sasaran</label><div class="input-group"><input type="number" min="0" step="1" id="jabarDataJumlahSasaran" class="form-control"><span id="jabarDataSatuan" class="input-group-text">siswa</span></div></div>
@@ -4208,17 +4208,24 @@ async function untagJabar(id){if(!confirm('Lepas kaitan bukti ini dari indikator
 // V1.5 TAHAP 1 - DATA LAPORAN RESMI (ADMIN)
 // ============================================================================
 let jabarAttendanceLast=null;
+function canonJabarCodeV15201_(v){
+  const p=String(v||'').trim().split('.');
+  const a=parseInt(p[0]||'0',10)||0,b=parseInt(p[1]||'0',10)||0;
+  return `${a}.${String(b).padStart(2,'0')}`;
+}
 function openJabarDataLaporan(x){
   document.getElementById('jabarDataKode').value=x.kode||'';document.getElementById('jabarDataKodeLabel').textContent=`${x.kode||''} — ${x.indikator||''}`;
   const auto=document.getElementById('jabarAutoSuggestion');if(auto)auto.textContent='Belum dimuat.';
   jabarAttendanceLast=null;const ah=document.getElementById('jabarAttendanceHelper'),ar=document.getElementById('jabarAttendanceResult');if(ar)ar.innerHTML='';
-  const attendanceCodes=['1.08','1.09','1.10','1.11'];if(ah)ah.classList.toggle('d-none',attendanceCodes.indexOf(String(x.kode||''))===-1);
+  const attendanceCodes=['1.08','1.09','1.10','1.11'],canonCode=canonJabarCodeV15201_(x.kode);if(ah)ah.classList.toggle('d-none',attendanceCodes.indexOf(canonCode)===-1);
   document.getElementById('btnUseAttendanceJabar')?.classList.add('d-none');document.getElementById('btnPrintAttendanceJabar')?.classList.add('d-none');
-  document.getElementById('jabarDataModeSasaran').value=x.mode_sasaran||'NONE';document.getElementById('jabarDataTipeNilai').value=x.tipe_nilai||'NONE';
-  const sw=document.getElementById('jabarDataSasaranWrap');if(x.mode_sasaran==='COUNT'){sw.classList.remove('d-none');document.getElementById('jabarDataJumlahSasaran').value=x.jumlah_sasaran||'';document.getElementById('jabarDataSatuan').textContent=x.satuan_sasaran||'sasaran';}else{sw.classList.add('d-none');document.getElementById('jabarDataJumlahSasaran').value='';}
+  const attendanceMeta=attendanceCodes.indexOf(canonCode)!==-1;
+  const effectiveMode=attendanceMeta?'COUNT':(x.mode_sasaran||'NONE'),effectiveType=attendanceMeta?'PERSEN':(x.tipe_nilai||'NONE');
+  document.getElementById('jabarDataModeSasaran').value=effectiveMode;document.getElementById('jabarDataTipeNilai').value=effectiveType;
+  const sw=document.getElementById('jabarDataSasaranWrap');if(effectiveMode==='COUNT'){sw.classList.remove('d-none');document.getElementById('jabarDataJumlahSasaran').value=x.jumlah_sasaran||'';document.getElementById('jabarDataSatuan').textContent=x.satuan_sasaran||'sasaran';}else{sw.classList.add('d-none');document.getElementById('jabarDataJumlahSasaran').value='';}
   document.getElementById('jabarDataStatus').value=String(x.status_laporan||'BELUM').toUpperCase()==='SUDAH'?'SUDAH':'BELUM';
   const nw=document.getElementById('jabarDataNilaiWrap'),nn=document.getElementById('jabarDataNilaiNone'),inp=document.getElementById('jabarDataNilai'),suf=document.getElementById('jabarDataNilaiSuffix'),lab=document.getElementById('jabarDataNilaiLabel');
-  if(x.tipe_nilai==='PERSEN'){nw.classList.remove('d-none');nn.classList.add('d-none');inp.value=x.nilai_laporan||'';inp.min='0';inp.max='100';inp.step='0.01';suf.textContent='%';lab.textContent='Persentase';}
+  if(effectiveType==='PERSEN'){nw.classList.remove('d-none');nn.classList.add('d-none');inp.value=x.nilai_laporan||'';inp.min='0';inp.max='100';inp.step='0.01';suf.textContent='%';lab.textContent='Persentase';}
   else if(x.tipe_nilai==='ANGKA'){nw.classList.remove('d-none');nn.classList.add('d-none');inp.value=x.nilai_laporan||'';inp.removeAttribute('max');inp.min='0';inp.step='1';suf.textContent='angka';lab.textContent='Persentase / Angka';}
   else{nw.classList.add('d-none');nn.classList.remove('d-none');inp.value='';}
   document.getElementById('jabarDataCatatan').value=x.catatan_laporan||'';new bootstrap.Modal(document.getElementById('modalJabarDataLaporan')).show();
