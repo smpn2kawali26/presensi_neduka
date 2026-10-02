@@ -3017,6 +3017,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             reader.readAsDataURL(file);
         });
         
+        function extractKelasWaliV16(tugas) {
+            const m=String(tugas||'').match(/wali\s*kelas\s*([^,;]+)/i);
+            return m ? String(m[1]||'').trim() : '';
+        }
+
         // --- DASHBOARD GURU / TEACHER (FULL KOMPREHENSIF) ---
         function loadTeacherDashboard(nip, data) {
             loggedInTeacherNip = nip;
@@ -3038,8 +3043,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             currentTeacherEffectiveRole = isKepsek ? 'kepala' : 'teacher';
             
             if (isWali) {
-                let parts = loggedInTeacherData.tugas.split(" ");
-                loggedInTeacherData.kelas_binaan = parts.slice(2).join(" ").trim() || "8A";
+                loggedInTeacherData.kelas_binaan = extractKelasWaliV16(loggedInTeacherData.tugas) || loggedInTeacherData.kelas_binaan || "8A";
             }
             
             let htmlButtons = "";
@@ -3098,6 +3102,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                     populateSiswaWali(loggedInTeacherData.kelas_binaan || "8A");
                     loadIzinSakitWaliKelas(loggedInTeacherData.kelas_binaan || "8A");
                     loadRiwayatCatatanTeacher('WALI KELAS');
+                    initRekap7KAIHWaliV16();
                 }, 100);
             } 
             else {
@@ -3143,10 +3148,148 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             `;
         }
         
+
+        // V1.6 - Rekap 7KAIH Wali Kelas: lazy-load, cache client, no polling.
+        let wali7DataV16 = null;
+        let wali7FilterV16 = 'semua';
+        const wali7ClientCacheV16 = new Map();
+        let wali7InFlightV16 = null;
+
+        function mondayISO7V16(dateValue) {
+            let d=dateValue ? new Date(String(dateValue).substring(0,10)+'T12:00:00') : new Date();
+            if(isNaN(d.getTime())) d=new Date();
+            const day=d.getDay(),diff=day===0?-6:1-day;
+            d.setDate(d.getDate()+diff);
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+        function initRekap7KAIHWaliV16(){
+            const b=document.getElementById('wali7BulanV16'),w=document.getElementById('wali7MingguV16'),now=new Date();
+            if(b&&!b.value)b.value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            if(w&&!w.value)w.value=mondayISO7V16(now);
+            loadRekap7KAIHWaliV16(false);
+        }
+        async function loadRekap7KAIHWaliV16(force=false){
+            const box=document.getElementById('wali7ListV16'),sum=document.getElementById('wali7SummaryV16');
+            if(!box||!sum)return;
+            const bulan=document.getElementById('wali7BulanV16')?.value||'';
+            const minggu=mondayISO7V16(document.getElementById('wali7MingguV16')?.value||new Date());
+            const kelas=loggedInTeacherData?.kelas_binaan||'',key=`${kelas}|${bulan}|${minggu}`;
+            const cached=wali7ClientCacheV16.get(key);
+            if(!force&&cached&&(Date.now()-cached.ts<60000)){wali7DataV16=cached.data;renderRekap7KAIHWaliV16();return;}
+            if(wali7InFlightV16)return wali7InFlightV16;
+            box.innerHTML='<div class="text-center py-3 small text-muted"><span class="spinner-border spinner-border-sm me-1"></span>Memuat rekap kelas...</div>';sum.innerHTML='';
+            const auth=getJabarAuthPayload();
+            wali7InFlightV16=apiRequestSafe({action:'get_rekap_7kaih_wali_v16',bulan,week_start:minggu,...auth},{timeoutMs:25000,retries:0})
+              .then(r=>{if(r.status!=='success')throw new Error(r.message||'Gagal memuat rekap 7KAIH.');wali7DataV16=r;wali7ClientCacheV16.set(key,{ts:Date.now(),data:r});renderRekap7KAIHWaliV16();})
+              .catch(e=>{box.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(e.message||'Gagal memuat data.')}</div>`;})
+              .finally(()=>{wali7InFlightV16=null;});
+            return wali7InFlightV16;
+        }
+        function setFilter7KAIHWaliV16(filter,btn){
+            wali7FilterV16=filter||'semua';
+            document.querySelectorAll('.wali7-filter-btn').forEach(x=>x.classList.remove('active'));
+            if(btn)btn.classList.add('active');
+            renderRekap7KAIHWaliV16();
+        }
+        function trendHTML7V16(trend){
+            if(!trend||!trend.length)return '<span class="text-muted">Belum ada tren</span>';
+            return trend.map(t=>`<span class="badge ${t.ok?'bg-success':'bg-warning text-dark'} me-1 mb-1">${t.ok?'✓':'!'} ${escapeHtml(t.label||'')}</span>`).join('');
+        }
+        function renderRekap7KAIHWaliV16(){
+            const r=wali7DataV16,box=document.getElementById('wali7ListV16'),sum=document.getElementById('wali7SummaryV16');
+            if(!r||!box||!sum)return;
+            sum.innerHTML=`
+              <div class="col-4"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah</div><b class="text-success">${r.sudah_minggu}/${r.total_siswa}</b></div></div>
+              <div class="col-4"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum</div><b class="text-danger">${r.belum_minggu}</b></div></div>
+              <div class="col-4"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Perhatian</div><b class="text-warning">${r.perlu_perhatian}</b></div></div>
+              <div class="col-6"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Bangun sesuai</div><b>${r.bangun_sesuai}</b></div></div>
+              <div class="col-6"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Tidur sesuai</div><b>${r.tidur_sesuai}</b></div></div>
+              <div class="col-12"><div class="border rounded p-2 bg-white small"><b>Rekap Bulan ${escapeHtml(r.bulan)}</b> • ${r.pernah_mengisi_bulan}/${r.total_siswa} siswa pernah mengisi • ${r.total_entri_bulan} entri refleksi</div></div>`;
+            const rows=(r.data||[]).filter(x=>wali7FilterV16==='belum'?!x.sudah_mengisi:wali7FilterV16==='perhatian'?!!x.perlu_perhatian:true);
+            if(!rows.length){box.innerHTML='<div class="text-center text-muted small py-3">Tidak ada siswa pada filter ini.</div>';return;}
+            box.innerHTML=rows.map(x=>{
+                const status=!x.sudah_mengisi?'<span class="badge bg-secondary">Belum Mengisi</span>':x.perlu_perhatian?'<span class="badge bg-warning text-dark">Perlu Perhatian</span>':'<span class="badge bg-success">Baik</span>';
+                const bangun=x.sudah_mengisi?`${escapeHtml(x.jam_bangun||'-')} • ${escapeHtml(x.status_bangun||'-')}`:'–';
+                const tidur=x.sudah_mengisi?`${escapeHtml(x.jam_tidur||'-')} • ${escapeHtml(x.status_tidur||'-')}`:'–';
+                const safeName=String(x.nama||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                return `<div class="border rounded p-2 mb-2 bg-white">
+                  <div class="d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.nama||'-')}</b><div class="small text-muted">${escapeHtml(x.nisn||'')}</div></div>${status}</div>
+                  <div class="row g-1 small mt-1"><div class="col-6"><span class="text-muted">Bangun:</span><br>${bangun}</div><div class="col-6"><span class="text-muted">Tidur:</span><br>${tidur}</div></div>
+                  <div class="small mt-2"><span class="text-muted">Tren 4 pengisian terakhir:</span><br>${trendHTML7V16(x.trend)}</div>
+                  <div class="d-flex justify-content-between align-items-center gap-2 mt-2"><span class="small text-muted">Bulan ini: ${x.bulan_jumlah} pengisian</span>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="siapkanFeedback7KAIHV16('${escapeHtml(x.nisn)}','${safeName}',${x.sudah_mengisi?'true':'false'},'${escapeHtml(x.status_bangun||'')}','${escapeHtml(x.status_tidur||'')}')"><i class="fas fa-comment-dots me-1"></i>Feedback</button>
+                  </div>
+                </div>`;
+            }).join('');
+        }
+        function templateFeedback7KAIHV16(mode,sudah,statusBangun,statusTidur){
+            if(mode==='baik')return 'Terima kasih, kebiasaan sudah baik. Pertahankan dan terus lakukan secara konsisten.';
+            if(mode==='tidur')return 'Bangun pagi sudah baik. Mari mencoba tidur lebih awal agar tubuh lebih segar untuk belajar.';
+            if(mode==='bangun')return 'Kebiasaan tidur sudah baik. Mari melatih bangun lebih pagi secara bertahap.';
+            if(mode==='damping')return 'Mohon pendampingan Bapak/Ibu agar kebiasaan 7KAIH minggu berikutnya dapat lebih baik dan konsisten.';
+            if(!sudah)return 'Refleksi 7KAIH minggu ini belum terisi. Mohon bantuan Bapak/Ibu untuk mendampingi pengisian sesuai kondisi sebenarnya.';
+            const b=String(statusBangun||'').toUpperCase().includes('SESUAI TARGET'),t=String(statusTidur||'').toUpperCase().includes('SESUAI TARGET');
+            if(b&&t)return 'Terima kasih, kebiasaan bangun pagi dan tidur cepat sudah baik. Pertahankan dan terus lakukan secara konsisten.';
+            if(b&&!t)return 'Bangun pagi sudah baik. Mari mencoba tidur lebih awal agar kebiasaan sehat semakin baik.';
+            if(!b&&t)return 'Tidur cepat sudah baik. Mari melatih bangun lebih pagi secara bertahap.';
+            return 'Mohon pendampingan Bapak/Ibu agar kebiasaan bangun pagi dan tidur cepat dapat ditingkatkan secara bertahap.';
+        }
+        function siapkanFeedback7KAIHV16(nisn,nama,sudah,statusBangun,statusTidur){
+            const target=document.getElementById('tWaliTarget'),text=document.getElementById('tWaliCatatan');
+            if(!target||!text)return alert('Form Catatan Wali Kelas belum tersedia.');
+            target.value=nisn;
+            const mode=document.getElementById('wali7TemplateV16')?.value||'auto';
+            text.value='[7KAIH] '+templateFeedback7KAIHV16(mode,sudah,statusBangun,statusTidur);
+            const parent=text.closest('.mb-4');if(parent)parent.scrollIntoView({behavior:'smooth',block:'center'});text.focus();
+        }
+        function cetakRekap7KAIHWaliV16(){
+            const r=wali7DataV16;if(!r)return alert('Muat rekap 7KAIH terlebih dahulu.');
+            const rows=(r.data||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(x.nama||'-')}</td><td>${x.bulan_jumlah}</td><td>${x.bulan_bangun_ok}</td><td>${x.bulan_tidur_ok}</td></tr>`).join('');
+            const w=window.open('','_blank');if(!w)return alert('Pop-up diblokir browser.');
+            w.document.write(`<!doctype html><html><head><title>Rekap 7KAIH ${escapeHtml(r.kelas)}</title><style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px}h2,h3{margin:0 0 8px}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #777;padding:6px;text-align:left}th{background:#eee}</style></head><body><h2>REKAP BULANAN 7KAIH</h2><h3>Kelas ${escapeHtml(r.kelas)} • ${escapeHtml(r.bulan)}</h3><div>Siswa: <b>${r.total_siswa}</b> • Pernah mengisi: <b>${r.pernah_mengisi_bulan}</b> • Total entri: <b>${r.total_entri_bulan}</b></div><table><thead><tr><th>No</th><th>Nama Siswa</th><th>Jumlah Pengisian</th><th>Bangun Sesuai Target</th><th>Tidur Sesuai Target</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>window.print();<\/script></body></html>`);
+            w.document.close();
+        }
+
         function getHTMLWali() {
             let kelasBinaan = loggedInTeacherData.kelas_binaan || "8A";
             return `
                 <h6 class="fw-bold mb-3 shopee-text border-bottom pb-2"><i class="fas fa-user-shield me-2"></i>Panel Wali Kelas (${kelasBinaan})</h6>
+
+
+                <div class="mb-4 p-3 border rounded shadow-sm" style="background:#f7fff9;border-color:#cfe9d5!important;">
+                    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+                        <div>
+                            <div class="fw-bold text-success"><i class="fas fa-seedling me-1"></i>Rekap 7KAIH Kelas Saya</div>
+                            <div class="small text-muted">Refleksi Bangun Pagi & Tidur Cepat dari akun Orang Tua.</div>
+                        </div>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="cetakRekap7KAIHWaliV16()"><i class="fas fa-print me-1"></i>Rekap Bulanan</button>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><label class="small text-muted fw-bold">Bulan Rekap</label><input type="month" id="wali7BulanV16" class="form-control form-control-sm"></div>
+                        <div class="col-6"><label class="small text-muted fw-bold">Minggu Acuan</label><input type="date" id="wali7MingguV16" class="form-control form-control-sm"></div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap mb-2">
+                        <button type="button" class="btn btn-success btn-sm" onclick="loadRekap7KAIHWaliV16(true)"><i class="fas fa-rotate me-1"></i>Tampilkan</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm wali7-filter-btn active" onclick="setFilter7KAIHWaliV16('semua',this)">Semua</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm wali7-filter-btn" onclick="setFilter7KAIHWaliV16('belum',this)">Belum Mengisi</button>
+                        <button type="button" class="btn btn-outline-warning btn-sm wali7-filter-btn" onclick="setFilter7KAIHWaliV16('perhatian',this)">Perlu Perhatian</button>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small text-muted fw-bold">Template Feedback</label>
+                        <select id="wali7TemplateV16" class="form-select form-select-sm">
+                            <option value="auto">Saran otomatis sesuai kondisi siswa</option>
+                            <option value="baik">Terima kasih, kebiasaan sudah baik. Pertahankan.</option>
+                            <option value="tidur">Bangun pagi sudah baik. Mari mencoba tidur lebih awal.</option>
+                            <option value="bangun">Tidur sudah baik. Mari melatih bangun lebih pagi.</option>
+                            <option value="damping">Mohon pendampingan orang tua agar kebiasaan minggu berikutnya lebih baik.</option>
+                        </select>
+                    </div>
+                    <div id="wali7SummaryV16" class="row g-2 mb-2"></div>
+                    <div id="wali7ListV16" class="custom-scrollbar" style="max-height:430px;overflow:auto;">
+                        <div class="text-center small text-muted py-3">Rekap akan dimuat saat panel Wali Kelas dibuka.</div>
+                    </div>
+                    <div class="small text-muted mt-2"><i class="fas fa-bolt me-1"></i>Tidak ada polling. Server hanya dihubungi saat panel dibuka atau tombol Tampilkan ditekan.</div>
+                </div>
                 
                 <div class="mb-3">
                     <label class="form-label small text-muted fw-bold"><i class="fas fa-info-circle me-1"></i> Manajemen Izin / Sakit Kelas ${kelasBinaan} Hari Ini</label>
