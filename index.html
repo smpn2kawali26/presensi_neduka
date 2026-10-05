@@ -4476,13 +4476,26 @@ let jabarTaggedCountV15202=0;
 function jabarSourceKeyV15202_(sumber,id){
   return String(sumber||'').trim()+'|'+String(id||'').trim();
 }
+
+function jabarCandidateMetaV1604_(x){
+  if(x?.sumber==='Refleksi_7KAIH_Rumah_Auto')return {cls:'bg-success',label:'Rekap Otomatis 7KAIH',icon:'fas fa-chart-pie'};
+  if(x?.sumber==='Jurnal_7KAIH')return {cls:'bg-success',label:'7KAIH',icon:'fas fa-seedling'};
+  if(x?.sumber==='Jabar_Beraksi_Inbox')return {cls:'bg-info text-dark',label:'Bukti Bersama',icon:'fas fa-share-alt'};
+  return {cls:'bg-primary',label:'Dokumentasi',icon:'fas fa-folder'};
+}
+function jabarCandidateButtonsV1604_(x,key,disabled){
+  if(disabled)return `<button class="btn btn-sm btn-outline-secondary" disabled title="Maksimal 5 bukti"><i class="fas fa-plus"></i></button>`;
+  const print=x?.sumber==='Refleksi_7KAIH_Rumah_Auto'
+    ? `<button class="btn btn-sm btn-outline-dark me-1" onclick='cetakRekapRefleksiJabarV1604(${JSON.stringify(x.id)})' title="Lihat / Cetak rekap"><i class="fas fa-print"></i></button>`
+    : '';
+  return `<div class="text-nowrap">${print}<button class="btn btn-sm btn-outline-success" onclick='tagCandidateJabar(${JSON.stringify(key)})' title="Hubungkan bukti"><i class="fas fa-plus"></i></button></div>`;
+}
 async function loadJabarCandidates(){
-  let q=document.getElementById('jabarCariBukti')?.value||'', box=document.getElementById('jabarCandidateList');if(!box)return;
+  let q=document.getElementById('jabarCariBukti')?.value||'',box=document.getElementById('jabarCandidateList');if(!box)return;
   box.innerHTML='<div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm me-1"></span>Memuat bukti...</div>';
-  let r=await apiJabar({action:'get_jabar_bukti_candidates',q});
+  let r=await apiJabar({action:'get_jabar_bukti_candidates',q,tahun:document.getElementById('jabarTahun').value,laporan:document.getElementById('jabarLaporan').value,kode:document.getElementById('jabarTagKode').value});
   if(r.status!=='success'){box.innerHTML=`<div class="alert alert-danger">${escapeHtml(r.message||'Gagal memuat bukti.')}</div>`;return;}
-  let allRows=r.data||[];
-  let rows=allRows.filter(x=>!jabarTaggedSourceKeysV15202.has(jabarSourceKeyV15202_(x.sumber,x.id)));
+  let allRows=r.data||[],rows=allRows.filter(x=>!jabarTaggedSourceKeysV15202.has(jabarSourceKeyV15202_(x.sumber,x.id)));
   jabarCandidateMap={};rows.forEach(x=>jabarCandidateMap[jabarSourceKeyV15202_(x.sumber,x.id)]=x);
   if(!rows.length){
     box.innerHTML=allRows.length
@@ -4491,18 +4504,43 @@ async function loadJabarCandidates(){
     return;
   }
   const full=jabarTaggedCountV15202>=5;
-  if(full){
-    box.innerHTML='<div class="alert alert-warning py-2 small"><b>Batas bukti sudah 5/5.</b> Lepaskan salah satu bukti terhubung jika ingin memilih bukti lain.</div>'+
-      rows.slice(0,50).map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2 opacity-75"><div><div><span class="badge ${x.sumber==='Jurnal_7KAIH'?'bg-success':'bg-primary'} me-1">${x.sumber==='Jurnal_7KAIH'?'7KAIH':'Dokumentasi'}</span><b>${escapeHtml(x.judul)}</b></div><div class="small text-muted mt-1">${escapeHtml(x.tanggal||'-')} • Akses ${escapeHtml(x.akses||'-')}</div>${x.keterangan?`<div class="small text-muted">${escapeHtml(x.keterangan)}</div>`:''}</div><button class="btn btn-sm btn-outline-secondary" disabled title="Maksimal 5 bukti"><i class="fas fa-plus"></i></button></div>`).join('');
-    return;
-  }
-  box.innerHTML=rows.slice(0,50).map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><div><span class="badge ${x.sumber==='Jurnal_7KAIH'?'bg-success':'bg-primary'} me-1">${x.sumber==='Jurnal_7KAIH'?'7KAIH':'Dokumentasi'}</span><b>${escapeHtml(x.judul)}</b></div><div class="small text-muted mt-1">${escapeHtml(x.tanggal||'-')} • Akses ${escapeHtml(x.akses||'-')}</div>${x.keterangan?`<div class="small text-muted">${escapeHtml(x.keterangan)}</div>`:''}</div><button class="btn btn-sm btn-outline-success" onclick='tagCandidateJabar(${JSON.stringify(jabarSourceKeyV15202_(x.sumber,x.id))})'><i class="fas fa-plus"></i></button></div>`).join('');
+  if(full)box.innerHTML='<div class="alert alert-warning py-2 small"><b>Batas bukti sudah 5/5.</b> Lepaskan salah satu bukti terhubung jika ingin memilih bukti lain.</div>';
+  box.innerHTML+=rows.slice(0,50).map(x=>{
+    const meta=jabarCandidateMetaV1604_(x),key=jabarSourceKeyV15202_(x.sumber,x.id);
+    const autoNote=x.auto_rekap?'<div class="small text-success fw-semibold mt-1"><i class="fas fa-sync-alt me-1"></i>Dihitung langsung dari Refleksi 7KAIH yang sudah diisi orang tua. Tidak perlu upload ulang.</div>':'';
+    return `<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2 ${full?'opacity-75':''}">
+      <div>
+        <div><span class="badge ${meta.cls} me-1"><i class="${meta.icon} me-1"></i>${meta.label}</span><b>${escapeHtml(x.judul)}</b></div>
+        <div class="small text-muted mt-1">${escapeHtml(x.tanggal||'-')} • Akses ${escapeHtml(x.akses||'-')}</div>
+        ${x.keterangan?`<div class="small text-muted">${escapeHtml(x.keterangan)}</div>`:''}${autoNote}
+      </div>
+      ${jabarCandidateButtonsV1604_(x,key,full)}
+    </div>`;
+  }).join('');
 }
 async function tagCandidateJabar(key){
   let x=jabarCandidateMap[key];if(!x)return;let year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value,kode=document.getElementById('jabarTagKode').value;
-  let note=prompt('Catatan untuk bukti ini (opsional):','')||'';let r=await apiJabar({action:'tag_jabar_bukti',tahun:year,laporan:report,kode,sumber:x.sumber,id_sumber:x.id,judul_sumber:x.judul,catatan:note,pelaksana:'Administrator',url_bukti:x.url||'',akses_bukti:x.akses||'PUBLIK'});
+  let note=x.auto_rekap?(x.keterangan||'Rekap otomatis Refleksi 7KAIH'):(prompt('Catatan untuk bukti ini (opsional):','')||'');let r=await apiJabar({action:'tag_jabar_bukti',tahun:year,laporan:report,kode,sumber:x.sumber,id_sumber:x.id,judul_sumber:x.judul,catatan:note,pelaksana:'Administrator',url_bukti:x.url||'',akses_bukti:x.akses||'PUBLIK'});
   if(r.status!=='success')return alert(r.message||'Gagal menghubungkan bukti.');showToast7KAIH(r.message||'Bukti terhubung.');await loadJabarTagged();await loadJabarCandidates();await loadJabarIndikator();
 }
+
+async function cetakRekapRefleksiJabarV1604(){
+  const year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value,kode=document.getElementById('jabarTagKode').value;
+  const r=await apiJabar({action:'get_jabar_refleksi_auto_evidence',tahun:year,laporan:report,kode:kode});
+  if(r.status!=='success')return alert(r.message||'Gagal membuat rekap.');
+  const d=r.data||{},rows=(d.rows||[]).map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(x.nisn||'-')}</td><td>${escapeHtml(x.nama||'-')}</td><td>${escapeHtml(x.kelas||'-')}</td><td>${escapeHtml(x.status||'-')}</td></tr>`).join('');
+  const w=window.open('','_blank');if(!w)return alert('Pop-up diblokir browser.');
+  w.document.write(`<!doctype html><html><head><title>Rekap 7KAIH ${escapeHtml(d.label||'')}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:12px}h2,h3,p{margin:0 0 8px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}.box{border:1px solid #999;padding:10px;border-radius:6px;text-align:center}.big{font-size:18px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #777;padding:6px}th{background:#eee}@media print{button{display:none}.summary{break-inside:avoid}thead{display:table-header-group}}</style></head><body>
+  <h2>REKAP REFLEKSI 7KAIH — ${escapeHtml(String(d.label||'').toUpperCase())}</h2>
+  <h3>SMP Negeri 2 Kawali • Tahun ${escapeHtml(d.year||year)}</h3>
+  <p>Indikator Jabar Beraksi: ${escapeHtml((String(d.code||kode).split('.')[0]).padStart(2,'0')+'.'+String(d.code||kode).split('.')[1])} • Target ${escapeHtml(d.target||'-')}</p>
+  <div class="summary"><div class="box">Jumlah Sasaran<div class="big">${d.total_sasaran||0}</div></div><div class="box">Sudah Mengisi<div class="big">${d.total_pengisi||0}</div></div><div class="box">Sesuai Target<div class="big">${d.total_sesuai||0}</div></div><div class="box">Persentase<div class="big">${d.persentase||0}%</div></div></div>
+  <p><b>Sumber:</b> Refleksi 7KAIH di Rumah. Rekap menggunakan refleksi terbaru setiap siswa pada tahun pelaporan.</p>
+  <table><thead><tr><th>No</th><th>NISN</th><th>Nama Siswa</th><th>Kelas</th><th>Status</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Belum ada data.</td></tr>'}</tbody></table>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
 async function loadJabarTagged(){
   let year=document.getElementById('jabarTahun').value,kode=document.getElementById('jabarTagKode').value,box=document.getElementById('jabarTaggedList');if(!box)return;
   let r=await apiJabar({action:'get_jabar_tagged',tahun:year,kode});if(r.status!=='success'){box.innerHTML='<span class="text-danger">Gagal memuat.</span>';return;}
@@ -4512,7 +4550,7 @@ async function loadJabarTagged(){
   jabarTaggedSourceKeysV15202=new Set(rows.filter(x=>x.sumber&&x.id_sumber).map(x=>jabarSourceKeyV15202_(x.sumber,x.id_sumber)));
   if(count){count.textContent=rows.length+'/5';count.className='badge '+(rows.length>=5?'bg-danger':'bg-secondary');}
   if(!rows.length){box.innerHTML='<div class="text-muted">Belum ada bukti yang dihubungkan.</div>';return;}
-  box.innerHTML=rows.map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${escapeHtml(x.sumber)} • ${escapeHtml(x.akses||'PUBLIK')}${x.catatan?' • '+escapeHtml(x.catatan):''}</div>${x.url&&x.akses==='PUBLIK'?`<a class="small" href="${escapeHtml(x.url)}" target="_blank" rel="noopener">Buka bukti <i class="fas fa-external-link-alt ms-1"></i></a>`:''}</div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink me-1"></i>Lepas</button></div>`).join('');
+  box.innerHTML=rows.map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${x.auto_rekap?'<span class="badge bg-success me-1">Rekap Otomatis 7KAIH</span>':escapeHtml(x.sumber)} • ${escapeHtml(x.akses||'PUBLIK')}${x.catatan?' • '+escapeHtml(x.catatan):''}</div>${x.url&&x.akses==='PUBLIK'?`<a class="small" href="${escapeHtml(x.url)}" target="_blank" rel="noopener">Buka bukti <i class="fas fa-external-link-alt ms-1"></i></a>`:''}${x.auto_rekap?`<button class="btn btn-link btn-sm p-0 mt-1" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap Terbaru</button>`:''}</div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink me-1"></i>Lepas</button></div>`).join('');
 }
 async function fileToDataUrlJabar_(file){return new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(file);});}
 async function uploadJabarDokumen(){
@@ -4861,3 +4899,5 @@ initPublicJabarReport();
 <!-- V1.6.0.2 SHARED EVIDENCE JABAR BERAKSI & ANTI-DUPLICATE -->
 
 <!-- V1.6.0.3 BULK CONTROL: checkbox indikator, Atur Massal, Batalkan Isian, Lepas bukti eksplisit -->
+
+<!-- V1.6.0.4 AUTO REKAP BUKTI 7KAIH: kandidat bukti otomatis 01.01/01.07 + cetak rekap live -->
