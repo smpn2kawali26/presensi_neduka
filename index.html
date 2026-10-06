@@ -1271,6 +1271,7 @@
     <div class="tab-content">
       <div class="tab-pane fade show active" id="jbTabExisting">
         <div class="input-group mb-3"><input type="text" id="jabarCariBukti" class="form-control" placeholder="Cari nama kegiatan / bukti..."><button class="btn btn-outline-primary" onclick="loadJabarCandidates()"><i class="fas fa-search"></i> Cari</button></div>
+        <div class="small text-muted mb-2"><i class="fas fa-eye me-1"></i>Klik <b>Lihat</b> untuk memeriksa bukti terlebih dahulu, lalu klik <b>+</b> jika bukti sesuai indikator.</div>
         <div id="jabarCandidateList"><div class="text-center text-muted py-3">Memuat bukti yang sudah ada...</div></div>
       </div>
       <div class="tab-pane fade" id="jbTabUpload">
@@ -1292,6 +1293,30 @@
 
 
 
+
+
+    <!-- V1.6.0.4.2 - PREVIEW BUKTI SEBELUM DIHUBUNGKAN -->
+    <div class="modal fade" id="modalJabarCandidatePreviewV16042" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-dark text-white">
+            <div>
+              <h5 class="modal-title fw-bold mb-0"><i class="fas fa-eye me-2"></i>Pratinjau Bukti</h5>
+              <small id="jabarCandidatePreviewSubV16042"></small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="jabarCandidatePreviewInfoV16042" class="mb-3"></div>
+            <div id="jabarCandidatePreviewBodyV16042" class="border rounded bg-light p-2 text-center" style="min-height:240px"></div>
+          </div>
+          <div class="modal-footer">
+            <a id="jabarCandidatePreviewOpenV16042" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary d-none"><i class="fas fa-external-link-alt me-1"></i>Buka di Tab Baru</a>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- V1.6.0.4.1 - PUBLIC REKAP VIEWER (AGREGAT, TANPA DATA PRIBADI SISWA) -->
     <div class="modal fade" id="modalJabarPublicRekapV16041" tabindex="-1" aria-hidden="true">
@@ -4511,12 +4536,52 @@ function jabarCandidateMetaV1604_(x){
   return {cls:'bg-primary',label:'Dokumentasi',icon:'fas fa-folder'};
 }
 function jabarCandidateButtonsV1604_(x,key,disabled){
-  if(disabled)return `<button class="btn btn-sm btn-outline-secondary" disabled title="Maksimal 5 bukti"><i class="fas fa-plus"></i></button>`;
-  const print=x?.sumber==='Refleksi_7KAIH_Rumah_Auto'
-    ? `<button class="btn btn-sm btn-outline-dark me-1" onclick='cetakRekapRefleksiJabarV1604(${JSON.stringify(x.id)})' title="Lihat / Cetak rekap"><i class="fas fa-print"></i></button>`
-    : '';
-  return `<div class="text-nowrap">${print}<button class="btn btn-sm btn-outline-success" onclick='tagCandidateJabar(${JSON.stringify(key)})' title="Hubungkan bukti"><i class="fas fa-plus"></i></button></div>`;
+  const preview=jabarCandidatePreviewButtonV16042_(x,key);
+  if(disabled)return `<div class="text-nowrap">${preview}<button class="btn btn-sm btn-outline-secondary" disabled title="Maksimal 5 bukti"><i class="fas fa-plus"></i></button></div>`;
+  return `<div class="text-nowrap">${preview}<button class="btn btn-sm btn-outline-success" onclick='tagCandidateJabar(${JSON.stringify(key)})' title="Hubungkan bukti"><i class="fas fa-plus"></i></button></div>`;
 }
+
+function jabarCandidatePreviewTypeV16042_(url){
+  const u=String(url||'').toLowerCase();
+  if(/\.(jpg|jpeg|png|webp|gif)(\?|#|$)/.test(u))return 'image';
+  if(/\.pdf(\?|#|$)/.test(u))return 'pdf';
+  if(/drive\.google\.com/.test(u))return 'drive';
+  if(/docs\.google\.com/.test(u))return 'gdocs';
+  return 'link';
+}
+function openJabarCandidatePreviewV16042(key){
+  const x=jabarCandidateMap?.[key];if(!x)return;
+  const sub=document.getElementById('jabarCandidatePreviewSubV16042');
+  const info=document.getElementById('jabarCandidatePreviewInfoV16042');
+  const body=document.getElementById('jabarCandidatePreviewBodyV16042');
+  const open=document.getElementById('jabarCandidatePreviewOpenV16042');
+  sub.textContent=x.judul||'Bukti';
+  info.innerHTML=`<div class="small"><b>Sumber:</b> ${escapeHtml(x.sumber||'-')} &nbsp; • &nbsp; <b>Tanggal:</b> ${escapeHtml(x.tanggal||'-')} &nbsp; • &nbsp; <b>Akses:</b> ${escapeHtml(x.akses||'-')}</div>${x.keterangan?`<div class="small text-muted mt-1">${escapeHtml(x.keterangan)}</div>`:''}`;
+  body.innerHTML='';
+  open.classList.add('d-none');open.removeAttribute('href');
+
+  if(x.auto_rekap){
+    body.innerHTML=`<div class="p-4"><i class="fas fa-chart-pie fa-3x text-success mb-3"></i><h5 class="fw-bold">${escapeHtml(x.judul||'Rekap Otomatis 7KAIH')}</h5><div class="text-muted">${escapeHtml(x.keterangan||'')}</div><button class="btn btn-outline-success mt-3" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap</button></div>`;
+  }else if(x.url){
+    const type=jabarCandidatePreviewTypeV16042_(x.url);
+    open.href=x.url;open.classList.remove('d-none');
+    if(type==='image'){
+      body.innerHTML=`<img src="${escapeHtml(x.url)}" alt="Pratinjau bukti" class="img-fluid rounded" style="max-height:65vh;object-fit:contain">`;
+    }else if(type==='pdf'){
+      body.innerHTML=`<iframe src="${escapeHtml(x.url)}" title="Pratinjau PDF" style="width:100%;height:65vh;border:0;border-radius:8px"></iframe>`;
+    }else{
+      body.innerHTML=`<div class="p-4"><i class="fas fa-link fa-3x text-primary mb-3"></i><h5 class="fw-bold">Bukti tersedia melalui tautan</h5><div class="small text-muted mb-3">Gunakan tombol <b>Buka di Tab Baru</b> untuk melihat file sesuai izin sumber.</div><a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-eye me-1"></i>Lihat Bukti</a></div>`;
+    }
+  }else{
+    body.innerHTML=`<div class="p-4 text-muted"><i class="fas fa-eye-slash fa-3x mb-3"></i><h5 class="fw-bold">Belum ada tautan file yang bisa dipratinjau</h5><div class="small">Bukti ini memiliki metadata, tetapi belum menyediakan URL file yang dapat dibuka.</div></div>`;
+  }
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarCandidatePreviewV16042')).show();
+}
+function jabarCandidatePreviewButtonV16042_(x,key){
+  const canPreview=!!(x?.url||x?.auto_rekap);
+  return `<button class="btn btn-sm ${canPreview?'btn-outline-primary':'btn-outline-secondary'} me-1" ${canPreview?`onclick='openJabarCandidatePreviewV16042(${JSON.stringify(key)})'`:'disabled'} title="${canPreview?'Lihat bukti sebelum dihubungkan':'Tidak ada file/link untuk dipratinjau'}"><i class="fas fa-eye me-1"></i>Lihat</button>`;
+}
+
 async function loadJabarCandidates(){
   let q=document.getElementById('jabarCariBukti')?.value||'',box=document.getElementById('jabarCandidateList');if(!box)return;
   box.innerHTML='<div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm me-1"></span>Memuat bukti...</div>';
@@ -4961,3 +5026,5 @@ initPublicJabarReport();
 <!-- V1.6.0.4 AUTO REKAP BUKTI 7KAIH: kandidat bukti otomatis 01.01/01.07 + cetak rekap live -->
 
 <!-- V1.6.0.4.1 ACCESS & PUBLIC REKAP VIEWER: additive di atas baseline V1.6.0.4 -->
+
+<!-- V1.6.0.4.2 PREVIEW BUKTI: tombol Lihat sebelum + Hubungkan; additive di atas V1.6.0.4.1 -->
