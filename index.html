@@ -1301,7 +1301,7 @@
         <div class="modal-content">
           <div class="modal-header bg-dark text-white">
             <div>
-              <h5 class="modal-title fw-bold mb-0"><i class="fas fa-eye me-2"></i>Pratinjau Bukti</h5>
+              <h5 class="modal-title fw-bold mb-0"><i class="fas fa-eye me-2"></i>Pratinjau Bukti Langsung</h5>
               <small id="jabarCandidatePreviewSubV16042"></small>
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -4546,8 +4546,37 @@ function jabarCandidatePreviewTypeV16042_(url){
   if(/\.(jpg|jpeg|png|webp|gif)(\?|#|$)/.test(u))return 'image';
   if(/\.pdf(\?|#|$)/.test(u))return 'pdf';
   if(/drive\.google\.com/.test(u))return 'drive';
-  if(/docs\.google\.com/.test(u))return 'gdocs';
+  if(/docs\.google\.com\/document/.test(u))return 'gdoc';
+  if(/docs\.google\.com\/spreadsheets/.test(u))return 'gsheet';
+  if(/docs\.google\.com\/presentation/.test(u))return 'gslides';
   return 'link';
+}
+function googleDriveFileIdV16043_(url){
+  const u=String(url||'');
+  let m=u.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);if(m)return m[1];
+  m=u.match(/[?&]id=([a-zA-Z0-9_-]+)/);if(m)return m[1];
+  m=u.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:'';
+}
+function jabarInlinePreviewUrlV16043_(url){
+  const u=String(url||'').trim(),type=jabarCandidatePreviewTypeV16042_(u);
+  if(type==='image'||type==='pdf')return {type:type,url:u};
+  if(type==='drive'){
+    const id=googleDriveFileIdV16043_(u);
+    if(id)return {type:'iframe',url:`https://drive.google.com/file/d/${id}/preview`};
+  }
+  if(type==='gdoc'){
+    const id=googleDriveFileIdV16043_(u);
+    if(id)return {type:'iframe',url:`https://docs.google.com/document/d/${id}/preview`};
+  }
+  if(type==='gsheet'){
+    const id=googleDriveFileIdV16043_(u);
+    if(id)return {type:'iframe',url:`https://docs.google.com/spreadsheets/d/${id}/preview`};
+  }
+  if(type==='gslides'){
+    const id=googleDriveFileIdV16043_(u);
+    if(id)return {type:'iframe',url:`https://docs.google.com/presentation/d/${id}/preview`};
+  }
+  return {type:'link',url:u};
 }
 function openJabarCandidatePreviewV16042(key){
   const x=jabarCandidateMap?.[key];if(!x)return;
@@ -4555,31 +4584,34 @@ function openJabarCandidatePreviewV16042(key){
   const info=document.getElementById('jabarCandidatePreviewInfoV16042');
   const body=document.getElementById('jabarCandidatePreviewBodyV16042');
   const open=document.getElementById('jabarCandidatePreviewOpenV16042');
+
   sub.textContent=x.judul||'Bukti';
   info.innerHTML=`<div class="small"><b>Sumber:</b> ${escapeHtml(x.sumber||'-')} &nbsp; • &nbsp; <b>Tanggal:</b> ${escapeHtml(x.tanggal||'-')} &nbsp; • &nbsp; <b>Akses:</b> ${escapeHtml(x.akses||'-')}</div>${x.keterangan?`<div class="small text-muted mt-1">${escapeHtml(x.keterangan)}</div>`:''}`;
-  body.innerHTML='';
+  body.innerHTML='<div class="py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Menyiapkan pratinjau...</div>';
   open.classList.add('d-none');open.removeAttribute('href');
 
   if(x.auto_rekap){
     body.innerHTML=`<div class="p-4"><i class="fas fa-chart-pie fa-3x text-success mb-3"></i><h5 class="fw-bold">${escapeHtml(x.judul||'Rekap Otomatis 7KAIH')}</h5><div class="text-muted">${escapeHtml(x.keterangan||'')}</div><button class="btn btn-outline-success mt-3" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap</button></div>`;
   }else if(x.url){
-    const type=jabarCandidatePreviewTypeV16042_(x.url);
+    const pv=jabarInlinePreviewUrlV16043_(x.url);
     open.href=x.url;open.classList.remove('d-none');
-    if(type==='image'){
-      body.innerHTML=`<img src="${escapeHtml(x.url)}" alt="Pratinjau bukti" class="img-fluid rounded" style="max-height:65vh;object-fit:contain">`;
-    }else if(type==='pdf'){
-      body.innerHTML=`<iframe src="${escapeHtml(x.url)}" title="Pratinjau PDF" style="width:100%;height:65vh;border:0;border-radius:8px"></iframe>`;
+
+    if(pv.type==='image'){
+      body.innerHTML=`<div class="d-flex align-items-center justify-content-center" style="min-height:320px"><img src="${escapeHtml(pv.url)}" alt="Pratinjau bukti" class="img-fluid rounded shadow-sm" style="max-height:68vh;object-fit:contain" onerror="this.parentElement.innerHTML='<div class=&quot;p-4 text-muted&quot;><i class=&quot;fas fa-image fa-3x mb-3&quot;></i><h5>Foto tidak dapat ditampilkan langsung</h5><div class=&quot;small&quot;>Gunakan tombol Buka di Tab Baru.</div></div>'"></div>`;
+    }else if(pv.type==='pdf'||pv.type==='iframe'){
+      body.innerHTML=`<iframe src="${escapeHtml(pv.url)}" title="Pratinjau Bukti" allow="autoplay" style="width:100%;height:68vh;border:0;border-radius:8px;background:#fff"></iframe><div class="small text-muted mt-2"><i class="fas fa-info-circle me-1"></i>Jika pratinjau kosong, izin file sumber mungkin belum mengizinkan tampilan embed. Gunakan <b>Buka di Tab Baru</b>.</div>`;
     }else{
-      body.innerHTML=`<div class="p-4"><i class="fas fa-link fa-3x text-primary mb-3"></i><h5 class="fw-bold">Bukti tersedia melalui tautan</h5><div class="small text-muted mb-3">Gunakan tombol <b>Buka di Tab Baru</b> untuk melihat file sesuai izin sumber.</div><a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-eye me-1"></i>Lihat Bukti</a></div>`;
+      body.innerHTML=`<div class="p-4"><i class="fas fa-link fa-3x text-primary mb-3"></i><h5 class="fw-bold">Format ini belum mendukung pratinjau langsung</h5><div class="small text-muted mb-3">File tetap dapat diperiksa melalui tautan sumber.</div><a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-eye me-1"></i>Lihat Bukti</a></div>`;
     }
   }else{
     body.innerHTML=`<div class="p-4 text-muted"><i class="fas fa-eye-slash fa-3x mb-3"></i><h5 class="fw-bold">Belum ada tautan file yang bisa dipratinjau</h5><div class="small">Bukti ini memiliki metadata, tetapi belum menyediakan URL file yang dapat dibuka.</div></div>`;
   }
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarCandidatePreviewV16042')).show();
 }
 function jabarCandidatePreviewButtonV16042_(x,key){
   const canPreview=!!(x?.url||x?.auto_rekap);
-  return `<button class="btn btn-sm ${canPreview?'btn-outline-primary':'btn-outline-secondary'} me-1" ${canPreview?`onclick='openJabarCandidatePreviewV16042(${JSON.stringify(key)})'`:'disabled'} title="${canPreview?'Lihat bukti sebelum dihubungkan':'Tidak ada file/link untuk dipratinjau'}"><i class="fas fa-eye me-1"></i>Lihat</button>`;
+  return `<button class="btn btn-sm ${canPreview?'btn-outline-primary':'btn-outline-secondary'} me-1" ${canPreview?`onclick='openJabarCandidatePreviewV16042(${JSON.stringify(key)})'`:'disabled'} title="${canPreview?'Lihat bukti langsung sebelum dihubungkan':'Tidak ada file/link untuk dipratinjau'}"><i class="fas fa-eye me-1"></i>Lihat</button>`;
 }
 
 async function loadJabarCandidates(){
@@ -5028,3 +5060,5 @@ initPublicJabarReport();
 <!-- V1.6.0.4.1 ACCESS & PUBLIC REKAP VIEWER: additive di atas baseline V1.6.0.4 -->
 
 <!-- V1.6.0.4.2 PREVIEW BUKTI: tombol Lihat sebelum + Hubungkan; additive di atas V1.6.0.4.1 -->
+
+<!-- V1.6.0.4.3 INLINE EVIDENCE PREVIEW: foto/PDF/Google Drive/Docs/Sheets/Slides tampil dalam kotak preview bila izin sumber memungkinkan -->
