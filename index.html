@@ -206,6 +206,15 @@
         .jbpub-shell{max-width:1180px;margin:-34px auto 0;padding:0 18px 40px;}
         .jbpub-card{background:#fff;border:1px solid #e4eaf2;border-radius:16px;box-shadow:0 10px 30px rgba(21,54,95,.10);}
         .jbpub-evidence a{word-break:break-word;}
+        .jbpub-ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;}
+        .jbpub-ev-card{border:1px solid #dce4ee;border-radius:10px;padding:8px;background:#fff;min-width:0;}
+        .jbpub-ev-thumb{width:100%;height:110px;object-fit:cover;border-radius:7px;background:#eef2f7;cursor:pointer;}
+        .jbpub-ev-icon{height:76px;border-radius:7px;background:#f3f6fa;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#4b6078;}
+        .jbpub-ev-title{font-size:.82rem;font-weight:700;line-height:1.25;margin-top:6px;word-break:break-word;}
+        .jbpub-ev-meta{font-size:.72rem;color:#6c757d;}
+        @media(max-width:575px){.jbpub-ev-grid{grid-template-columns:1fr 1fr}.jbpub-ev-thumb{height:100px;}}
+        @media print{body.jbpub-mode .jbpub-ev-grid{grid-template-columns:repeat(3,1fr)!important}.jbpub-ev-thumb{height:32mm!important}.jbpub-ev-card{break-inside:avoid}.jbpub-ev-open{display:none!important;}}
+
         .jbpub-official-table td,.jbpub-official-table th{vertical-align:top;}
         .jbpub-official-value{font-weight:600;}
         .jb-final-ready-pill{font-weight:700;}
@@ -425,11 +434,12 @@
             <button class="btn btn-outline-primary btn-sm jbpub-no-print" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
           </div>
           <div id="jbpubSchoolIdentity" class="small border rounded p-2 mb-3 bg-light"></div>
+          <div id="jbpubReportPhysicalEvidenceV1605" class="mb-3"></div>
           <h6 class="fw-bold mt-3">TABEL INDIKATOR</h6>
           <div class="table-responsive"><table class="table table-bordered align-middle jbpub-official-table"><thead class="table-primary"><tr><th style="width:62px">No.</th><th>Indikator</th><th style="width:120px">Jumlah Sasaran</th><th style="width:82px">Status</th><th style="width:115px">Persentase / Angka</th></tr></thead><tbody id="jbpubOfficialBody"><tr><td colspan="5" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-4 mb-2"><h6 class="fw-bold mb-0">BUKTI DUKUNG LAPORAN <span id="jbpubEvidenceReportNo"></span></h6><span class="small text-muted">Maksimal 5 bukti per indikator</span></div>
           <div class="small mb-2"><b>Tautan laporan/bukti:</b> <span id="jbpubReportLinkText"></span></div>
-          <div class="alert alert-info py-2 small mb-3 jbpub-no-print">Bukti berstatus INTERNAL tetap tercatat, tetapi file tidak dibuka pada halaman publik.</div>
+          <div class="alert alert-info py-2 small mb-3 jbpub-no-print"><i class="fas fa-eye me-1"></i><b>Evidence Viewer:</b> foto berstatus PUBLIK tampil sebagai thumbnail dan dapat diperbesar; PDF/dokumen dapat dibuka dari kartu bukti. Bukti INTERNAL tetap tercatat tetapi file tidak dibuka.</div>
           <div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-primary"><tr><th style="width:62px">No.</th><th>Indikator</th><th>Bukti dukung yang dilampirkan</th><th style="width:175px">Subfolder / Nama File</th></tr></thead><tbody id="jbpubBody"><tr><td colspan="4" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat...</td></tr></tbody></table></div>
           <div class="mt-4"><h6 class="fw-bold">Gambaran Umum Pelaksanaan</h6><div id="jbpubGambaran" class="border rounded p-3 small" style="min-height:90px;white-space:pre-wrap"></div></div>
           <div class="text-center small text-muted mt-3 jbpub-no-print">Portal Bukti Dukung Jabar Beraksi • SMP Negeri 2 Kawali</div>
@@ -782,6 +792,7 @@
                             </div>
                             <div class="d-flex flex-wrap gap-2 justify-content-end">
                                 <button class="btn btn-outline-success btn-sm" onclick="salinLinkLaporanJabar()"><i class="fas fa-link me-1"></i> Link Laporan</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="openJabarReportEvidenceLinkV1605()"><i class="fas fa-folder-open me-1"></i> Bukti Fisik Laporan</button>
                                 <button class="btn btn-outline-dark btn-sm" onclick="cetakLaporanJabar()"><i class="fas fa-print me-1"></i> Cetak / PDF</button>
                                 <button class="btn btn-outline-success btn-sm" onclick="validasiJabarFinal()"><i class="fas fa-clipboard-check me-1"></i> Validasi Final</button>
                                 <button class="btn btn-outline-info btn-sm" onclick="openJabarGambaranUmum()"><i class="fas fa-align-left me-1"></i> Gambaran Umum</button>
@@ -796,6 +807,7 @@
                                 <div class="col-md-4"><button class="btn btn-primary w-100" onclick="loadJabarIndikator()"><i class="fas fa-rotate me-1"></i> Muat Indikator</button></div>
                             </div>
                         </div></div>
+                        <div id="jabarReportEvidenceStatusV1605" class="mb-3"></div>
                         <div id="jabarSummary" class="row g-2 mb-3"></div>
                         <div class="card card-custom"><div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2 gap-2 flex-wrap"><div><h5 id="jabarJudulLaporan" class="fw-bold mb-0">Laporan</h5><small class="text-muted">Status pada tahap ini menunjukkan apakah indikator sudah memiliki bukti yang ditautkan.</small></div><button class="btn btn-outline-warning btn-sm" onclick="openJabarBulkAtur()"><i class="fas fa-sliders-h me-1"></i>Atur Massal <span id="jabarBulkCount" class="badge bg-warning text-dark ms-1">0</span></button></div>
@@ -1258,6 +1270,18 @@
       </div></div>
     </div>
 
+
+<div class="modal fade" id="modalJabarEvidenceViewerV1606" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-dark text-white">
+      <div><h5 id="jabarEvidenceViewerTitleV1606" class="modal-title fw-bold mb-0">Bukti Fisik</h5><small id="jabarEvidenceViewerMetaV1606" class="opacity-75"></small></div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div id="jabarEvidenceViewerBodyV1606" class="modal-body p-2" style="min-height:55vh"></div>
+    <div class="modal-footer"><a id="jabarEvidenceViewerOpenV1606" class="btn btn-primary" href="#" target="_blank" rel="noopener"><i class="fas fa-external-link-alt me-1"></i>Buka di Tab Baru</a><button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
+
 <div class="modal fade" id="modalJabarBukti" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
   <div class="modal-header bg-primary text-white"><div><h5 class="modal-title mb-0"><i class="fas fa-link me-2"></i>Hubungkan Bukti</h5><small id="jabarModalKode" class="text-white-50"></small></div><div class="d-flex align-items-center gap-2"><button type="button" class="btn btn-light btn-sm fw-semibold" onclick="closeJabarBuktiSafe()"><i class="fas fa-arrow-left me-1"></i>Kembali</button><button type="button" class="btn-close btn-close-white" aria-label="Tutup" onclick="closeJabarBuktiSafe()"></button></div></div>
   <div class="modal-body">
@@ -1291,6 +1315,30 @@
 </div></div></div>
 
 
+
+
+    <!-- V1.6.0.5 - LINK BUKTI FISIK PER LAPORAN -->
+    <div class="modal fade" id="modalJabarReportEvidenceV1605" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <div><h5 class="modal-title fw-bold mb-0"><i class="fas fa-folder-open me-2"></i>Bukti Fisik Laporan</h5><small id="jabarReportEvidenceSubV1605"></small></div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info small py-2">
+            Masukkan link folder Google Drive atau dokumen utama yang berisi bukti fisik untuk laporan ini. Link akan tampil pada halaman laporan sehingga pemeriksa dapat membukanya.
+          </div>
+          <div class="mb-3"><label class="form-label fw-bold">Judul Bukti Fisik</label><input id="jabarReportEvidenceTitleV1605" class="form-control" placeholder="Contoh: Folder Bukti Fisik Laporan 1"></div>
+          <div class="mb-3"><label class="form-label fw-bold">Link Bukti Fisik</label><input id="jabarReportEvidenceUrlV1605" type="url" class="form-control" placeholder="https://drive.google.com/..."><div class="form-text">Pastikan izin link dapat dibuka oleh pemeriksa (misalnya “siapa saja yang memiliki link dapat melihat”).</div></div>
+          <div class="mb-2"><label class="form-label fw-bold">Catatan <span class="text-muted fw-normal">(opsional)</span></label><textarea id="jabarReportEvidenceNoteV1605" class="form-control" rows="2" placeholder="Keterangan isi folder/dokumen"></textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnDeleteJabarReportEvidenceV1605" class="btn btn-outline-danger me-auto d-none" onclick="deleteJabarReportEvidenceV1605()"><i class="fas fa-trash me-1"></i>Hapus Link</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button id="btnSaveJabarReportEvidenceV1605" class="btn btn-primary" onclick="saveJabarReportEvidenceV1605()"><i class="fas fa-save me-1"></i>Simpan Link</button>
+        </div>
+      </div></div>
+    </div>
 
     <!-- V1.6.0.3 - ATUR MASSAL JABAR -->
     <div class="modal fade" id="modalJabarBulkAtur" tabindex="-1" aria-hidden="true">
@@ -4307,6 +4355,58 @@ function getJabarReportUrl(){
   const y=document.getElementById('jabarTahun')?.value||'2026',l=document.getElementById('jabarLaporan')?.value||'1';
   return window.location.origin+window.location.pathname+'?jabar='+encodeURIComponent(y)+'&laporan='+encodeURIComponent(l);
 }
+
+let jabarReportEvidenceCurrentV1605=null;
+async function loadJabarReportEvidenceStatusV1605(){
+  const box=document.getElementById('jabarReportEvidenceStatusV1605');if(!box)return;
+  const year=document.getElementById('jabarTahun')?.value||'2026',report=document.getElementById('jabarLaporan')?.value||'1';
+  box.innerHTML='<div class="alert alert-light border py-2 small mb-0"><span class="spinner-border spinner-border-sm me-1"></span>Memeriksa link bukti fisik laporan...</div>';
+  try{
+    const r=await apiJabar({action:'get_jabar_report_evidence_link',tahun:year,laporan:report});
+    if(r.status!=='success')throw new Error(r.message||'Gagal memuat link.');
+    jabarReportEvidenceCurrentV1605=r.data||null;
+    if(r.data&&r.data.url){
+      box.innerHTML=`<div class="alert alert-success border-success py-2 mb-0 d-flex flex-wrap justify-content-between align-items-center gap-2"><div><i class="fas fa-folder-open me-1"></i><b>Bukti Fisik Laporan ${escapeHtml(report)} tersedia.</b> <span class="small">${escapeHtml(r.data.judul||'')}</span></div><div class="d-flex gap-2"><a class="btn btn-sm btn-success" href="${escapeHtml(r.data.url)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt me-1"></i>Buka Bukti</a><button class="btn btn-sm btn-outline-primary" onclick="openJabarReportEvidenceLinkV1605()"><i class="fas fa-edit me-1"></i>Atur Link</button></div></div>`;
+    }else{
+      box.innerHTML=`<div class="alert alert-warning border-warning py-2 mb-0 d-flex flex-wrap justify-content-between align-items-center gap-2"><div><i class="fas fa-exclamation-triangle me-1"></i><b>Bukti fisik Laporan ${escapeHtml(report)} belum memiliki link.</b></div><button class="btn btn-sm btn-outline-primary" onclick="openJabarReportEvidenceLinkV1605()"><i class="fas fa-link me-1"></i>Tambahkan Link</button></div>`;
+    }
+  }catch(e){box.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(String(e.message||e))}</div>`;}
+}
+async function openJabarReportEvidenceLinkV1605(){
+  const year=document.getElementById('jabarTahun')?.value||'2026',report=document.getElementById('jabarLaporan')?.value||'1';
+  document.getElementById('jabarReportEvidenceSubV1605').textContent=`Tahun ${year} • Laporan ${report}`;
+  const title=document.getElementById('jabarReportEvidenceTitleV1605'),url=document.getElementById('jabarReportEvidenceUrlV1605'),note=document.getElementById('jabarReportEvidenceNoteV1605'),del=document.getElementById('btnDeleteJabarReportEvidenceV1605');
+  title.value=`Folder Bukti Fisik Laporan ${report}`;url.value='';note.value='';del.classList.add('d-none');
+  try{
+    const r=await apiJabar({action:'get_jabar_report_evidence_link',tahun:year,laporan:report});
+    if(r.status==='success'&&r.data){jabarReportEvidenceCurrentV1605=r.data;title.value=r.data.judul||title.value;url.value=r.data.url||'';note.value=r.data.catatan||'';del.classList.remove('d-none');}
+  }catch(e){}
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarReportEvidenceV1605')).show();
+}
+async function saveJabarReportEvidenceV1605(){
+  const year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value;
+  const title=document.getElementById('jabarReportEvidenceTitleV1605').value.trim(),url=document.getElementById('jabarReportEvidenceUrlV1605').value.trim(),note=document.getElementById('jabarReportEvidenceNoteV1605').value.trim();
+  if(!url)return alert('Masukkan link bukti fisik terlebih dahulu.');
+  const btn=document.getElementById('btnSaveJabarReportEvidenceV1605');btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+  try{
+    const r=await apiJabar({action:'save_jabar_report_evidence_link',tahun:year,laporan:report,judul:title,url:url,catatan:note});
+    if(r.status!=='success')throw new Error(r.message||'Gagal menyimpan link.');
+    bootstrap.Modal.getInstance(document.getElementById('modalJabarReportEvidenceV1605'))?.hide();
+    showToast7KAIH(r.message||'Link bukti fisik disimpan.');
+    await loadJabarReportEvidenceStatusV1605();
+  }catch(e){alert(String(e.message||e));}
+  finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-save me-1"></i>Simpan Link';}
+}
+async function deleteJabarReportEvidenceV1605(){
+  const year=document.getElementById('jabarTahun').value,report=document.getElementById('jabarLaporan').value;
+  if(!confirm(`Hapus link bukti fisik Laporan ${report}?\\n\\nHanya link yang dihapus. File/folder di Google Drive tidak ikut terhapus.`))return;
+  const r=await apiJabar({action:'delete_jabar_report_evidence_link',tahun:year,laporan:report});
+  if(r.status!=='success')return alert(r.message||'Gagal menghapus link.');
+  bootstrap.Modal.getInstance(document.getElementById('modalJabarReportEvidenceV1605'))?.hide();
+  showToast7KAIH(r.message||'Link dihapus.');
+  await loadJabarReportEvidenceStatusV1605();
+}
+
 async function salinLinkLaporanJabar(){const url=getJabarReportUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link laporan berhasil disalin.');else window.prompt('Salin link laporan:',url);}
 function cetakLaporanJabar(){window.open(getJabarReportUrl()+'&print=1','_blank');}
 
@@ -4348,6 +4448,34 @@ function cetakJabarFinalDariValidasi(){
   if(!r.siap_final&&!confirm('Laporan masih memiliki bagian yang belum lengkap. Tetap buka Cetak/PDF final?'))return;
   window.open(getJabarReportUrl()+'&print=1','_blank');
 }
+
+function jabarEvidenceIconV1606_(kind){
+  const m={PDF:'fas fa-file-pdf',DOC:'fas fa-file-word',SHEET:'fas fa-file-excel',SLIDE:'fas fa-file-powerpoint',LINK:'fas fa-link',REKAP:'fas fa-chart-pie'};
+  return m[String(kind||'LINK').toUpperCase()]||'fas fa-file';
+}
+function renderJabarEvidenceCardV1606_(b){
+  if(!b||b.kind==='INTERNAL'||b.akses==='INTERNAL')return `<div class="jbpub-ev-card"><div class="jbpub-ev-icon"><i class="fas fa-lock"></i></div><div class="jbpub-ev-title">${escapeHtml(b?.judul||'Bukti internal tersedia')}</div><div class="jbpub-ev-meta">INTERNAL • tidak dibuka pada laporan publik</div></div>`;
+  const kind=String(b.kind||'LINK').toUpperCase(),payload=encodeURIComponent(JSON.stringify({judul:b.judul||'Bukti',kind:kind,view_url:b.view_url||b.url||'',preview_url:b.preview_url||'',mime:b.mime||'',file_name:b.file_name||''}));
+  const media=kind==='IMAGE'&&b.preview_url
+    ?`<img class="jbpub-ev-thumb" src="${escapeHtml(b.preview_url)}" alt="${escapeHtml(b.judul||'Foto bukti')}" loading="lazy" onclick="openJabarEvidenceViewerV1606(decodeURIComponent('${payload}'))">`
+    :`<div class="jbpub-ev-icon" role="button" onclick="openJabarEvidenceViewerV1606(decodeURIComponent('${payload}'))"><i class="${jabarEvidenceIconV1606_(kind)}"></i></div>`;
+  return `<div class="jbpub-ev-card">${media}<div class="jbpub-ev-title">${escapeHtml(b.judul||b.file_name||'Bukti')}</div><div class="jbpub-ev-meta">${escapeHtml(kind)}${b.catatan?' • '+escapeHtml(b.catatan):''}</div><button class="btn btn-sm btn-outline-primary w-100 mt-2 jbpub-ev-open" onclick="openJabarEvidenceViewerV1606(decodeURIComponent('${payload}'))"><i class="fas fa-eye me-1"></i>Lihat Bukti</button></div>`;
+}
+function openJabarEvidenceViewerV1606(payload){
+  let d={};try{d=typeof payload==='string'?JSON.parse(payload):payload||{};}catch(e){return;}
+  const title=document.getElementById('jabarEvidenceViewerTitleV1606'),meta=document.getElementById('jabarEvidenceViewerMetaV1606'),body=document.getElementById('jabarEvidenceViewerBodyV1606'),open=document.getElementById('jabarEvidenceViewerOpenV1606');
+  title.textContent=d.judul||d.file_name||'Bukti Fisik';meta.textContent=(d.kind||'BUKTI')+(d.mime?' • '+d.mime:'');
+  const kind=String(d.kind||'LINK').toUpperCase(),view=d.view_url||'',prev=d.preview_url||view;
+  open.href=view||prev||'#';open.classList.toggle('d-none',!(view||prev));
+  if(kind==='IMAGE'&&prev){
+    body.innerHTML=`<div class="text-center bg-light rounded p-2"><img src="${escapeHtml(prev)}" alt="${escapeHtml(d.judul||'Bukti')}" style="max-width:100%;max-height:72vh;object-fit:contain"></div>`;
+  }else if(prev&&['PDF','DOC','SHEET','SLIDE','LINK'].includes(kind)){
+    body.innerHTML=`<iframe src="${escapeHtml(prev)}" title="${escapeHtml(d.judul||'Bukti')}" style="width:100%;height:70vh;border:0;border-radius:8px;background:#f5f5f5"></iframe>`;
+  }else{
+    body.innerHTML=`<div class="alert alert-info m-2">Pratinjau langsung tidak tersedia untuk jenis bukti ini. Gunakan tombol <b>Buka di Tab Baru</b>.</div>`;
+  }
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarEvidenceViewerV1606')).show();
+}
 async function loadPublicJabarReport(year,report){
   const body=document.getElementById('jbpubBody'),official=document.getElementById('jbpubOfficialBody');
   try{
@@ -4358,12 +4486,24 @@ async function loadPublicJabarReport(year,report){
     document.getElementById('jbpubMeta').textContent=`Tahun Pelaporan ${year} • ${school}`;
     document.getElementById('jbpubHeroSub').textContent=`Laporan Resmi & Bukti Dukung • Tahun ${year}`;
     document.getElementById('jbpubSchoolIdentity').innerHTML=`<b>SEKOLAH:</b> ${escapeHtml(school)}<br><b>NPSN:</b> ${escapeHtml(profil.npsn||'-')}<br><b>ALAMAT:</b> ${escapeHtml(profil.alamat||'-')}`;
+
+    const physical=r.bukti_fisik_laporan||null,physicalBox=document.getElementById('jbpubReportPhysicalEvidenceV1605');
+    if(physicalBox){
+      physicalBox.innerHTML=physical&&physical.url
+        ?`<div class="alert alert-success border-success mb-0"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2"><div><div class="fw-bold"><i class="fas fa-folder-open me-1"></i>BUKTI FISIK LAPORAN ${escapeHtml(report)}</div><div class="small mt-1">${escapeHtml(physical.judul||'Folder/Dokumen Bukti Fisik')}</div>${physical.catatan?`<div class="small text-muted">${escapeHtml(physical.catatan)}</div>`:''}</div><a class="btn btn-success jbpub-no-print" href="${escapeHtml(physical.url)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt me-1"></i>Buka Bukti Fisik</a><div class="d-none d-print-block small"><b>Link:</b> ${escapeHtml(physical.url)}</div></div></div>`
+        :`<div class="alert alert-warning py-2 small mb-0"><i class="fas fa-exclamation-triangle me-1"></i>Link bukti fisik Laporan ${escapeHtml(report)} belum tersedia.</div>`;
+    }
     document.getElementById('jbpubEvidenceReportNo').textContent=report;
     const reportUrl=getJabarPublicDetailUrl(year,report);document.getElementById('jbpubReportLinkText').innerHTML=`<a href="${escapeHtml(reportUrl)}">${escapeHtml(reportUrl)}</a>`;
     document.getElementById('jbpubGambaran').textContent=r.gambaran_umum||'Belum diisi.';
     const rows=r.data||[];
     official.innerHTML=rows.length?rows.map(x=>{let target='–';if(x.jumlah_sasaran!=='')target=`${escapeHtml(x.jumlah_sasaran)} ${escapeHtml(x.satuan_sasaran||'')}`.trim();let val='–';if(x.tipe_nilai==='PERSEN'&&x.nilai_laporan!=='')val=`${escapeHtml(x.nilai_laporan)} %`;else if(x.tipe_nilai==='ANGKA'&&x.nilai_laporan!=='')val=escapeHtml(x.nilai_laporan);return `<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td>${escapeHtml(x.indikator)}</td><td>${target}</td><td>${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</td><td class="jbpub-official-value">${val}</td></tr>`;}).join(''):'<tr><td colspan="5" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
-    body.innerHTML=rows.length?rows.map(x=>{const ev=(x.bukti||[]).map(b=>b.url?`<div class="mb-1"><a href="${escapeHtml(b.url)}" target="_blank" rel="noopener"><i class="fas fa-paperclip me-1"></i>${escapeHtml(b.judul||'Bukti')}</a>${b.catatan?`<div class="small text-muted ms-3">${escapeHtml(b.catatan)}</div>`:''}</div>`:`<div class="small text-muted mb-1"><i class="fas fa-lock me-1"></i>${escapeHtml(b.judul||'Bukti internal tersedia')}</div>`).join('');const fileNames=(x.bukti||[]).map(b=>escapeHtml(b.judul||'Bukti')).join('<br>')||`Subfolder ${escapeHtml(x.kode)}`;return `<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td>${escapeHtml(x.indikator)}<div class="small text-muted mt-1">Kebutuhan: ${escapeHtml(x.bukti_dibutuhkan||'-')}</div></td><td class="jbpub-evidence">${ev||'<span class="text-muted small">Belum ada bukti terhubung.</span>'}</td><td class="small">Subfolder ${escapeHtml(x.kode)}${fileNames?`<hr class="my-1">${fileNames}`:''}</td></tr>`;}).join(''):'<tr><td colspan="4" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
+    body.innerHTML=rows.length?rows.map(x=>{
+      const evidences=x.bukti||[],ev=evidences.length?`<div class="jbpub-ev-grid">${evidences.map(renderJabarEvidenceCardV1606_).join('')}</div>`:'<span class="text-muted small">Belum ada bukti terhubung.</span>';
+      const publicCount=evidences.filter(b=>b.akses!=='INTERNAL'&&b.kind!=='INTERNAL').length,internalCount=evidences.length-publicCount;
+      const fileNames=evidences.map(b=>escapeHtml(b.judul||'Bukti')).join('<br>')||`Subfolder ${escapeHtml(x.kode)}`;
+      return `<tr><td><b>${escapeHtml(formatKodeJabarFinal_(x.kode))}</b></td><td>${escapeHtml(x.indikator)}<div class="small text-muted mt-1">Kebutuhan: ${escapeHtml(x.bukti_dibutuhkan||'-')}</div><div class="small mt-1"><span class="badge bg-success">${publicCount} dapat dilihat</span>${internalCount?` <span class="badge bg-secondary">${internalCount} internal</span>`:''}</div></td><td class="jbpub-evidence">${ev}</td><td class="small">Subfolder ${escapeHtml(x.kode)}${fileNames?`<hr class="my-1">${fileNames}`:''}</td></tr>`;
+    }).join(''):'<tr><td colspan="4" class="text-center text-muted py-4">Belum ada indikator.</td></tr>';
     const p=new URLSearchParams(window.location.search);if(p.get('print')==='1')setTimeout(()=>window.print(),700);
   }catch(e){const msg=`<div class="alert alert-danger mb-0">${escapeHtml(String(e.message||e))}</div>`;body.innerHTML=`<tr><td colspan="4">${msg}</td></tr>`;if(official)official.innerHTML=`<tr><td colspan="5">${msg}</td></tr>`;}
 }
@@ -4449,6 +4589,7 @@ async function tambahTahunJabar(){
   showToast7KAIH(r.message||'Tahun berhasil dibuat.');jabarInitDone=false;await loadJabarTahun();document.getElementById('jabarTahun').value=y;await loadJabarIndikator();
 }
 async function loadJabarIndikator(){
+  loadJabarReportEvidenceStatusV1605();
   let year=document.getElementById('jabarTahun')?.value||'2026', report=document.getElementById('jabarLaporan')?.value||'1', body=document.getElementById('jabarIndikatorBody');if(!body)return;
   body.innerHTML='<tr><td colspan="9" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
   let r=await apiJabar({action:'get_jabar_indikator',tahun:year,laporan:report});
@@ -4550,7 +4691,13 @@ async function loadJabarTagged(){
   jabarTaggedSourceKeysV15202=new Set(rows.filter(x=>x.sumber&&x.id_sumber).map(x=>jabarSourceKeyV15202_(x.sumber,x.id_sumber)));
   if(count){count.textContent=rows.length+'/5';count.className='badge '+(rows.length>=5?'bg-danger':'bg-secondary');}
   if(!rows.length){box.innerHTML='<div class="text-muted">Belum ada bukti yang dihubungkan.</div>';return;}
-  box.innerHTML=rows.map(x=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-start gap-2"><div><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${x.auto_rekap?'<span class="badge bg-success me-1">Rekap Otomatis 7KAIH</span>':escapeHtml(x.sumber)} • ${escapeHtml(x.akses||'PUBLIK')}${x.catatan?' • '+escapeHtml(x.catatan):''}</div>${x.url&&x.akses==='PUBLIK'?`<a class="small" href="${escapeHtml(x.url)}" target="_blank" rel="noopener">Buka bukti <i class="fas fa-external-link-alt ms-1"></i></a>`:''}${x.auto_rekap?`<button class="btn btn-link btn-sm p-0 mt-1" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap Terbaru</button>`:''}</div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink me-1"></i>Lepas</button></div>`).join('');
+  box.innerHTML=rows.map(x=>{
+    const access=String(x.akses||'INTERNAL').toUpperCase(),isPublic=access==='PUBLIK';
+    const payload=encodeURIComponent(JSON.stringify({judul:x.judul||'Bukti',kind:x.kind||'LINK',view_url:x.view_url||x.url||'',preview_url:x.preview_url||'',mime:x.mime||'',file_name:x.file_name||''}));
+    const preview=(x.url||x.preview_url)&&!x.auto_rekap?`<button class="btn btn-sm btn-outline-primary me-1" onclick="openJabarEvidenceViewerV1606(decodeURIComponent('${payload}'))"><i class="fas fa-eye me-1"></i>Preview</button>`:'';
+    const accessBtn=`<button class="btn btn-sm ${isPublic?'btn-success':'btn-outline-secondary'} me-1" onclick='toggleJabarTagAccessV1606(${JSON.stringify(x.id_tag)},${JSON.stringify(access)})' title="Atur apakah bukti dapat dilihat pemeriksa"><i class="fas ${isPublic?'fa-eye':'fa-eye-slash'} me-1"></i>${isPublic?'Tampil di Laporan':'Internal'}</button>`;
+    return `<div class="border rounded p-2 mb-2"><div class="d-flex justify-content-between align-items-start gap-2"><div class="flex-grow-1"><b>${escapeHtml(x.judul||x.id_sumber)}</b><div class="text-muted">${x.auto_rekap?'<span class="badge bg-success me-1">Rekap Otomatis 7KAIH</span>':escapeHtml(x.sumber)} • <span class="badge ${isPublic?'bg-success':'bg-secondary'}">${escapeHtml(access)}</span>${x.catatan?' • '+escapeHtml(x.catatan):''}</div><div class="small mt-1">${isPublic?'<span class="text-success"><i class="fas fa-check-circle me-1"></i>Dapat dilihat dari laporan pemeriksaan.</span>':'<span class="text-muted"><i class="fas fa-lock me-1"></i>Belum dibuka untuk laporan pemeriksaan.</span>'}</div>${x.auto_rekap?`<button class="btn btn-link btn-sm p-0 mt-1" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap Terbaru</button>`:''}</div><button class="btn btn-sm btn-outline-danger" onclick='untagJabar(${JSON.stringify(x.id_tag)})'><i class="fas fa-unlink me-1"></i>Lepas</button></div><div class="mt-2">${preview}${accessBtn}</div></div>`;
+  }).join('');
 }
 async function fileToDataUrlJabar_(file){return new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=reject;rd.readAsDataURL(file);});}
 async function uploadJabarDokumen(){
@@ -4564,6 +4711,19 @@ async function tambahJabarLink(){
   const r=await apiJabar({action:'tambah_jabar_link',tahun:year,laporan:report,kode,url,judul:document.getElementById('jabarLinkJudul').value||'Link dokumen',catatan:document.getElementById('jabarLinkCatatan').value||'',akses_bukti:document.getElementById('jabarLinkAkses').value,pelaksana:'Administrator'});if(r.status!=='success')return alert(r.message||'Gagal menambahkan link.');showToast7KAIH('Link dokumen berhasil dihubungkan.');document.getElementById('jabarLinkUrl').value='';await loadJabarTagged();await loadJabarCandidates();await loadJabarIndikator();
 }
 
+
+
+async function toggleJabarTagAccessV1606(id,current){
+  const next=String(current||'INTERNAL').toUpperCase()==='PUBLIK'?'INTERNAL':'PUBLIK';
+  const msg=next==='PUBLIK'
+    ?'Tampilkan bukti ini pada laporan pemeriksaan?\\n\\nPastikan bukti tidak memuat data yang tidak boleh dibuka kepada pemeriksa.'
+    :'Ubah bukti ini menjadi INTERNAL?\\n\\nBukti tetap tersimpan dan terhubung, tetapi file tidak dapat dibuka dari laporan publik.';
+  if(!confirm(msg))return;
+  const r=await apiJabar({action:'set_jabar_tag_access',id_tag:id,akses:next});
+  if(r.status!=='success')return alert(r.message||'Gagal mengubah akses bukti.');
+  showToast7KAIH(r.message||'Akses bukti diperbarui.');
+  await loadJabarTagged();await loadJabarIndikator();
+}
 
 async function untagAllJabarCurrent(){
   const rows=window.__jabarTaggedCurrentV1603||[];
@@ -4901,3 +5061,7 @@ initPublicJabarReport();
 <!-- V1.6.0.3 BULK CONTROL: checkbox indikator, Atur Massal, Batalkan Isian, Lepas bukti eksplisit -->
 
 <!-- V1.6.0.4 AUTO REKAP BUKTI 7KAIH: kandidat bukti otomatis 01.01/01.07 + cetak rekap live -->
+
+<!-- V1.6.0.5 LINK BUKTI FISIK LAPORAN 1-5: admin kelola link + public/open inspection -->
+
+<!-- V1.6.0.6 EVIDENCE VIEWER PER INDICATOR: thumbnail foto, viewer PDF/dokumen, access toggle admin -->
