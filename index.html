@@ -5136,37 +5136,71 @@ async function openJabarTaskEvidenceV16044(kode,laporan,indikator){
   preview.innerHTML='<div class="py-5 text-muted"><i class="fas fa-eye fa-3x mb-3"></i><div>Pilih bukti untuk melihat pratinjau.</div></div>';
   meta.innerHTML='';
   document.getElementById('jabarTaskEvidenceOpenV16044').classList.add('d-none');
-
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarTaskEvidenceV16044')).show();
 
-  const r=await apiJabar({action:'get_kontribusi_jabar_saya'});
-  if(r.status!=='success'){
-    list.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(r.message||'Gagal memuat bukti.')}</div>`;
+  const [ri,rt]=await Promise.all([
+    apiJabar({action:'get_kontribusi_jabar_saya'}),
+    apiJabar({action:'get_jabar_tagged',tahun:year,laporan:laporan,kode:kode})
+  ]);
+
+  if(ri.status!=='success'&&rt.status!=='success'){
+    list.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml((ri.message||rt.message)||'Gagal memuat bukti.')}</div>`;
     return;
   }
-  const rows=(r.data||[]).filter(x=>
+
+  const map=new Map();
+
+  (ri.data||[]).filter(x=>
     String(x.tahun||'')===String(year) &&
     String(x.laporan||'')===String(laporan) &&
     String(x.saran_kode||'')===String(kode)
-  );
+  ).forEach(x=>{
+    const key='Jabar_Beraksi_Inbox|'+String(x.id||'');
+    map.set(key,{
+      id:x.id||'',judul:x.judul||'Bukti',jenis:x.jenis||'',url:x.url||'',catatan:x.catatan||'',
+      pengunggah:x.pengunggah||'',tugas:x.tugas||'',timestamp:x.timestamp||'',
+      sumber:'Jabar_Beraksi_Inbox',akses:'INTERNAL',auto_rekap:false
+    });
+  });
+
+  (rt.data||[]).forEach(x=>{
+    const key=String(x.sumber||'')+'|'+String(x.id_sumber||'');
+    if(map.has(key)){
+      const cur=map.get(key);
+      cur.akses=x.akses||cur.akses;
+      cur.url=x.url||cur.url;
+      cur.catatan=x.catatan||cur.catatan;
+      cur.timestamp=x.timestamp||cur.timestamp;
+      cur.auto_rekap=!!x.auto_rekap;
+      return;
+    }
+    map.set(key,{
+      id:x.id_sumber||x.id_tag||'',judul:x.judul||x.id_sumber||'Bukti',jenis:x.sumber||'Bukti Terhubung',
+      url:x.url||'',catatan:x.catatan||'',pengunggah:x.pelaksana||'',tugas:'',timestamp:x.timestamp||'',
+      sumber:x.sumber||'',akses:x.akses||'INTERNAL',auto_rekap:!!x.auto_rekap
+    });
+  });
+
+  const rows=Array.from(map.values());
   jabarTaskEvidenceRowsV16044=rows;
 
   if(!rows.length){
-    list.innerHTML='<div class="alert alert-light border small mb-0">Bukti untuk indikator ini belum ditemukan pada pool bersama.</div>';
+    list.innerHTML='<div class="alert alert-light border small mb-0">Bukti untuk indikator ini belum ditemukan pada pool bersama maupun bukti terhubung.</div>';
     return;
   }
 
   list.innerHTML=rows.map((x,i)=>`
     <button class="btn btn-outline-success text-start" onclick="showJabarTaskEvidenceV16044(${i},this)">
-      <div class="fw-bold"><i class="fas fa-file-alt me-1"></i>${escapeHtml(x.judul||'Bukti')}</div>
-      <div class="small text-muted">${escapeHtml(x.jenis||'-')} • ${escapeHtml(x.pengunggah||'-')}</div>
+      <div class="d-flex justify-content-between gap-2">
+        <div class="fw-bold"><i class="fas fa-file-alt me-1"></i>${escapeHtml(x.judul||'Bukti')}</div>
+        <span class="badge ${String(x.akses||'INTERNAL').toUpperCase()==='PUBLIK'?'bg-success':'bg-secondary'}">${escapeHtml(x.akses||'INTERNAL')}</span>
+      </div>
+      <div class="small text-muted">${escapeHtml(x.jenis||x.sumber||'-')}${x.pengunggah?` • ${escapeHtml(x.pengunggah)}`:''}</div>
     </button>`).join('');
 
   const first=list.querySelector('button');
   showJabarTaskEvidenceV16044(0,first);
-}
-
-function showJabarTaskEvidenceV16044(index,btn){
+}function showJabarTaskEvidenceV16044(index,btn){
   const x=jabarTaskEvidenceRowsV16044[index];
   if(!x)return;
   document.querySelectorAll('#jabarTaskEvidenceListV16044 button').forEach(b=>b.classList.remove('active'));
@@ -5178,11 +5212,16 @@ function showJabarTaskEvidenceV16044(index,btn){
 
   meta.innerHTML=`<div class="small">
     <b>${escapeHtml(x.judul||'Bukti')}</b><br>
-    <span class="text-muted">Pengunggah: ${escapeHtml(x.pengunggah||'-')} • Tugas: ${escapeHtml(x.tugas||'-')} • ${escapeHtml(x.timestamp||'-')}</span>
+    <span class="text-muted">${escapeHtml(x.sumber||x.jenis||'-')} • Akses ${escapeHtml(x.akses||'INTERNAL')}${x.pengunggah?` • Pengunggah: ${escapeHtml(x.pengunggah)}`:''}${x.tugas?` • Tugas: ${escapeHtml(x.tugas)}`:''}${x.timestamp?` • ${escapeHtml(x.timestamp)}`:''}</span>
     ${x.catatan?`<div class="mt-1">${escapeHtml(x.catatan)}</div>`:''}
   </div>`;
 
   open.classList.add('d-none');open.removeAttribute('href');
+
+  if(x.auto_rekap||x.sumber==='Refleksi_7KAIH_Rumah_Auto'){
+    preview.innerHTML=`<div class="p-5"><i class="fas fa-chart-pie fa-3x text-success mb-3"></i><h6 class="fw-bold">${escapeHtml(x.judul||'Rekap Otomatis 7KAIH')}</h6><div class="small text-muted mb-3">${escapeHtml(x.catatan||'')}</div><button class="btn btn-outline-success" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap</button></div>`;
+    return;
+  }
 
   if(!x.url){
     preview.innerHTML='<div class="p-5 text-muted"><i class="fas fa-eye-slash fa-3x mb-3"></i><h6 class="fw-bold">Bukti belum memiliki file/link yang dapat dipratinjau.</h6></div>';
@@ -5199,9 +5238,7 @@ function showJabarTaskEvidenceV16044(index,btn){
   }else{
     preview.innerHTML=`<div class="p-5"><i class="fas fa-file-alt fa-3x text-primary mb-3"></i><h6 class="fw-bold">File tersedia, tetapi format ini tidak mendukung tampilan langsung.</h6><div class="small text-muted">Gunakan tombol Buka di Tab Baru jika diperlukan.</div></div>`;
   }
-}
-
-async function loadJabarTugasSaya(){
+}async function loadJabarTugasSaya(){
   const box=document.getElementById('jcTaskList'), sum=document.getElementById('jcTaskSummary'); if(!box)return;
   box.innerHTML='<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Memuat tugas...</div>';
   const r=await apiJabar({action:'get_jabar_tugas_saya',tahun:document.getElementById('jabarContribTahun')?.value||'2026'});
@@ -5302,3 +5339,5 @@ initPublicJabarReport();
 <!-- V1.6.0.4.4 TEACHER SHARED EVIDENCE VIEWER: tombol Lihat Bukti pada status hijau, inline preview tanpa membuka link -->
 
 <!-- V1.6.0.4.5 STATUS EVIDENCE VIEWER: View pada Status Bukti; multi-evidence inline viewer -->
+
+<!-- V1.6.0.4.6 TEACHER EVIDENCE STATUS SYNC: unique union Inbox + Jabar_Beraksi_Tag -->
