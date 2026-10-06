@@ -1295,6 +1295,73 @@
 
 
 
+
+
+    <!-- V1.6.0.4.5 - STATUS EVIDENCE VIEWER (ADMIN) -->
+    <div class="modal fade" id="modalJabarStatusEvidenceV16045" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <div>
+              <h5 class="modal-title fw-bold mb-0"><i class="fas fa-eye me-2"></i>Status Bukti — Viewer</h5>
+              <small id="jabarStatusEvidenceSubV16045"></small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-lg-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small text-muted">Bukti terhubung</span>
+                  <span id="jabarStatusEvidenceCountV16045" class="badge bg-success">0</span>
+                </div>
+                <div id="jabarStatusEvidenceListV16045" class="d-grid gap-2"></div>
+              </div>
+              <div class="col-lg-8">
+                <div id="jabarStatusEvidenceMetaV16045" class="mb-2"></div>
+                <div id="jabarStatusEvidencePreviewV16045" class="border rounded bg-light p-2 text-center" style="min-height:360px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a id="jabarStatusEvidenceOpenV16045" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary d-none"><i class="fas fa-external-link-alt me-1"></i>Buka di Tab Baru</a>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V1.6.0.4.4 - VIEW BUKTI TERSEDIA PADA TUGAS GURU -->
+    <div class="modal fade" id="modalJabarTaskEvidenceV16044" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <div>
+              <h5 class="modal-title fw-bold mb-0"><i class="fas fa-eye me-2"></i>Lihat Bukti Tersedia</h5>
+              <small id="jabarTaskEvidenceSubV16044"></small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-lg-4">
+                <div class="small text-muted mb-2">Pilih bukti:</div>
+                <div id="jabarTaskEvidenceListV16044" class="d-grid gap-2"></div>
+              </div>
+              <div class="col-lg-8">
+                <div id="jabarTaskEvidenceMetaV16044" class="mb-2"></div>
+                <div id="jabarTaskEvidencePreviewV16044" class="border rounded bg-light p-2 text-center" style="min-height:360px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a id="jabarTaskEvidenceOpenV16044" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary d-none"><i class="fas fa-external-link-alt me-1"></i>Buka di Tab Baru</a>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- V1.6.0.4.2 - PREVIEW BUKTI SEBELUM DIHUBUNGKAN -->
     <div class="modal fade" id="modalJabarCandidatePreviewV16042" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -4500,6 +4567,97 @@ async function tambahTahunJabar(){
   if(r.status!=='success')return alert(r.message||'Gagal membuat tahun.');
   showToast7KAIH(r.message||'Tahun berhasil dibuat.');jabarInitDone=false;await loadJabarTahun();document.getElementById('jabarTahun').value=y;await loadJabarIndikator();
 }
+
+let jabarStatusEvidenceRowsV16045=[];
+
+async function openJabarStatusEvidenceV16045(kode,indikator){
+  const year=document.getElementById('jabarTahun')?.value||'2026';
+  const report=document.getElementById('jabarLaporan')?.value||'1';
+  const list=document.getElementById('jabarStatusEvidenceListV16045');
+  const preview=document.getElementById('jabarStatusEvidencePreviewV16045');
+  const meta=document.getElementById('jabarStatusEvidenceMetaV16045');
+  const count=document.getElementById('jabarStatusEvidenceCountV16045');
+  const open=document.getElementById('jabarStatusEvidenceOpenV16045');
+
+  document.getElementById('jabarStatusEvidenceSubV16045').textContent=`${formatKodeJabarFinal_(kode)} — ${indikator||''}`;
+  list.innerHTML='<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Memuat bukti...</div>';
+  preview.innerHTML='<div class="py-5 text-muted"><i class="fas fa-eye fa-3x mb-3"></i><div>Pilih bukti untuk melihat pratinjau.</div></div>';
+  meta.innerHTML='';count.textContent='0';open.classList.add('d-none');open.removeAttribute('href');
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarStatusEvidenceV16045')).show();
+
+  const r=await apiJabar({action:'get_jabar_tagged',tahun:year,laporan:report,kode:kode});
+  if(r.status!=='success'){
+    list.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(r.message||'Gagal memuat bukti.')}</div>`;
+    return;
+  }
+  const rows=r.data||[];
+  jabarStatusEvidenceRowsV16045=rows;
+  count.textContent=rows.length;
+
+  if(!rows.length){
+    list.innerHTML='<div class="alert alert-light border small mb-0">Belum ada bukti yang terhubung pada indikator ini.</div>';
+    return;
+  }
+
+  list.innerHTML=rows.map((x,i)=>{
+    const access=String(x.akses||'INTERNAL').toUpperCase();
+    const badge=access==='PUBLIK'
+      ?'<span class="badge bg-success">PUBLIK</span>'
+      :'<span class="badge bg-secondary">INTERNAL</span>';
+    return `<button class="btn btn-outline-success text-start" onclick="showJabarStatusEvidenceV16045(${i},this)">
+      <div class="d-flex justify-content-between gap-2">
+        <div class="fw-bold"><i class="fas fa-file-alt me-1"></i>${escapeHtml(x.judul||x.id_sumber||'Bukti')}</div>${badge}
+      </div>
+      <div class="small text-muted mt-1">${escapeHtml(x.sumber||'-')}${x.pelaksana?` • ${escapeHtml(x.pelaksana)}`:''}</div>
+    </button>`;
+  }).join('');
+
+  const first=list.querySelector('button');
+  showJabarStatusEvidenceV16045(0,first);
+}
+
+function showJabarStatusEvidenceV16045(index,btn){
+  const x=jabarStatusEvidenceRowsV16045[index];
+  if(!x)return;
+  document.querySelectorAll('#jabarStatusEvidenceListV16045 button').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+
+  const meta=document.getElementById('jabarStatusEvidenceMetaV16045');
+  const preview=document.getElementById('jabarStatusEvidencePreviewV16045');
+  const open=document.getElementById('jabarStatusEvidenceOpenV16045');
+  const access=String(x.akses||'INTERNAL').toUpperCase();
+
+  meta.innerHTML=`<div class="small">
+    <div><b>${escapeHtml(x.judul||x.id_sumber||'Bukti')}</b></div>
+    <div class="text-muted">${escapeHtml(x.sumber||'-')} • Akses ${escapeHtml(access)}${x.pelaksana?` • ${escapeHtml(x.pelaksana)}`:''}</div>
+    ${x.catatan?`<div class="mt-1">${escapeHtml(x.catatan)}</div>`:''}
+  </div>`;
+
+  open.classList.add('d-none');open.removeAttribute('href');
+
+  if(x.auto_rekap){
+    preview.innerHTML=`<div class="p-5"><i class="fas fa-chart-pie fa-3x text-success mb-3"></i><h6 class="fw-bold">${escapeHtml(x.judul||'Rekap Otomatis 7KAIH')}</h6><div class="small text-muted mb-3">${escapeHtml(x.catatan||'')}</div><button class="btn btn-outline-success" onclick="cetakRekapRefleksiJabarV1604()"><i class="fas fa-print me-1"></i>Lihat / Cetak Rekap</button></div>`;
+    return;
+  }
+
+  if(!x.url){
+    preview.innerHTML='<div class="p-5 text-muted"><i class="fas fa-eye-slash fa-3x mb-3"></i><h6 class="fw-bold">Bukti belum memiliki URL/file yang dapat dipratinjau.</h6></div>';
+    return;
+  }
+
+  const pv=jabarInlinePreviewUrlV16043_(x.url);
+  open.href=x.url;open.classList.remove('d-none');
+
+  if(pv.type==='image'){
+    preview.innerHTML=`<div class="d-flex align-items-center justify-content-center" style="min-height:360px"><img src="${escapeHtml(pv.url)}" alt="Bukti indikator" class="img-fluid rounded shadow-sm" style="max-height:68vh;object-fit:contain" onerror="this.parentElement.innerHTML='<div class=&quot;p-5 text-muted&quot;><i class=&quot;fas fa-image fa-3x mb-3&quot;></i><h6>Gambar tidak dapat ditampilkan langsung.</h6></div>'"></div>`;
+  }else if(pv.type==='pdf'||pv.type==='iframe'){
+    preview.innerHTML=`<iframe src="${escapeHtml(pv.url)}" title="Bukti indikator" allow="autoplay" style="width:100%;height:68vh;border:0;border-radius:8px;background:#fff"></iframe><div class="small text-muted mt-2"><i class="fas fa-info-circle me-1"></i>Jika kotak kosong, gunakan Buka di Tab Baru.</div>`;
+  }else{
+    preview.innerHTML=`<div class="p-5"><i class="fas fa-file-alt fa-3x text-primary mb-3"></i><h6 class="fw-bold">Format ini tidak mendukung tampilan langsung.</h6><div class="small text-muted">Gunakan tombol Buka di Tab Baru jika diperlukan.</div></div>`;
+  }
+}
+
 async function loadJabarIndikator(){
   let year=document.getElementById('jabarTahun')?.value||'2026', report=document.getElementById('jabarLaporan')?.value||'1', body=document.getElementById('jabarIndikatorBody');if(!body)return;
   body.innerHTML='<tr><td colspan="9" class="text-center py-4"><span class="spinner-border spinner-border-sm me-1"></span>Memuat indikator...</td></tr>';
@@ -4510,7 +4668,7 @@ async function loadJabarIndikator(){
   let sum=document.getElementById('jabarSummary');if(sum)sum.innerHTML=`<div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Indikator</div><b>${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Data Laporan Terisi</div><b class="text-primary">${dataIsi}/${rows.length}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Sudah Ada Bukti</div><b class="text-success">${ada}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Belum Ada Bukti</div><b class="text-danger">${belum}</b></div></div><div class="col-6 col-md"><div class="border rounded p-2 text-center bg-white"><div class="small text-muted">Total Kaitan Bukti</div><b>${totalBukti}</b></div></div><div class="col-12 col-md"><button class="btn btn-outline-success btn-sm w-100 h-100" onclick="validasiJabarFinal()"><i class="fas fa-clipboard-check me-1"></i>Validasi Final</button></div>`;
   body.innerHTML=rows.length?'':'<tr><td colspan="9" class="text-center text-muted">Belum ada indikator.</td></tr>';
   rows.forEach(x=>{
-    let n=Number(x.jumlah_bukti||0), badge=n?`<span class="badge bg-success">Ada • ${n}</span>`:`<span class="badge bg-danger">Belum ada</span>`;
+    let n=Number(x.jumlah_bukti||0), badge=n?`<div class="d-flex flex-column align-items-start gap-1"><span class="badge bg-success">Ada • ${n}</span><button class="btn btn-sm btn-outline-success py-0 px-2" onclick='openJabarStatusEvidenceV16045(${JSON.stringify(x.kode)},${JSON.stringify(x.indikator)})'><i class="fas fa-eye me-1"></i>View</button></div>`:`<span class="badge bg-danger">Belum ada</span>`;
     let pr=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger">PRIORITAS</span>':'<span class="badge bg-light text-dark border">Normal</span>';let due=x.tenggat?`<div class="small mt-1"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</div>`:'<div class="small text-muted mt-1">Tanpa tenggat</div>';
     let parts=[];if(x.mode_sasaran==='COUNT')parts.push(`${escapeHtml(x.jumlah_sasaran||'—')} ${escapeHtml(x.satuan_sasaran||'')}`);parts.push(`<span class="badge ${x.status_laporan==='SUDAH'?'bg-success':'bg-secondary'}">${x.status_laporan==='SUDAH'?'Sudah':'Belum'}</span>`);if(x.tipe_nilai==='PERSEN')parts.push(`${escapeHtml(x.nilai_laporan||'—')}%`);else if(x.tipe_nilai==='ANGKA')parts.push(escapeHtml(x.nilai_laporan||'—'));
     let dl=`<div class="small">${parts.join(' • ')}</div>${x.data_laporan_terisi?'<span class="badge bg-primary-subtle text-primary border mt-1">Sudah diisi</span>':'<span class="badge bg-light text-muted border mt-1">Belum diisi</span>'}`;
@@ -4965,6 +5123,84 @@ function pilihTugasJabar(kode,laporan){
     setTimeout(()=>document.getElementById('jcJudul')?.focus(),250);
   });
 }
+
+let jabarTaskEvidenceRowsV16044=[];
+
+async function openJabarTaskEvidenceV16044(kode,laporan,indikator){
+  const year=document.getElementById('jabarContribTahun')?.value||'2026';
+  const list=document.getElementById('jabarTaskEvidenceListV16044');
+  const preview=document.getElementById('jabarTaskEvidencePreviewV16044');
+  const meta=document.getElementById('jabarTaskEvidenceMetaV16044');
+  document.getElementById('jabarTaskEvidenceSubV16044').textContent=`${kode} — ${indikator||''}`;
+  list.innerHTML='<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Memuat bukti...</div>';
+  preview.innerHTML='<div class="py-5 text-muted"><i class="fas fa-eye fa-3x mb-3"></i><div>Pilih bukti untuk melihat pratinjau.</div></div>';
+  meta.innerHTML='';
+  document.getElementById('jabarTaskEvidenceOpenV16044').classList.add('d-none');
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalJabarTaskEvidenceV16044')).show();
+
+  const r=await apiJabar({action:'get_kontribusi_jabar_saya'});
+  if(r.status!=='success'){
+    list.innerHTML=`<div class="alert alert-danger py-2 small mb-0">${escapeHtml(r.message||'Gagal memuat bukti.')}</div>`;
+    return;
+  }
+  const rows=(r.data||[]).filter(x=>
+    String(x.tahun||'')===String(year) &&
+    String(x.laporan||'')===String(laporan) &&
+    String(x.saran_kode||'')===String(kode)
+  );
+  jabarTaskEvidenceRowsV16044=rows;
+
+  if(!rows.length){
+    list.innerHTML='<div class="alert alert-light border small mb-0">Bukti untuk indikator ini belum ditemukan pada pool bersama.</div>';
+    return;
+  }
+
+  list.innerHTML=rows.map((x,i)=>`
+    <button class="btn btn-outline-success text-start" onclick="showJabarTaskEvidenceV16044(${i},this)">
+      <div class="fw-bold"><i class="fas fa-file-alt me-1"></i>${escapeHtml(x.judul||'Bukti')}</div>
+      <div class="small text-muted">${escapeHtml(x.jenis||'-')} • ${escapeHtml(x.pengunggah||'-')}</div>
+    </button>`).join('');
+
+  const first=list.querySelector('button');
+  showJabarTaskEvidenceV16044(0,first);
+}
+
+function showJabarTaskEvidenceV16044(index,btn){
+  const x=jabarTaskEvidenceRowsV16044[index];
+  if(!x)return;
+  document.querySelectorAll('#jabarTaskEvidenceListV16044 button').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+
+  const meta=document.getElementById('jabarTaskEvidenceMetaV16044');
+  const preview=document.getElementById('jabarTaskEvidencePreviewV16044');
+  const open=document.getElementById('jabarTaskEvidenceOpenV16044');
+
+  meta.innerHTML=`<div class="small">
+    <b>${escapeHtml(x.judul||'Bukti')}</b><br>
+    <span class="text-muted">Pengunggah: ${escapeHtml(x.pengunggah||'-')} • Tugas: ${escapeHtml(x.tugas||'-')} • ${escapeHtml(x.timestamp||'-')}</span>
+    ${x.catatan?`<div class="mt-1">${escapeHtml(x.catatan)}</div>`:''}
+  </div>`;
+
+  open.classList.add('d-none');open.removeAttribute('href');
+
+  if(!x.url){
+    preview.innerHTML='<div class="p-5 text-muted"><i class="fas fa-eye-slash fa-3x mb-3"></i><h6 class="fw-bold">Bukti belum memiliki file/link yang dapat dipratinjau.</h6></div>';
+    return;
+  }
+
+  const pv=jabarInlinePreviewUrlV16043_(x.url);
+  open.href=x.url;open.classList.remove('d-none');
+
+  if(pv.type==='image'){
+    preview.innerHTML=`<div class="d-flex align-items-center justify-content-center" style="min-height:360px"><img src="${escapeHtml(pv.url)}" alt="Bukti Jabar" class="img-fluid rounded shadow-sm" style="max-height:68vh;object-fit:contain" onerror="this.parentElement.innerHTML='<div class=&quot;p-5 text-muted&quot;><i class=&quot;fas fa-image fa-3x mb-3&quot;></i><h6>Gambar tidak dapat ditampilkan langsung.</h6></div>'"></div>`;
+  }else if(pv.type==='pdf'||pv.type==='iframe'){
+    preview.innerHTML=`<iframe src="${escapeHtml(pv.url)}" title="Bukti Jabar" allow="autoplay" style="width:100%;height:68vh;border:0;border-radius:8px;background:#fff"></iframe><div class="small text-muted mt-2"><i class="fas fa-info-circle me-1"></i>Jika kotak kosong, izin file sumber belum mengizinkan embed.</div>`;
+  }else{
+    preview.innerHTML=`<div class="p-5"><i class="fas fa-file-alt fa-3x text-primary mb-3"></i><h6 class="fw-bold">File tersedia, tetapi format ini tidak mendukung tampilan langsung.</h6><div class="small text-muted">Gunakan tombol Buka di Tab Baru jika diperlukan.</div></div>`;
+  }
+}
+
 async function loadJabarTugasSaya(){
   const box=document.getElementById('jcTaskList'), sum=document.getElementById('jcTaskSummary'); if(!box)return;
   box.innerHTML='<div class="text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Memuat tugas...</div>';
@@ -4979,7 +5215,7 @@ async function loadJabarTugasSaya(){
   const tersedia=rows.filter(x=>Number(x.kontribusi||0)>0).length;
   if(sum)sum.textContent=`${rows.length} indikator • ${tersedia} sudah ada bukti`;
   if(!rows.length){box.innerHTML='<div class="text-muted small">Belum ada indikator yang dipetakan ke tugas tambahan Anda.</div>';return;}
-  box.innerHTML=rows.map(x=>{const pri=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger me-1">PRIORITAS</span>':'';const due=x.tenggat?`<span class="badge bg-warning text-dark"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</span>`:'';const sent=Number(x.kontribusi||0);const st=sent?`<span class="badge bg-success">${sent} bukti tersedia</span>`:'<span class="badge bg-secondary">Belum ada bukti</span>';return `<div class="border rounded p-2 mb-2 ${pri?'border-danger':''}"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><div>${pri}${due}</div><b>${escapeHtml(x.kode)} — ${escapeHtml(x.indikator)}</b><div class="small mt-1"><b>Yang harus disiapkan:</b> ${escapeHtml(x.bukti||'-')}</div><div class="small text-muted">PJ: ${escapeHtml(x.penanggung_jawab||'-')}</div></div><div class="text-end">${st}<div class="mt-1"><button class="btn btn-sm btn-outline-warning" onclick='pilihTugasJabar(${JSON.stringify(x.kode)},${JSON.stringify(x.laporan)})'><i class="fas fa-upload me-1"></i>Tambah Bukti</button></div></div></div></div>`;}).join('');
+  box.innerHTML=rows.map(x=>{const pri=String(x.prioritas||'NORMAL').toUpperCase()==='PRIORITAS'?'<span class="badge bg-danger me-1">PRIORITAS</span>':'';const due=x.tenggat?`<span class="badge bg-warning text-dark"><i class="far fa-calendar-alt me-1"></i>${escapeHtml(x.tenggat)}</span>`:'';const sent=Number(x.kontribusi||0);const st=sent?`<span class="badge bg-success">${sent} bukti tersedia</span>`:'<span class="badge bg-secondary">Belum ada bukti</span>';const view=sent?`<button class="btn btn-sm btn-outline-success me-1" onclick='openJabarTaskEvidenceV16044(${JSON.stringify(x.kode)},${JSON.stringify(x.laporan)},${JSON.stringify(x.indikator)})'><i class="fas fa-eye me-1"></i>Lihat Bukti</button>`:'';return `<div class="border rounded p-2 mb-2 ${pri?'border-danger':''}"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><div>${pri}${due}</div><b>${escapeHtml(x.kode)} — ${escapeHtml(x.indikator)}</b><div class="small mt-1"><b>Yang harus disiapkan:</b> ${escapeHtml(x.bukti||'-')}</div><div class="small text-muted">PJ: ${escapeHtml(x.penanggung_jawab||'-')}</div></div><div class="text-end">${st}<div class="mt-1">${view}<button class="btn btn-sm btn-outline-warning" onclick='pilihTugasJabar(${JSON.stringify(x.kode)},${JSON.stringify(x.laporan)})'><i class="fas fa-upload me-1"></i>Tambah Bukti</button></div></div></div></div>`;}).join('');
 }
 async function openJabarContributor(sourceRole, btnElement){
   setJabarBackToTasksVisible_(false);
@@ -5062,3 +5298,7 @@ initPublicJabarReport();
 <!-- V1.6.0.4.2 PREVIEW BUKTI: tombol Lihat sebelum + Hubungkan; additive di atas V1.6.0.4.1 -->
 
 <!-- V1.6.0.4.3 INLINE EVIDENCE PREVIEW: foto/PDF/Google Drive/Docs/Sheets/Slides tampil dalam kotak preview bila izin sumber memungkinkan -->
+
+<!-- V1.6.0.4.4 TEACHER SHARED EVIDENCE VIEWER: tombol Lihat Bukti pada status hijau, inline preview tanpa membuka link -->
+
+<!-- V1.6.0.4.5 STATUS EVIDENCE VIEWER: View pada Status Bukti; multi-evidence inline viewer -->
