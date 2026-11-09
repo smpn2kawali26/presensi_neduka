@@ -124,6 +124,18 @@
         .shopee-btn-outline { border: 1px solid #ee4d2d; color: #ee4d2d; background: transparent; }
         .shopee-btn-outline:hover { background: #fff5f1; }
         
+        /* Riwayat Orang Tua/Wali: ringkas, tanpa panel scroll internal */
+        .ortu-history-pager { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding-top:9px; margin-top:8px; border-top:1px solid #edf0f4; }
+        .ortu-history-pager .pager-info { color:#6c757d; font-size:.68rem; }
+        .ortu-history-pager .pager-actions { display:flex; align-items:center; gap:6px; }
+        .ortu-history-pager .btn { font-size:.68rem; padding:4px 9px; border-radius:8px; }
+        .ortu-history-item { border:1px solid #e2e8f0; border-radius:10px; background:#fff; padding:10px 11px; margin-bottom:8px; }
+        .ortu-history-item:last-child { margin-bottom:0; }
+        .ortu-history-text-clamp { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; line-height:1.35; }
+        #page-riwayat .table-responsive { max-height:none !important; overflow-y:visible !important; }
+        #listOrtuRiwayatIzin { max-height:none !important; overflow:visible !important; }
+        @media(max-width:380px){.ortu-history-pager{align-items:flex-start}.ortu-history-pager .pager-actions{width:100%;justify-content:flex-end}}
+
         /* Teacher Accordion / Minimalist Card */
         .minimalist-card { border-left: 3px solid #ee4d2d; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 8px; }
         .minimalist-card-title { font-size: 0.8rem; font-weight: bold; color: #333; }
@@ -1025,9 +1037,9 @@
                 
                 <!-- TABEL MATRIKS BULANAN RINGKAS -->
                 <div class="card border-0 shadow-sm bg-white rounded-4 overflow-hidden">
-                    <div class="table-responsive" style="max-height: 60vh;">
+                    <div class="table-responsive">
                         <table class="table table-bordered table-striped align-middle mb-0 text-center" style="font-size: 0.8rem;">
-                            <thead class="table-dark text-uppercase sticky-top">
+                            <thead class="table-dark text-uppercase">
                                 <tr>
                                     <th>Tanggal</th>
                                     <th>Masuk</th>
@@ -1040,6 +1052,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="ortuRiwayatPagination" class="px-3 pb-3"></div>
                 </div>
             </div>
             
@@ -1071,6 +1084,7 @@
                     </div>
                 </div>
                 <div id="listOrtuCatatan" class="mobile-card-list"><div class="text-center p-4 text-muted">Memuat catatan...</div></div>
+                <div id="ortuCatatanPagination"></div>
             </div>
             
             <div id="page-jadwal" class="sub-page">
@@ -1098,9 +1112,10 @@
                 <!-- RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA -->
                 <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
                     <h6 class="fw-bold text-dark mb-2" style="font-size: 0.85rem;"><i class="fas fa-history me-1 text-info"></i> Riwayat Pengajuan Saya</h6>
-                    <div id="listOrtuRiwayatIzin" class="custom-scrollbar" style="max-height: 220px; overflow-y: auto;">
+                    <div id="listOrtuRiwayatIzin">
                         <div class="text-center text-muted small py-3">Memuat riwayat pengajuan...</div>
                     </div>
+                    <div id="ortuIzinPagination"></div>
                 </div>
             </div>
             <div id="page-refleksi7" class="sub-page">
@@ -1125,6 +1140,7 @@
                 <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
                     <h6 class="fw-bold mb-2"><i class="fas fa-clock-rotate-left me-1 text-success"></i> Riwayat Refleksi</h6>
                     <div id="ref7History"><div class="text-center text-muted small py-3">Memuat riwayat...</div></div>
+                    <div id="ref7HistoryPagination"></div>
                 </div>
             </div>
 
@@ -1209,6 +1225,14 @@
                             <span class="teacher-link-title">Dokumentasi Sekolah</span>
                             <span class="teacher-link-desc">Galeri publik kegiatan sekolah</span>
                             <span class="teacher-link-open">LIHAT GALERI <i class="fas fa-arrow-up-right-from-square ms-1"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a class="teacher-link-card" href="https://sippneduka.site.je/" target="_blank" rel="noopener noreferrer">
+                            <span class="teacher-link-icon"><i class="fas fa-landmark"></i></span>
+                            <span class="teacher-link-title">Pelayanan Publik Sekolah</span>
+                            <span class="teacher-link-desc">SIPP NEDUKA: informasi dan layanan publik</span>
+                            <span class="teacher-link-open">BUKA LAYANAN <i class="fas fa-arrow-up-right-from-square ms-1"></i></span>
                         </a>
                     </div>
                 </div>
@@ -1618,6 +1642,19 @@
         let globalOrtuRiwayatData = [];
         let globalOrtuCatatanData = [];
         let globalTeacherData = [];
+
+        // Navigasi riwayat User Orang Tua/Wali (tanpa scroll internal)
+        let ortuMatriksPage = 1;
+        let ortuIzinPage = 1;
+        let ortuCatatanPage = 1;
+        let ref7HistoryPage = 1;
+        let ortuIzinHistoryRows = [];
+        let ortuCatatanHistoryRows = [];
+        let ref7HistoryRows = [];
+        const ORTU_MATRIKS_PAGE_SIZE = 7;
+        const ORTU_IZIN_PAGE_SIZE = 3;
+        const ORTU_CATATAN_PAGE_SIZE = 3;
+        const REF7_HISTORY_PAGE_SIZE = 3;
         
         let isCatatanLoaded = false; 
         
@@ -2944,198 +2981,237 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             }
         }
         
+        function renderOrtuHistoryPager(containerId, total, page, pageSize, callbackName) {
+            const box = document.getElementById(containerId);
+            if (!box) return;
+            const pages = Math.max(1, Math.ceil(total / pageSize));
+            if (!total) { box.innerHTML = ''; return; }
+            const from = Math.min(total, (page - 1) * pageSize + 1);
+            const to = Math.min(total, page * pageSize);
+            if (pages <= 1) {
+                box.innerHTML = `<div class="ortu-history-pager"><span class="pager-info">Menampilkan ${from}–${to} dari ${total} data</span></div>`;
+                return;
+            }
+            box.innerHTML = `<div class="ortu-history-pager">
+                <span class="pager-info">Menampilkan ${from}–${to} dari ${total} data • Halaman ${page}/${pages}</span>
+                <div class="pager-actions">
+                    <button type="button" class="btn btn-outline-secondary" ${page <= 1 ? 'disabled' : ''} onclick="${callbackName}(${page - 1})"><i class="fas fa-chevron-left me-1"></i>Sebelumnya</button>
+                    <button type="button" class="btn btn-outline-primary" ${page >= pages ? 'disabled' : ''} onclick="${callbackName}(${page + 1})">Berikutnya<i class="fas fa-chevron-right ms-1"></i></button>
+                </div>
+            </div>`;
+        }
+
         function renderOrtuMatriksRiwayat(dataArray) {
-            let tbody = document.getElementById('tableOrtuMatriksBody'); 
-            if(!tbody) return;
-            
-            let bFilter = document.getElementById('ortuFilterBulanRiwayat').value; 
-            let tFilter = document.getElementById('ortuFilterTahunRiwayat').value;
-            
+            let tbody = document.getElementById('tableOrtuMatriksBody');
+            if (!tbody) return;
+
+            let bFilter = document.getElementById('ortuFilterBulanRiwayat')?.value || '';
+            let tFilter = document.getElementById('ortuFilterTahunRiwayat')?.value || '';
+
             const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
             let targetMonthName = monthNames[parseInt(bFilter) - 1] || "";
-            
-            let filtered = dataArray.filter(r => {
+
+            let filtered = (dataArray || []).filter(r => {
                 let tglStr = String(r.tanggal || '').toLowerCase();
                 let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
                 let matchTahun = !tFilter || tglStr.includes(tFilter);
                 return matchBulan && matchTahun;
             });
-            
-            if(filtered.length === 0 && dataArray.length > 0 && !bFilter) {
-                filtered = dataArray;
-            }
+
+            if (filtered.length === 0 && (dataArray || []).length > 0 && !bFilter) filtered = dataArray;
+
             let groupedByDate = {};
             filtered.forEach(item => {
                 let cleanDate = String(item.tanggal || '').trim();
-                if(!groupedByDate[cleanDate]) {
-                    groupedByDate[cleanDate] = { masuk: '-', pulang: '-', status: '-' };
-                }
+                if (!groupedByDate[cleanDate]) groupedByDate[cleanDate] = { masuk: '-', pulang: '-', status: '-' };
                 let tipe = String(item.tipe || '').trim().toUpperCase();
                 let waktuVal = String(item.waktu || '-');
                 let statusVal = String(item.status || item.status_kehadiran || '-').trim();
-                
+
                 if (tipe.includes('IZIN') || statusVal.toLowerCase().includes('izin')) {
                     groupedByDate[cleanDate].status = 'Izin';
                 } else if (tipe.includes('SAKIT') || statusVal.toLowerCase().includes('sakit')) {
                     groupedByDate[cleanDate].status = 'Sakit';
                 } else if (tipe.includes('MASUK') || tipe.includes('TERLAMBAT') || tipe.includes('MANUAL')) {
                     groupedByDate[cleanDate].masuk = extractTime(waktuVal);
-                    if(statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
+                    if (statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
                 } else if (tipe.includes('PULANG')) {
                     groupedByDate[cleanDate].pulang = extractTime(waktuVal);
-                    if(statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') {
-                        groupedByDate[cleanDate].status = statusVal;
-                    }
+                    if (statusVal && statusVal !== '-' && groupedByDate[cleanDate].status === '-') groupedByDate[cleanDate].status = statusVal;
                 }
-                
-                if (groupedByDate[cleanDate].status === '-' && statusVal && statusVal !== '-') {
-                    groupedByDate[cleanDate].status = statusVal;
-                }
+                if (groupedByDate[cleanDate].status === '-' && statusVal && statusVal !== '-') groupedByDate[cleanDate].status = statusVal;
             });
-            
+
             let dates = Object.keys(groupedByDate).sort((a, b) => {
                 let da = a.includes('/') ? a.split('/').reverse().join('-') : a;
                 let db = b.includes('/') ? b.split('/').reverse().join('-') : b;
                 return new Date(db) - new Date(da);
             });
-            
-            tbody.innerHTML = "";
+
             let countH = 0, countT = 0, countI = 0, countS = 0, countA = 0;
-            
-            if(dates.length === 0) {
+            dates.forEach(dateStr => {
+                let st = String(groupedByDate[dateStr].status).trim().toLowerCase();
+                if (st.includes('terlambat')) countT++;
+                else if (st.includes('izin')) countI++;
+                else if (st.includes('sakit')) countS++;
+                else if (st.includes('alpa')) countA++;
+                else countH++;
+            });
+
+            const pages = Math.max(1, Math.ceil(dates.length / ORTU_MATRIKS_PAGE_SIZE));
+            ortuMatriksPage = Math.min(Math.max(1, ortuMatriksPage), pages);
+            const start = (ortuMatriksPage - 1) * ORTU_MATRIKS_PAGE_SIZE;
+            const visibleDates = dates.slice(start, start + ORTU_MATRIKS_PAGE_SIZE);
+
+            if (!dates.length) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4 small">Belum ada riwayat kehadiran pada bulan ini.</td></tr>`;
+                renderOrtuHistoryPager('ortuRiwayatPagination', 0, 1, ORTU_MATRIKS_PAGE_SIZE, 'changeOrtuMatriksPage');
             } else {
-                dates.forEach(dateStr => {
+                tbody.innerHTML = visibleDates.map(dateStr => {
                     let d = groupedByDate[dateStr];
                     let st = String(d.status).trim().toLowerCase();
-                    let badgeClass = 'bg-success';
-                    let displayStatus = d.status;
-                    
-                    if(st.includes('terlambat')) { 
-                        badgeClass = 'bg-warning text-dark'; 
-                        countT++; 
-                    } else if(st.includes('izin')) { 
-                        badgeClass = 'bg-info text-white'; 
-                        displayStatus = 'Izin';
-                        countI++; 
-                    } else if(st.includes('sakit')) { 
-                        badgeClass = 'bg-secondary text-white'; 
-                        displayStatus = 'Sakit';
-                        countS++; 
-                    } else if(st.includes('alpa')) { 
-                        badgeClass = 'bg-danger'; 
-                        countA++; 
-                    } else if(st.includes('hadir')) { 
-                        countH++; 
-                    } else {
-                        countH++;
-                    }
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
-                            <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${d.masuk}</span></td>
-                            <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${d.pulang}</span></td>
-                            <td><span class="badge ${badgeClass}">${displayStatus}</span></td>
-                        </tr>
-                    `;
-                });
+                    let badgeClass = 'bg-success', displayStatus = d.status;
+                    if (st.includes('terlambat')) badgeClass = 'bg-warning text-dark';
+                    else if (st.includes('izin')) { badgeClass = 'bg-info text-white'; displayStatus = 'Izin'; }
+                    else if (st.includes('sakit')) { badgeClass = 'bg-secondary text-white'; displayStatus = 'Sakit'; }
+                    else if (st.includes('alpa')) badgeClass = 'bg-danger';
+                    return `<tr>
+                        <td class="fw-bold text-nowrap">${formatTanggalIndonesia(dateStr)}</td>
+                        <td><span class="text-success fw-bold"><i class="fas fa-sign-in-alt me-1"></i>${escapeHtml(String(d.masuk))}</span></td>
+                        <td><span class="text-primary fw-bold"><i class="fas fa-sign-out-alt me-1"></i>${escapeHtml(String(d.pulang))}</span></td>
+                        <td><span class="badge ${badgeClass}">${escapeHtml(String(displayStatus))}</span></td>
+                    </tr>`;
+                }).join('');
+                renderOrtuHistoryPager('ortuRiwayatPagination', dates.length, ortuMatriksPage, ORTU_MATRIKS_PAGE_SIZE, 'changeOrtuMatriksPage');
             }
-            
-            if(document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
-            if(document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
-            if(document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
-            if(document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
-            if(document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
+
+            if (document.getElementById('statHadir')) document.getElementById('statHadir').innerText = countH;
+            if (document.getElementById('statTelat')) document.getElementById('statTelat').innerText = countT;
+            if (document.getElementById('statIzin')) document.getElementById('statIzin').innerText = countI;
+            if (document.getElementById('statSakit')) document.getElementById('statSakit').innerText = countS;
+            if (document.getElementById('statAlpa')) document.getElementById('statAlpa').innerText = countA;
         }
-        function filterOrtuRiwayat() { 
-            renderOrtuMatriksRiwayat(globalOrtuRiwayatData); 
+        function changeOrtuMatriksPage(page) {
+            ortuMatriksPage = page;
+            renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
         }
-        
+        function filterOrtuRiwayat() {
+            ortuMatriksPage = 1;
+            renderOrtuMatriksRiwayat(globalOrtuRiwayatData);
+        }
+
         /* FUNGSI RIWAYAT PENGAJUAN IZIN UNTUK ORANG TUA */
         function loadOrtuRiwayatIzin(nisn) {
             let container = document.getElementById('listOrtuRiwayatIzin');
-            if(!container) return;
-            
-            let izinData = globalOrtuRiwayatData.filter(r => {
+            if (!container) return;
+
+            let izinData = (globalOrtuRiwayatData || []).filter(r => {
                 let st = String(r.status || '').toLowerCase();
                 let tp = String(r.tipe || '').toLowerCase();
                 return st.includes('izin') || tp.includes('izin') || st.includes('sakit') || tp.includes('sakit');
             });
-            
-            if(izinData.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin/sakit.</div>`;
-                return;
-            }
-            
-            izinData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-            
-            let html = "";
-            izinData.forEach(r => {
-                let isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
-                let badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
-                let label = isSakit ? 'Sakit' : 'Izin';
-                let buktiLnk = (r.foto && r.foto !== '-') ? `<a href="${r.foto}" target="_blank" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:0.65rem; border-radius:8px;"><i class="fas fa-image me-1"></i> Bukti Surat</a>` : `<span class="text-muted" style="font-size:0.65rem;">Tanpa Bukti</span>`;
-                let ket = r.keterangan || r.catatan || 'Pengajuan via aplikasi Ortu';
-                
-                html += `
-                <div class="border-bottom py-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="badge ${badgeClass}">${label}</span>
-                        <small class="text-muted" style="font-size: 0.7rem;">${formatTanggalIndonesia(r.tanggal)}</small>
-                    </div>
-                    <div class="small text-dark mb-1">${ket}</div>
-                    <div class="text-end">${buktiLnk}</div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-        
-        function filterOrtuCatatan() {
-            let bFilter = document.getElementById('ortuFilterBulanCatatan').value;
-            let tFilter = document.getElementById('ortuFilterTahunCatatan').value;
-            let todayIso = new Date().toISOString().split('T')[0];
-            
-            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
-            let targetMonthName = bFilter ? monthNames[parseInt(bFilter) - 1] : "";
-            
-            let filtered = globalOrtuCatatanData.filter(c => {
-                if (c.masa_berlaku && String(c.masa_berlaku).trim() !== '-' && String(c.masa_berlaku).trim() !== '') {
-                    if (c.masa_berlaku < todayIso) return false;
-                }
-                
-                let matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
-                let matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
-                
-                if (!matchNisn && !matchKelas) return false;
-                
-                let tglStr = String(c.tanggal || '').toLowerCase();
-                let matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter)}/`) || tglStr.includes(targetMonthName);
-                let matchTahun = !tFilter || tglStr.includes(tFilter);
-                return matchBulan && matchTahun;
-            });
-            
-            filtered.sort((a, b) => {
-                let da = a.tanggal.includes('/') ? a.tanggal.split('/').reverse().join('-') : a.tanggal;
-                let db = b.tanggal.includes('/') ? b.tanggal.split('/').reverse().join('-') : b.tanggal;
+
+            izinData.sort((a, b) => {
+                let da = String(a.tanggal || '').includes('/') ? String(a.tanggal).split('/').reverse().join('-') : a.tanggal;
+                let db = String(b.tanggal || '').includes('/') ? String(b.tanggal).split('/').reverse().join('-') : b.tanggal;
                 return new Date(db) - new Date(da);
             });
-            
-            renderOrtuCatatanList(filtered);
+            ortuIzinHistoryRows = izinData;
+            ortuIzinPage = 1;
+            renderOrtuRiwayatIzinPage();
         }
-        
-        function renderOrtuCatatanList(dataArray) {
-            let container = document.getElementById('listOrtuCatatan'); container.innerHTML = "";
-            if(dataArray.length === 0) { 
-                container.innerHTML = `<div class="text-center p-4 text-muted small">Tidak ada catatan guru pada periode ini.</div>`; 
-                return; 
+
+        function renderOrtuRiwayatIzinPage() {
+            const container = document.getElementById('listOrtuRiwayatIzin');
+            if (!container) return;
+            const rows = ortuIzinHistoryRows || [];
+            if (!rows.length) {
+                container.innerHTML = `<div class="text-center text-muted small py-3">Belum ada riwayat pengajuan izin/sakit.</div>`;
+                renderOrtuHistoryPager('ortuIzinPagination', 0, 1, ORTU_IZIN_PAGE_SIZE, 'changeOrtuIzinPage');
+                return;
             }
-            dataArray.forEach(c => {
+            const pages = Math.max(1, Math.ceil(rows.length / ORTU_IZIN_PAGE_SIZE));
+            ortuIzinPage = Math.min(Math.max(1, ortuIzinPage), pages);
+            const visible = rows.slice((ortuIzinPage - 1) * ORTU_IZIN_PAGE_SIZE, ortuIzinPage * ORTU_IZIN_PAGE_SIZE);
+            container.innerHTML = visible.map(r => {
+                const isSakit = String(r.status || '').toLowerCase().includes('sakit') || String(r.tipe || '').toLowerCase().includes('sakit');
+                const badgeClass = isSakit ? 'bg-secondary' : 'bg-info text-dark';
+                const label = isSakit ? 'Sakit' : 'Izin';
+                const buktiLnk = (r.foto && r.foto !== '-')
+                    ? `<a href="${escapeHtml(String(r.foto))}" target="_blank" rel="noopener noreferrer" class="btn btn-xs shopee-btn-outline py-0 px-2" style="font-size:.65rem;border-radius:8px;"><i class="fas fa-image me-1"></i>Bukti Surat</a>`
+                    : `<span class="text-muted" style="font-size:.65rem;">Tanpa Bukti</span>`;
+                const ket = r.keterangan || r.catatan || 'Pengajuan via aplikasi Ortu';
+                return `<div class="ortu-history-item">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                        <span class="badge ${badgeClass}">${label}</span>
+                        <small class="text-muted" style="font-size:.68rem;">${formatTanggalIndonesia(r.tanggal)}</small>
+                    </div>
+                    <div class="small text-dark ortu-history-text-clamp">${escapeHtml(String(ket))}</div>
+                    <div class="d-flex justify-content-end mt-2">${buktiLnk}</div>
+                </div>`;
+            }).join('');
+            renderOrtuHistoryPager('ortuIzinPagination', rows.length, ortuIzinPage, ORTU_IZIN_PAGE_SIZE, 'changeOrtuIzinPage');
+        }
+
+        function changeOrtuIzinPage(page) {
+            ortuIzinPage = page;
+            renderOrtuRiwayatIzinPage();
+        }
+
+        function filterOrtuCatatan() {
+            const bFilter = document.getElementById('ortuFilterBulanCatatan')?.value || '';
+            const tFilter = document.getElementById('ortuFilterTahunCatatan')?.value || '';
+            const todayIso = new Date().toISOString().split('T')[0];
+            const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            const targetMonthName = bFilter ? monthNames[parseInt(bFilter, 10) - 1] : "";
+
+            let filtered = (globalOrtuCatatanData || []).filter(c => {
+                const masaBerlaku = String(c.masa_berlaku || '').trim();
+                if (masaBerlaku && masaBerlaku !== '-' && masaBerlaku < todayIso) return false;
+
+                const matchNisn = String(c.nisn || '').trim() === String(loggedInSiswaNisn).trim() || String(c.nisn || '') === 'Semua Siswa';
+                const matchKelas = normalizeKelas(c.kelas) === normalizeKelas(loggedInSiswaKelas);
+                if (!matchNisn && !matchKelas) return false;
+
+                const tglStr = String(c.tanggal || '').toLowerCase();
+                const matchBulan = !bFilter || tglStr.includes(`-${bFilter}-`) || tglStr.includes(`/${bFilter}/`) || tglStr.includes(`/${parseInt(bFilter, 10)}/`) || tglStr.includes(targetMonthName);
+                const matchTahun = !tFilter || tglStr.includes(tFilter);
+                return matchBulan && matchTahun;
+            });
+
+            filtered.sort((a, b) => {
+                const da0 = String(a.tanggal || '');
+                const db0 = String(b.tanggal || '');
+                const da = da0.includes('/') ? da0.split('/').reverse().join('-') : da0;
+                const db = db0.includes('/') ? db0.split('/').reverse().join('-') : db0;
+                return new Date(db) - new Date(da);
+            });
+
+            ortuCatatanHistoryRows = filtered;
+            ortuCatatanPage = 1;
+            renderOrtuCatatanList();
+        }
+
+        function renderOrtuCatatanList() {
+            const container = document.getElementById('listOrtuCatatan');
+            if (!container) return;
+            const rows = ortuCatatanHistoryRows || [];
+            if (!rows.length) {
+                container.innerHTML = `<div class="text-center p-4 text-muted small bg-white rounded-4 shadow-sm">Tidak ada catatan guru pada periode ini.</div>`;
+                renderOrtuHistoryPager('ortuCatatanPagination', 0, 1, ORTU_CATATAN_PAGE_SIZE, 'changeOrtuCatatanPage');
+                return;
+            }
+
+            const pages = Math.max(1, Math.ceil(rows.length / ORTU_CATATAN_PAGE_SIZE));
+            ortuCatatanPage = Math.min(Math.max(1, ortuCatatanPage), pages);
+            const visible = rows.slice((ortuCatatanPage - 1) * ORTU_CATATAN_PAGE_SIZE, ortuCatatanPage * ORTU_CATATAN_PAGE_SIZE);
+
+            container.innerHTML = visible.map(c => {
                 let catText = String(c.catatan || "");
                 let badgeType = "bg-secondary";
                 let labelText = "Catatan Umum";
                 let icon = "fa-comment-dots";
-                
+
                 if (catText.includes("[WALI KELAS]")) {
                     badgeType = "bg-danger"; labelText = "Wali Kelas"; icon = "fa-user-shield";
                     catText = catText.replace("[WALI KELAS]", "").trim();
@@ -3143,19 +3219,25 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                     badgeType = "bg-primary"; labelText = "Guru Mapel"; icon = "fa-book-reader";
                     catText = catText.replace("[MAPEL]", "").trim();
                 }
-                
-                container.innerHTML += `
-                <div class="mobile-card-item mb-3 bg-white border rounded shadow-sm p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge ${badgeType}"><i class="fas ${icon} me-1"></i> ${labelText}</span>
-                        <small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatTanggalIndonesia(c.tanggal)}</small>
+
+                return `<div class="ortu-history-item shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                        <span class="badge ${badgeType}"><i class="fas ${icon} me-1"></i>${labelText}</span>
+                        <small class="text-muted fw-bold" style="font-size:.68rem;">${formatTanggalIndonesia(c.tanggal)}</small>
                     </div>
-                    <div class="mb-2"><strong class="small text-dark"><i class="fas fa-chalkboard-teacher me-1"></i> ${c.guru || c.nama_guru || 'Guru'}</strong></div>
-                    <div class="p-2 bg-light rounded small text-dark border-start border-3 border-${badgeType.split('-')[1]}">${catText}</div>
+                    <div class="small text-dark fw-bold mb-1"><i class="fas fa-chalkboard-teacher me-1"></i>${escapeHtml(String(c.guru || c.nama_guru || 'Guru'))}</div>
+                    <div class="p-2 bg-light rounded small text-dark border-start border-3 border-${badgeType.split('-')[1]}">${escapeHtml(catText)}</div>
                 </div>`;
-            });
+            }).join('');
+
+            renderOrtuHistoryPager('ortuCatatanPagination', rows.length, ortuCatatanPage, ORTU_CATATAN_PAGE_SIZE, 'changeOrtuCatatanPage');
         }
-        
+
+        function changeOrtuCatatanPage(page) {
+            ortuCatatanPage = page;
+            renderOrtuCatatanList();
+        }
+
         function loadOrtuJadwalAesthetic(kelas) {
             let container = document.getElementById('ortuJadwalContainer'); 
             container.innerHTML = `<div class="text-center py-4 text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Memuat jadwal pelajaran kelas ${kelas}...</div>`;
@@ -4301,23 +4383,56 @@ async function loadRefleksi7RumahOrtu(){
       document.getElementById('ref7Hp').value=c.hp_sebelum_tidur||'';
       document.getElementById('ref7Catatan').value=c.refleksi||'';
       setRef7SubmitStateV1601_(true);
-      if(info)info.innerHTML='<i class="fas fa-check-circle me-1"></i><b>Refleksi minggu ini sudah tersimpan.</b> Data di bawah adalah data yang tersimpan dan masih dapat diperbarui bila diperlukan. Target sekolah: bangun ≤ '+r.target_bangun+', tidur ≤ '+r.target_tidur+'.';
+      if(info)info.innerHTML='<i class="fas fa-check-circle me-1"></i><b>Refleksi minggu ini sudah tersimpan.</b> Data di bawah adalah data yang tersimpan dan masih dapat diperbarui bila diperlukan. Target sekolah: bangun ≤ '+escapeHtml(String(r.target_bangun||''))+', tidur ≤ '+escapeHtml(String(r.target_tidur||''))+'.';
     }else{
       document.getElementById('formRefleksi7Rumah')?.reset();
       setRef7SubmitStateV1601_(false);
-      if(info)info.innerHTML='<i class="fas fa-calendar-week me-1"></i>Refleksi minggu ini belum diisi. Target sekolah: bangun ≤ '+r.target_bangun+', tidur ≤ '+r.target_tidur+'.';
+      if(info)info.innerHTML='<i class="fas fa-calendar-week me-1"></i>Refleksi minggu ini belum diisi. Target sekolah: bangun ≤ '+escapeHtml(String(r.target_bangun||''))+', tidur ≤ '+escapeHtml(String(r.target_tidur||''))+'.';
     }
-    let rows=r.data||[];
-    if(!box)return;
-    if(!rows.length){box.innerHTML='<div class="text-center text-muted small py-3">Belum ada riwayat refleksi.</div>';return;}
-    box.innerHTML=rows.map(x=>{
-      let baik=x.status_bangun==='SESUAI TARGET'&&x.status_tidur==='SESUAI TARGET';
-      let cat=x.refleksi?`<div class="small text-muted mt-1"><i class="fas fa-comment-dots me-1"></i>Catatan: ${escapeHtml(x.refleksi)}</div>`:'';
-      return `<div class="border rounded-3 p-3 mb-2 bg-light"><div class="d-flex justify-content-between align-items-center gap-2"><b>${fmtDateRef7(x.minggu_mulai)} – ${fmtDateRef7(x.minggu_selesai)}</b><span class="badge ${baik?'bg-success':'bg-warning text-dark'}">${baik?'Baik':'Perlu diperbaiki'}</span></div><div class="small mt-2">🌅 Bangun rata-rata: <b>${escapeHtml(fmtTimeRef7(x.jam_bangun))}</b></div><div class="small">🌙 Tidur rata-rata: <b>${escapeHtml(fmtTimeRef7(x.jam_tidur))}</b></div><div class="small">📱 HP sebelum tidur: <b>${escapeHtml(x.hp_sebelum_tidur||'-')}</b></div>${cat}</div>`;
-    }).join('');
+    ref7HistoryRows=(r.data||[]).slice().sort((a,b)=>{
+      const da=String(a.minggu_mulai||'').split('/').reverse().join('-');
+      const db=String(b.minggu_mulai||'').split('/').reverse().join('-');
+      return new Date(db)-new Date(da);
+    });
+    ref7HistoryPage=1;
+    renderRef7HistoryOrtu();
   }catch(e){
     if(box)box.innerHTML='<div class="alert alert-danger small">'+escapeHtml(String(e.message||e))+'</div>';
+    const pager=document.getElementById('ref7HistoryPagination');if(pager)pager.innerHTML='';
   }
+}
+function renderRef7HistoryOrtu(){
+  const box=document.getElementById('ref7History');
+  if(!box)return;
+  const rows=ref7HistoryRows||[];
+  if(!rows.length){
+    box.innerHTML='<div class="text-center text-muted small py-3">Belum ada riwayat refleksi.</div>';
+    renderOrtuHistoryPager('ref7HistoryPagination',0,1,REF7_HISTORY_PAGE_SIZE,'changeRef7HistoryPage');
+    return;
+  }
+  const pages=Math.max(1,Math.ceil(rows.length/REF7_HISTORY_PAGE_SIZE));
+  ref7HistoryPage=Math.min(Math.max(1,ref7HistoryPage),pages);
+  const visible=rows.slice((ref7HistoryPage-1)*REF7_HISTORY_PAGE_SIZE,ref7HistoryPage*REF7_HISTORY_PAGE_SIZE);
+  box.innerHTML=visible.map(x=>{
+    const baik=x.status_bangun==='SESUAI TARGET'&&x.status_tidur==='SESUAI TARGET';
+    const cat=x.refleksi?`<div class="small text-muted mt-2 ortu-history-text-clamp"><i class="fas fa-comment-dots me-1"></i>${escapeHtml(String(x.refleksi))}</div>`:'';
+    return `<div class="ortu-history-item bg-light">
+      <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+        <b class="small">${fmtDateRef7(x.minggu_mulai)} – ${fmtDateRef7(x.minggu_selesai)}</b>
+        <span class="badge ${baik?'bg-success':'bg-warning text-dark'}">${baik?'Baik':'Perlu diperbaiki'}</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2 small">
+        <span>🌅 Bangun <b>${escapeHtml(fmtTimeRef7(x.jam_bangun))}</b></span>
+        <span>🌙 Tidur <b>${escapeHtml(fmtTimeRef7(x.jam_tidur))}</b></span>
+        <span>📱 HP <b>${escapeHtml(x.hp_sebelum_tidur||'-')}</b></span>
+      </div>${cat}
+    </div>`;
+  }).join('');
+  renderOrtuHistoryPager('ref7HistoryPagination',rows.length,ref7HistoryPage,REF7_HISTORY_PAGE_SIZE,'changeRef7HistoryPage');
+}
+function changeRef7HistoryPage(page){
+  ref7HistoryPage=page;
+  renderRef7HistoryOrtu();
 }
 async function simpanRefleksi7Rumah(e){
   e.preventDefault();
