@@ -192,36 +192,46 @@
 
         /* ===== V1.2.3 FINALISASI: PORTAL DOKUMENTASI PUBLIK COMPACT GRID ===== */
         #public-dokumentasi-section { display:none; min-height:100vh; background:#f4f7fb; }
-        .pubdoc-hero { background:linear-gradient(135deg,#123d73,#1f66b5); color:#fff; padding:30px 12px 55px; }
-        .pubdoc-logo { width:64px; height:64px; object-fit:contain; border-radius:50%; background:#fff; padding:5px; }
-        .pubdoc-shell { max-width:1180px; margin:-34px auto 0; padding:0 18px 35px; position:relative; }
-        .pubdoc-card { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(21,54,95,.10); border:1px solid #e7edf5; }
-        .pubdoc-category { cursor:pointer; transition:.18s ease; min-height:108px; border:1px solid #e1e8f0; border-radius:14px; background:#fff; }
-        .pubdoc-category:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(20,70,120,.12); border-color:#8bb7e8; }
+        .pubdoc-hero { background:linear-gradient(135deg,#123d73,#1f66b5); color:#fff; padding:20px 12px 43px; }
+        .pubdoc-logo { width:54px; height:54px; object-fit:contain; border-radius:50%; background:#fff; padding:5px; }
+        .pubdoc-shell { max-width:1440px; margin:-30px auto 0; padding:0 16px 20px; position:relative; }
+        .pubdoc-card { background:#fff; border-radius:14px; box-shadow:0 7px 22px rgba(21,54,95,.08); border:1px solid #e7edf5; }
+        .pubdoc-category { cursor:pointer; transition:.18s ease; min-height:72px; border:1px solid #e1e8f0; border-radius:11px; background:#fff; }
+        .pubdoc-category:hover { transform:translateY(-1px); box-shadow:0 5px 14px rgba(20,70,120,.10); border-color:#8bb7e8; }
         .pubdoc-category.active { border:2px solid #1465ad; background:#eef6ff; }
-        .pubdoc-category i { font-size:1.35rem; color:#1465ad; }
-        .pubdoc-item { border-left:4px solid #1465ad; }
-        .pubdoc-photo { width:100%; height:175px; object-fit:cover; border-radius:10px; cursor:pointer; background:#eef2f6; }
+        .pubdoc-category i { font-size:1.05rem; color:#1465ad; margin-bottom:4px!important; }
+        .pubdoc-item { border-left:3px solid #1465ad; }
+        .pubdoc-photo { width:100%; height:145px; object-fit:cover; border-radius:10px; cursor:pointer; background:#eef2f6; }
         #publicDokLightbox { display:none; position:fixed; inset:0; z-index:10050; background:rgba(0,0,0,.88); align-items:center; justify-content:center; padding:20px; }
         #publicDokLightbox.show { display:flex; }
         #publicDokLightbox img { max-width:95vw; max-height:90vh; object-fit:contain; border-radius:12px; }
         #publicDokLightbox .close-btn { position:absolute; top:18px; right:22px; border:0; background:#fff; width:42px; height:42px; border-radius:50%; font-size:24px; }
-        @media(max-width:576px){.pubdoc-photo{height:145px}.pubdoc-hero{padding-top:22px}.pubdoc-shell{padding-left:10px;padding-right:10px}}
+        @media(max-width:576px){.pubdoc-photo{height:120px}.pubdoc-hero{padding-top:16px}.pubdoc-shell{padding-left:9px;padding-right:9px}}
+        /* Compact category selector: less vertical space */
+        #publicDokKategoriCards .pubdoc-category { padding:8px!important; }
+        #publicDokKategoriCards .pubdoc-category .small { font-size:.72rem; line-height:1.15; }
+        #publicDokKategoriCards .pubdoc-category b { font-size:.82rem; }
+        @media(max-width:575px){
+            #publicDokKategoriCards{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:0 0 7px;margin-left:0;margin-right:0;}
+            #publicDokKategoriCards>.col{flex:0 0 102px;width:102px;padding:0;}
+            #publicDokKategoriCards .pubdoc-category{min-height:64px!important;}
+        }
         /* V1.2.3 Compact Gallery */
-        #publicDokList.pubdoc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch;}
-        .pubdoc-compact{margin:0!important;padding:14px!important;min-height:100%;display:flex;flex-direction:column;cursor:pointer;overflow:hidden;}
-        .pubdoc-cover{width:100%;height:155px;object-fit:cover;border-radius:10px;background:#eef2f6;}
-        .pubdoc-desc-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;line-height:1.45;min-height:0;}
-        .pubdoc-meta{font-size:.78rem;color:#6c757d;}
-        .pubdoc-card-title{font-size:1rem;line-height:1.3;}
-        .pubdoc-photo-count{font-size:.75rem;color:#6c757d;}
+        #publicDokList.pubdoc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:stretch;}
+        .pubdoc-compact{margin:0!important;padding:10px!important;min-height:100%;display:flex;flex-direction:column;cursor:pointer;overflow:hidden;}
+        .pubdoc-cover{width:100%;height:112px;object-fit:cover;border-radius:8px;background:#eef2f6;}
+        .pubdoc-desc-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;min-height:0;font-size:.84rem;}
+        .pubdoc-meta{font-size:.70rem;color:#6c757d;}
+        .pubdoc-card-title{font-size:.88rem;line-height:1.25;}
+        .pubdoc-photo-count{font-size:.68rem;color:#6c757d;}
         #publicDokDetail{display:none;position:fixed;inset:0;z-index:10040;background:rgba(15,25,40,.78);align-items:center;justify-content:center;padding:20px;}
         #publicDokDetail.show{display:flex;}
         .pubdoc-detail-panel{width:min(900px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 22px 70px rgba(0,0,0,.35);}
         .pubdoc-detail-photo{width:100%;height:190px;object-fit:cover;border-radius:10px;cursor:pointer;background:#eef2f6;}
         .storage-pill{background:#f8fbff;border:1px solid #dbe8f7;border-radius:12px;padding:8px 12px;font-size:.83rem;}
-        @media(max-width:991px){#publicDokList.pubdoc-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.pubdoc-cover{height:145px;}}
-        @media(max-width:575px){#publicDokList.pubdoc-grid{grid-template-columns:1fr;gap:10px}.pubdoc-cover{height:165px}.pubdoc-compact{padding:12px!important}.pubdoc-category{min-height:90px}.pubdoc-shell{padding-bottom:24px}.pubdoc-detail-photo{height:150px}}
+        @media(max-width:1199px){#publicDokList.pubdoc-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+        @media(max-width:767px){#publicDokList.pubdoc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.pubdoc-cover{height:105px;}}
+        @media(max-width:575px){#publicDokList.pubdoc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pubdoc-cover{height:92px}.pubdoc-compact{padding:8px!important}.pubdoc-category{min-height:66px}.pubdoc-shell{padding-bottom:16px}.pubdoc-detail-photo{height:150px}.pubdoc-card-title{font-size:.80rem}}
 
 
         /* ===== V1.4.3 JABAR BERAKSI - LAPORAN PUBLIK / CETAK ===== */
@@ -406,7 +416,7 @@
                     <div><h5 class="fw-bold mb-0 text-primary"><i class="fas fa-folder-open me-2"></i>Dokumentasi Publik</h5><small class="text-muted">Pilih kartu kategori. Data INTERNAL dan TERBATAS tidak ditampilkan di halaman ini.</small></div>
                     <button class="btn btn-outline-primary btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Cetak / PDF</button>
                 </div>
-                <div id="publicDokKategoriCards" class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-2 mb-3"></div>
+                <div id="publicDokKategoriCards" class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2 mb-2"></div>
                 <div class="row g-2 align-items-end">
                     <div class="col-md-5"><label class="form-label small fw-bold">Bulan</label><select id="publicDokBulan" class="form-select"><option value="">Semua Bulan</option></select></div>
                     <div class="col-md-5"><label class="form-label small fw-bold">Kategori Aktif</label><input id="publicDokKategoriLabel" class="form-control" value="Semua Dokumentasi" readonly></div>
@@ -1191,6 +1201,14 @@
                             <span class="teacher-link-title">Dokumentasi Kegiatan 7KAIH</span>
                             <span class="teacher-link-desc">Bukti pelaksanaan kegiatan 7KAIH</span>
                             <span class="teacher-link-open">BUKA DOKUMENTASI <i class="fas fa-arrow-up-right-from-square ms-1"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a class="teacher-link-card" href="https://smpn2kawali26.github.io/presensi_neduka/?dokumentasi=1" target="_blank" rel="noopener noreferrer">
+                            <span class="teacher-link-icon"><i class="fas fa-images"></i></span>
+                            <span class="teacher-link-title">Dokumentasi Sekolah</span>
+                            <span class="teacher-link-desc">Galeri publik kegiatan sekolah</span>
+                            <span class="teacher-link-open">LIHAT GALERI <i class="fas fa-arrow-up-right-from-square ms-1"></i></span>
                         </a>
                     </div>
                 </div>
@@ -4472,7 +4490,7 @@ async function simpanTambahFotoDokSekolahUser(){let id=document.getElementById('
 // ===== V1.2.1 TAHAP 2: PORTAL DOKUMENTASI PUBLIK SATU LINK =====
 const PUBLIC_DOK_KATEGORI=['7KAIH','Home Visit','Lomba','Literasi','Ekstrakurikuler','Rapat / Briefing','Perjalanan Dinas','Study Tour','Kegiatan Sekolah','Kegiatan Lain'];
 const publicDokIcons={'7KAIH':'fa-seedling','Home Visit':'fa-house','Lomba':'fa-trophy','Literasi':'fa-book-open','Ekstrakurikuler':'fa-masks-theater','Rapat / Briefing':'fa-users','Perjalanan Dinas':'fa-car','Study Tour':'fa-bus','Kegiatan Sekolah':'fa-school','Kegiatan Lain':'fa-folder'};
-let publicDokState={kategori:'',data:[],page:1,limit:10,response:null};
+let publicDokState={kategori:'',data:[],page:1,limit:8,response:null};
 function getPublicDokUrl(){return window.location.origin+window.location.pathname+'?dokumentasi=1';}
 async function salinLinkPortalDokumentasi(){const url=getPublicDokUrl();const ok=await copyText7KAIH_(url);if(ok)showToast7KAIH('Link Portal Dokumentasi berhasil disalin.');else window.prompt('Salin link Portal Dokumentasi:',url);}
 function openPublicDokLightbox(url){let b=document.getElementById('publicDokLightbox'),i=document.getElementById('publicDokLightboxImg');if(!b||!i)return;i.src=driveThumb7KAIH(url,2000);b.classList.add('show');document.body.style.overflow='hidden';}
